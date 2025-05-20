@@ -370,6 +370,7 @@
                     </span>
                     Dashboard
                 </a>
+                {% if current_user.role == 'teacher' %}
                 <a href="{{ url_for('create_class') }}" class="menu-item">
                     <span class="menu-item-icon">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
@@ -379,6 +380,18 @@
                     </span>
                     Create New Class
                 </a>
+                {% endif %}
+                {% if current_user.role == 'student' %}
+                <a href="{{ url_for('join_class') }}" class="menu-item">
+                    <span class="menu-item-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 13A6 6 0 1 1 8 2a6 6 0 0 1 0 12z"/>
+                            <path d="M8 4a.5.5 0 0 1 .5.5v2.5H11a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V8H5a.5.5 0 0 1 0-1h2.5V4.5A.5.5 0 0 1 8 4z"/>
+                        </svg>
+                    </span>
+                    Join Class
+                </a>
+                {% endif %}
                 {% if current_user.is_admin %}
                 <a href="{{ url_for('admin_dashboard') }}" class="menu-item">
                     <span class="menu-item-icon">
@@ -427,10 +440,17 @@
                     <span class="class-title">{{ class_obj.name }}</span>
                     <span class="class-teacher">Teacher: {{ class_obj.teacher.username }}</span>
                     <span class="class-description">{{ class_obj.description or 'No description provided' }}</span>
+                    {% if current_user.role == 'teacher' %}
+                    <div class="class-code-section">
+                        <span class="class-code-label">Class Code:</span>
+                        <span class="class-code">{{ class_obj.class_code }}</span>
+                    </div>
+                    {% endif %}
                     <div class="class-stats">
                         <span><span class="stat-icon">👥</span>{{ class_obj.students|length }} Students</span>
                         <span><span class="stat-icon">📄</span>{{ class_obj.summaries|length }} Summaries</span>
                     </div>
+                    {% if current_user.role == 'teacher' %}
                     <a href="/recordings?class_id={{ class_obj.id }}" class="btn btn-primary">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                             <path d="M8 11a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v3a3 3 0 0 0 3 3z"/>
@@ -438,6 +458,7 @@
                         </svg>
                         Record Audio
                     </a>
+                    {% endif %}
                 </div>
                 <div class="summaries-section">
                     <h2>Class Summaries</h2>

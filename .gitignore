@@ -1,1 +1,5 @@
 .env
+local_data/
+flask_session/
+__pycache__/
+*.pyc

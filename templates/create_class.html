@@ -411,5 +411,11 @@
             handleResize();
         });
     </script>
+    
+    {% if get_flashed_messages() %}
+        {% for category, message in get_flashed_messages(with_categories=true) %}
+            <div class="flash-message flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
 </body>
 </html>

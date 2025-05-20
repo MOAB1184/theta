@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, request, jsonify, send_file, flash
+from flask import Flask, render_template, redirect, url_for, request, jsonify, send_file, flash, session
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_sqlalchemy import SQLAlchemy
 from flask_session import Session
@@ -13,6 +13,10 @@ import google.generativeai as genai
 import datetime
 import re
 from dotenv import load_dotenv
+import stripe
+import random
+import string
+from stripe.error import SignatureVerificationError
 
 # Try to load environment variables from .env file
 try:
@@ -215,6 +219,7 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(200), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)  # Kept for now, but role='admin' is preferred
     role = db.Column(db.String(50), nullable=False, default='student') # student, teacher, admin
+    subscribed = db.Column(db.Boolean, default=False)  # New: track paid/invite access
     
     # Add relationships for classes
     teaching_classes = db.relationship('Class', backref='teacher', lazy=True, foreign_keys='Class.teacher_id')
@@ -233,6 +238,7 @@ class Class(db.Model):
     description = db.Column(db.Text)
     teacher_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    class_code = db.Column(db.String(16), unique=True, nullable=False)  # New: join code
     
     # Add relationship for summaries
     summaries = db.relationship('Summary', backref='class', lazy=True)
@@ -321,13 +327,7 @@ def initialize_prompts():
         print("Global prompt already exists")
 
 def count_user_summaries(username, role):
-    user_summaries_dir = os.path.join(app.config['UPLOAD_FOLDER'], username, role, 'summaries')
     summary_count = 0
-    
-    if os.path.exists(user_summaries_dir):
-        for filename in os.listdir(user_summaries_dir):
-            if filename.startswith('summary_'):
-                summary_count += 1
     
     # Count class summaries
     classes = []
@@ -338,9 +338,9 @@ def count_user_summaries(username, role):
         classes = user.enrolled_classes
     
     for class_obj in classes:
-        class_summaries_dir = os.path.join(app.config['UPLOAD_FOLDER'], 'class_summaries', str(class_obj.id))
-        if os.path.exists(class_summaries_dir):
-            for filename in os.listdir(class_summaries_dir):
+        class_dir = os.path.join(app.config['UPLOAD_FOLDER'], username, 'classes', class_obj.class_code)
+        if os.path.exists(class_dir):
+            for filename in os.listdir(class_dir):
                 if filename.startswith('summary_'):
                     summary_count += 1
     
@@ -371,26 +371,10 @@ def register():
         db.session.add(new_user)
         db.session.commit()
         
-        # Create user directory and role-specific subdirectories including new subfolders
+        # Create user directory structure
         user_base_dir = os.path.join(app.config['UPLOAD_FOLDER'], username)
         os.makedirs(user_base_dir, exist_ok=True)
-        
-        # Create role-specific base folder (student or teacher)
-        user_role_specific_base_dir = os.path.join(user_base_dir, role)
-        os.makedirs(user_role_specific_base_dir, exist_ok=True)
-
-        # Create subfolders for recordings, transcripts, and summaries within the role-specific directory
-        os.makedirs(os.path.join(user_role_specific_base_dir, 'recordings'), exist_ok=True)
-        os.makedirs(os.path.join(user_role_specific_base_dir, 'transcripts'), exist_ok=True)
-        os.makedirs(os.path.join(user_role_specific_base_dir, 'summaries'), exist_ok=True)
-
-        # Ensure the other role's base folder is also created (e.g. if registered as student, create empty teacher folder structure)
-        other_role = 'teacher' if role == 'student' else 'student'
-        other_role_specific_base_dir = os.path.join(user_base_dir, other_role)
-        os.makedirs(other_role_specific_base_dir, exist_ok=True)
-        os.makedirs(os.path.join(other_role_specific_base_dir, 'recordings'), exist_ok=True)
-        os.makedirs(os.path.join(other_role_specific_base_dir, 'transcripts'), exist_ok=True)
-        os.makedirs(os.path.join(other_role_specific_base_dir, 'summaries'), exist_ok=True)
+        os.makedirs(os.path.join(user_base_dir, 'classes'), exist_ok=True)
         
         login_user(new_user)
         return redirect(url_for('dashboard'))
@@ -537,6 +521,7 @@ def transcribe():
     try:
         audio_base64 = request.json.get('audio_base64')
         mime_type = request.json.get('mime_type')
+        class_id = request.json.get('class_id')
 
         if not audio_base64 or not mime_type:
             return jsonify({'status': 'error', 'message': "Missing audio data or mime_type."}), 400
@@ -556,7 +541,6 @@ def transcribe():
         
         try:
             gemini_model = genai.GenerativeModel('gemini-1.5-flash')
-            # Prepare audio part for Gemini API
             audio_part = {
                 'mime_type': mime_type,
                 'data': audio_bytes
@@ -567,37 +551,48 @@ def transcribe():
             print(f"Gemini API error: {e}")
             if "API key not valid" in str(e) or "API_KEY_INVALID" in str(e):
                 return jsonify({'status': 'error', 'message': "Gemini API key is invalid. Please check configuration."}), 500
-            # Check for specific content-related errors from Gemini
             if hasattr(e, 'response') and hasattr(e.response, 'prompt_feedback'):
                 if e.response.prompt_feedback.block_reason:
                     reason = e.response.prompt_feedback.block_reason
                     return jsonify({'status': 'error', 'message': f"Transcription failed due to content policy: {reason}."}), 400
             return jsonify({'status': 'error', 'message': f"Error with Gemini API: {str(e)}"}), 500
 
-        # Create directories and save transcript first
-        user_role_dir = os.path.join(app.config['UPLOAD_FOLDER'], current_user.username, current_user.role)
-        recordings_dir = os.path.join(user_role_dir, 'recordings')
-        transcripts_dir = os.path.join(user_role_dir, 'transcripts')
-        
-        # Ensure directories exist
-        os.makedirs(recordings_dir, exist_ok=True)
-        os.makedirs(transcripts_dir, exist_ok=True)
-            
+        # Create directories and save transcript
         timestamp = str(int(time.time()))
         recording_filename = f"recording_{timestamp}.txt"
         transcript_filename = f"transcript_{timestamp}.txt"
+        
+        if class_id:
+            # Save to class directory under user's directory
+            class_obj = Class.query.get(class_id)
+            if not class_obj:
+                return jsonify({'status': 'error', 'message': 'Class not found'}), 404
+            # Verify user access
+            if current_user.role == 'teacher' and class_obj.teacher_id != current_user.id:
+                return jsonify({'status': 'error', 'message': 'Unauthorized access to class'}), 403
+            elif current_user.role == 'student' and class_obj not in current_user.enrolled_classes:
+                return jsonify({'status': 'error', 'message': 'Unauthorized access to class'}), 403
             
-        recording_path = os.path.join(recordings_dir, recording_filename)
-        transcript_path = os.path.join(transcripts_dir, transcript_filename)
+            class_dir = os.path.join(app.config['UPLOAD_FOLDER'], current_user.username, 'classes', class_obj.class_code)
+            os.makedirs(class_dir, exist_ok=True)
+            
+            recording_path = os.path.join(class_dir, recording_filename)
+            transcript_path = os.path.join(class_dir, transcript_filename)
+        else:
+            # Save to user's personal directory
+            user_dir = os.path.join(app.config['UPLOAD_FOLDER'], current_user.username)
+            os.makedirs(user_dir, exist_ok=True)
+            
+            recording_path = os.path.join(user_dir, recording_filename)
+            transcript_path = os.path.join(user_dir, transcript_filename)
 
         # Save received base64 audio and real transcript
         with open(recording_path, 'w', encoding='utf-8') as f:
-            f.write(audio_base64) # Save the actual base64 audio string
+            f.write(audio_base64)
             
         with open(transcript_path, 'w', encoding='utf-8') as f:
             f.write(transcript)
             
-        # Return the transcript and associated data - without summarizing yet
         return jsonify({
             'status': 'success',
             'transcript': transcript,
@@ -612,7 +607,6 @@ def transcribe():
             'message': f"Error processing: {str(e)}"
         }), 500
 
-# Endpoint for summarization after transcript is downloaded
 @app.route('/api/summarize', methods=['POST'])
 @login_required
 def summarize():
@@ -624,17 +618,14 @@ def summarize():
         if not transcript or not timestamp:
             return jsonify({'status': 'error', 'message': "Missing transcript or timestamp"}), 400
         
-        # Check if Deepseek API key is configured
         if not DEEPSEEK_API_KEY:
             return jsonify({'status': 'error', 'message': "Deepseek API key not configured. Please set the DEEPSEEK_API_KEY environment variable."}), 500
         
-        # Get the appropriate prompt
         if Prompt.is_latex('global'):
             summarization_prompt_template = LATEX_PROMPT
         else:
             summarization_prompt_template = Prompt.get_prompt('global')
         
-        # Combine prompt with transcript
         if not summarization_prompt_template.strip().endswith("Transcript:"):
             full_summarization_prompt = summarization_prompt_template + "\n\nTranscript:\n" + transcript
         else:
@@ -659,7 +650,7 @@ def summarize():
         summary_filename = f"summary_{timestamp}.txt"
         summary_path = None
         if class_id:
-            # Save to class summary folder and DB
+            # Save to class directory under user's directory
             class_obj = Class.query.get(class_id)
             if not class_obj:
                 return jsonify({'status': 'error', 'message': 'Class not found'}), 404
@@ -668,21 +659,24 @@ def summarize():
                 return jsonify({'status': 'error', 'message': 'Unauthorized access to class'}), 403
             elif current_user.role == 'student' and class_obj not in current_user.enrolled_classes:
                 return jsonify({'status': 'error', 'message': 'Unauthorized access to class'}), 403
-            class_summaries_dir = os.path.join(app.config['UPLOAD_FOLDER'], 'class_summaries', str(class_id))
-            os.makedirs(class_summaries_dir, exist_ok=True)
-            summary_path = os.path.join(class_summaries_dir, summary_filename)
+            
+            class_dir = os.path.join(app.config['UPLOAD_FOLDER'], current_user.username, 'classes', class_obj.class_code)
+            os.makedirs(class_dir, exist_ok=True)
+            summary_path = os.path.join(class_dir, summary_filename)
+            
             with open(summary_path, 'w', encoding='utf-8') as f:
                 f.write(summary)
+            
             # Add to DB if not already present
             if not Summary.query.filter_by(filename=summary_filename, class_id=class_id).first():
                 db.session.add(Summary(filename=summary_filename, class_id=class_id))
                 db.session.commit()
         else:
-            # Save to user summaries folder
-            user_role_dir = os.path.join(app.config['UPLOAD_FOLDER'], current_user.username, current_user.role)
-            summaries_dir = os.path.join(user_role_dir, 'summaries')
-            os.makedirs(summaries_dir, exist_ok=True)
-            summary_path = os.path.join(summaries_dir, summary_filename)
+            # Save to user's personal directory
+            user_dir = os.path.join(app.config['UPLOAD_FOLDER'], current_user.username)
+            os.makedirs(user_dir, exist_ok=True)
+            summary_path = os.path.join(user_dir, summary_filename)
+            
             with open(summary_path, 'w', encoding='utf-8') as f:
                 f.write(summary)
         
@@ -882,25 +876,28 @@ def edit_global_prompt():
 def create_class():
     if current_user.role != 'teacher':
         return redirect(url_for('dashboard'))
-        
     if request.method == 'POST':
         name = request.form.get('name')
         description = request.form.get('description')
-        
         if not name:
             return render_template('create_class.html', error='Class name is required')
-            
+        # Generate unique class code
+        def generate_class_code():
+            while True:
+                code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+                if not Class.query.filter_by(class_code=code).first():
+                    return code
+        class_code = generate_class_code()
         new_class = Class(
             name=name,
             description=description,
-            teacher_id=current_user.id
+            teacher_id=current_user.id,
+            class_code=class_code
         )
-        
         db.session.add(new_class)
         db.session.commit()
-        
+        flash(f'Class created! Class code: {class_code}', 'success')
         return redirect(url_for('dashboard'))
-        
     return render_template('create_class.html')
 
 @app.route('/classes/<int:class_id>')
@@ -936,6 +933,108 @@ def enroll_in_class(class_id):
         
     return redirect(url_for('dashboard'))
 
+@app.route('/join_class', methods=['GET', 'POST'])
+@login_required
+def join_class():
+    if current_user.role != 'student':
+        return redirect(url_for('dashboard'))
+    if request.method == 'POST':
+        class_code = request.form.get('class_code', '').strip().upper()
+        class_obj = Class.query.filter_by(class_code=class_code).first()
+        if not class_obj:
+            return render_template('join_class.html', error='Invalid class code')
+        if class_obj in current_user.enrolled_classes:
+            return render_template('join_class.html', error='You are already enrolled in this class')
+        current_user.enrolled_classes.append(class_obj)
+        db.session.commit()
+        flash('Successfully joined class!', 'success')
+        return redirect(url_for('dashboard'))
+    return render_template('join_class.html')
+
+INVITE_CODE = os.getenv('INVITE_CODE')
+STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
+if STRIPE_SECRET_KEY:
+    stripe.api_key = STRIPE_SECRET_KEY
+
+@app.route('/pay', methods=['POST'])
+@login_required
+def pay():
+    invite_code = request.form.get('invite_code', '').strip()
+    if invite_code and invite_code == INVITE_CODE:
+        current_user.subscribed = True
+        db.session.commit()
+        flash('Invite code accepted! You now have unlimited access.', 'success')
+        return redirect(url_for('dashboard'))
+    elif STRIPE_SECRET_KEY:
+        # Stripe payment flow: create a Checkout session
+        import stripe
+        session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price_data': {
+                    'currency': 'usd',
+                    'product_data': {
+                        'name': 'ThetaSummary Unlimited Plan',
+                    },
+                    'unit_amount': 2000,
+                },
+                'quantity': 1,
+            }],
+            mode='payment',
+            success_url=url_for('dashboard', _external=True) + '?paid=1',
+            cancel_url=url_for('pricing', _external=True),
+            metadata={'user_id': current_user.id}
+        )
+        return redirect(session.url)
+    else:
+        flash('Invalid invite code. Please try again or pay with card.', 'error')
+        return redirect(url_for('pricing'))
+
+@app.route('/stripe_webhook', methods=['POST'])
+def stripe_webhook():
+    payload = request.data
+    sig_header = request.headers.get('stripe-signature')
+    endpoint_secret = os.getenv('STRIPE_WEBHOOK_SECRET')
+    event = None
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, endpoint_secret
+        )
+    except ValueError as e:
+        return 'Invalid payload', 400
+    except SignatureVerificationError as e:
+        return 'Invalid signature', 400
+    if event['type'] == 'checkout.session.completed':
+        session_obj = event['data']['object']
+        user_id = session_obj['metadata'].get('user_id')
+        if user_id:
+            user = User.query.get(int(user_id))
+            if user:
+                user.subscribed = True
+                db.session.commit()
+    return '', 200
+
+@app.route('/admin/upload_recording', methods=['POST'])
+@login_required
+def admin_upload_recording():
+    if not current_user.is_admin and current_user.role != 'admin':
+        flash('Access denied.', 'error')
+        return redirect(url_for('admin_dashboard'))
+    password = request.form.get('admin_password', '')
+    if password != '071409':
+        flash('Incorrect admin password.', 'error')
+        return redirect(url_for('admin_dashboard'))
+    file = request.files.get('recording_file')
+    if not file or file.filename == '':
+        flash('No file selected.', 'error')
+        return redirect(url_for('admin_dashboard'))
+    admin_upload_dir = os.path.join(BASE_DATA_DIR, 'admin_uploads')
+    os.makedirs(admin_upload_dir, exist_ok=True)
+    save_path = os.path.join(admin_upload_dir, file.filename)
+    file.save(save_path)
+    flash('Recording uploaded successfully!', 'success')
+    return redirect(url_for('admin_dashboard'))
+
 if __name__ == '__main__':
     with app.app_context():
         # Create tables
@@ -954,7 +1053,8 @@ if __name__ == '__main__':
                     test_class = Class(
                         name='Test Class',
                         description='A test class for development purposes',
-                        teacher_id=test_teacher.id
+                        teacher_id=test_teacher.id,
+                        class_code=''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
                     )
                     db.session.add(test_class)
                     db.session.commit()

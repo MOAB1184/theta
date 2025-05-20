@@ -390,7 +390,30 @@
                     <li>All features included</li>
                     <li>Cancel anytime</li>
                 </ul>
-                <button class="btn btn-primary">Get Started</button>
+                <button class="btn btn-primary" id="get-started-btn">Get Started</button>
+                <div id="payment-modal" style="display:none; margin-top:20px; background:#222; padding:20px; border-radius:8px;">
+                    <form id="payment-form" method="POST" action="/pay">
+                        <label for="invite_code">Have an invite code?</label>
+                        <input type="text" id="invite_code" name="invite_code" placeholder="Enter invite code" style="margin-bottom:10px; width:100%; padding:8px; border-radius:4px; border:1px solid #444; background:#181818; color:#fff;">
+                        <button type="submit" class="btn btn-primary" style="width:100%; margin-bottom:10px;">Submit Code</button>
+                    </form>
+                    <form id="stripe-form" method="POST" action="/pay">
+                        <input type="hidden" name="invite_code" value="">
+                        <button type="submit" class="btn btn-primary" style="width:100%;">Pay $20 with Card</button>
+                    </form>
+                    <div id="payment-message" style="color:#c084fc; margin-top:10px;"></div>
+                </div>
+                <script>
+                document.getElementById('get-started-btn').onclick = function() {
+                    document.getElementById('payment-modal').style.display = 'block';
+                };
+                document.getElementById('payment-form').onsubmit = function(e) {
+                    // Let backend handle code validation
+                };
+                document.getElementById('stripe-form').onsubmit = function(e) {
+                    // Let backend handle payment
+                };
+                </script>
             </div>
             <div class="pricing-card">
                 <h2>Custom Pricing</h2>
