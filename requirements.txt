@@ -10,3 +10,4 @@ google-generativeai
 python-dotenv
 stripe
 requests
+Flask-Session
