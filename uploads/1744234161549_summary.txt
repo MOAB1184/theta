@@ -1,0 +1,94 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\begin{document}
+
+\section*{Probability Concepts Summary}
+
+\section{Key Formulas and Their Use Cases}
+\begin{itemize}
+    \item \textbf{Geometric Series Formula}: 
+    \[
+    S = \frac{a_1}{1 - r} \quad (|r| < 1)
+    \]
+    \emph{Components}: \(a_1\) = first term, \(r\) = common ratio. \\
+    \emph{Use Case}: Calculating infinite probability sequences like repeated trials (e.g., Adam's winning probability over infinite attempts).
+
+    \item \textbf{Conditional Probability}:
+    \[
+    P(A|B) = \frac{P(A \cap B)}{P(B)}
+    \]
+    \emph{Components}: Probability of event \(A\) given \(B\). \\
+    \emph{Use Case}: Determining likelihood of overlapping outcomes (e.g., students liking both pizza and ice coffee).
+
+    \item \textbf{Tree Diagram Multiplication Rule}:
+    \[
+    P(\text{Path}) = \prod \text{Individual probabilities}
+    \]
+    \emph{Components}: Sequential probabilities multiplied for compound events. \\
+    \emph{Use Case}: Multi-stage probability problems (e.g., alternating dice rolls between Adam and Daniel).
+\end{itemize}
+
+\section{Example Problems and Solutions}
+
+\subsection*{Problem 1: Alternating Dice Game}
+\textbf{Question}: Adam and Daniel alternate rolling a die. Adam wins on rolling 1; Daniel wins on rolling 2/4/6. What is the probability Adam wins on his 3rd attempt?
+
+\textbf{Solution}:
+\begin{align*}
+    P(\text{Adam wins on 3rd trial}) &= \left(\frac{5}{6}\right) \times \left(\frac{1}{2}\right) \times \left(\frac{5}{6}\right) \times \left(\frac{1}{2}\right) \times \left(\frac{1}{6}\right) \\
+    &= \left(\frac{5}{6} \times \frac{1}{2}\right)^2 \times \frac{1}{6} \\
+    &= \left(\frac{5}{12}\right)^2 \times \frac{1}{6} = \frac{25}{864} \approx 0.0289
+\end{align*}
+\textbf{Explanation}:
+\begin{itemize}
+    \item First two factors: Adam fails, Daniel fails (1st round)
+    \item Next two factors: Adam fails, Daniel fails again (2nd round)
+    \item Final factor: Adam succeeds on 3rd attempt
+\end{itemize}
+
+\subsection*{Problem 2: Infinite Probability Series}
+\textbf{Question}: Calculate Adam's total winning probability in the infinite dice game.
+
+\textbf{Solution}:
+\[
+P = \frac{1/6}{1 - (5/6 \times 1/2)} = \frac{1/6}{1 - 5/12} = \frac{1/6}{7/12} = \frac{2}{7} \approx 0.2857
+\]
+\textbf{Explanation}:
+\begin{itemize}
+    \item First term \(a_1 = 1/6\) (Adam wins immediately)
+    \item Common ratio \(r = 5/12\) (Probability cycle repeats)
+    \item Apply infinite geometric series formula
+\end{itemize}
+
+\subsection*{Problem 3: Venn Diagram Probability}
+\textbf{Question}: In a class of 25 students, 16 like ice coffee, 12 like pizza, and 6 like both. Find \(P(\text{Pizza}|\text{Ice Coffee})\).
+
+\textbf{Solution}:
+\[
+P(P|IC) = \frac{P(P \cap IC)}{P(IC)} = \frac{6/25}{16/25} = \frac{6}{16} = \frac{3}{8}
+\]
+\textbf{Explanation}:
+\begin{itemize}
+    \item Numerator: Students liking both items
+    \item Denominator: Total ice coffee lovers
+    \item 25 cancels out in ratio calculation
+\end{itemize}
+
+\subsection*{Problem 4: Tree Diagram Construction}
+\textbf{Question}: Construct probability tree for 2 rounds of Adam/Daniel game. Calculate \(P(\text{Daniel wins by 2nd round})\).
+
+\textbf{Solution}:
+\begin{align*}
+    \text{Path 1}: & \frac{5}{6} \times \frac{1}{2} = \frac{5}{12} \\
+    \text{Path 2}: & \frac{5}{6} \times \frac{1}{2} \times \frac{5}{6} \times \frac{1}{2} = \frac{25}{144} \\
+    \text{Total } P &= \frac{5}{12} + \frac{25}{144} = \frac{85}{144} \approx 0.5903
+\end{align*}
+\textbf{Explanation}:
+\begin{itemize}
+    \item Path 1: Daniel wins immediately (2nd roll)
+    \item Path 2: Both fail first round, Daniel wins second round
+    \item Sum mutually exclusive probabilities
+\end{itemize}
+
+\end{document}

@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - ThetaSummary</title>
+    <style>
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0;
+        }
+        body { 
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            width: 250px;
+            background-color: #1a1a1a;
+            transition: all 0.3s ease;
+            overflow-y: auto;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            z-index: 100;
+            transform: translateX(-250px);
+        }
+        .sidebar.active {
+            transform: translateX(0);
+        }
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .sidebar-logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #ffffff;
+            text-decoration: none;
+        }
+        .close-menu {
+            background: none;
+            border: none;
+            color: #a0a0a0;
+            cursor: pointer;
+            font-size: 1.5rem;
+        }
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+        .sidebar-menu-title {
+            padding: 0 20px;
+            margin-bottom: 10px;
+            color: #a0a0a0;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .menu-item {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: #e0e0e0;
+            transition: all 0.2s ease;
+        }
+        .menu-item:hover, .menu-item.active {
+            background-color: #242424;
+        }
+        .menu-item-icon {
+            margin-right: 10px;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid #333;
+        }
+        .sidebar-footer-text {
+            color: #a0a0a0;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: #e0e0e0;
+            padding: 10px 15px;
+            background-color: #242424;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+        .logout-btn:hover {
+            background-color: #333;
+        }
+        .logout-icon {
+            margin-right: 8px;
+        }
+        
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            margin-left: 0;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        .main-content.sidebar-active {
+            margin-left: 250px;
+            width: calc(100% - 250px);
+        }
+        
+        /* Header Styles */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .menu-toggle {
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+        }
+        .page-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+        .user-menu {
+            position: relative;
+        }
+        .user-button {
+            background: none;
+            border: none;
+            color: #ffffff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        .user-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background-color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        
+        /* Dashboard Styles */
+        .welcome-section {
+            background-color: #1a1a1a;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        .welcome-title {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: #ffffff;
+        }
+        .welcome-subtitle {
+            color: #a0a0a0;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background-color: #1a1a1a;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #ffffff;
+        }
+        .stat-label {
+            color: #a0a0a0;
+            font-size: 1rem;
+        }
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            background-color: #242424;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+        
+        .quick-actions {
+            background-color: #1a1a1a;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        .section-title {
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .action-card {
+            background-color: #242424;
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            text-decoration: none;
+            color: #e0e0e0;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .action-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+        }
+        .action-icon {
+            width: 50px;
+            height: 50px;
+            background-color: #333;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        .action-title {
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+            color: #ffffff;
+        }
+        .action-description {
+            color: #a0a0a0;
+            font-size: 0.9rem;
+        }
+        
+        /* Sidebar Overlay for Mobile */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 99;
+            display: none;
+        }
+        .sidebar-overlay.active {
+            display: block;
+        }
+        
+        /* Responsive Styles */
+        @media (min-width: 768px) {
+            .sidebar {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 250px;
+                width: calc(100% - 250px);
+            }
+            .menu-toggle {
+                display: none;
+            }
+            .close-menu {
+                display: none;
+            }
+        }
+        
+        @media (max-width: 767px) {
+            .main-content.sidebar-active {
+                margin-left: 0;
+                width: 100%;
+                opacity: 0.7;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .all-classes-section {
+            margin-top: 40px;
+        }
+        .all-classes-section .section-title {
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+        .classes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 18px;
+        }
+        .class-card {
+            background: #1a1a1a;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.18);
+            padding: 18px 16px 14px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            font-size: 0.97rem;
+        }
+        .class-card:hover {
+            box-shadow: 0 8px 24px rgba(0,0,0,0.28);
+            transform: translateY(-3px) scale(1.01);
+        }
+        .class-card .stat-icon {
+            background: #242424;
+            border-radius: 8px;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 6px;
+        }
+        .class-card .class-name {
+            color: #4f8cff;
+            font-size: 1.08rem;
+            font-weight: bold;
+        }
+        .class-card .class-teacher,
+        .class-card .class-description {
+            color: #a0a0a0;
+            font-size: 0.97rem;
+        }
+        .class-card .class-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 0.95rem;
+            color: #a0a0a0;
+            margin-bottom: 6px;
+        }
+        .class-card .btn.btn-outline {
+            margin-top: 6px;
+            background: none;
+            border: none;
+            color: #7bb6ff;
+            font-weight: 500;
+            font-size: 1rem;
+            box-shadow: none;
+            padding: 0;
+            text-align: left;
+            transition: color 0.2s, text-decoration 0.2s;
+            text-decoration: none;
+        }
+        .class-card .btn.btn-outline:hover {
+            color: #a7d3ff;
+            text-decoration: underline;
+            background: none;
+        }
+        .empty-state {
+            grid-column: 1/-1;
+            text-align: center;
+            color: #a0a0a0;
+            font-size: 1.1rem;
+            padding: 30px 0;
+        }
+        .dashboard-top-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 32px;
+            margin-bottom: 40px;
+        }
+        .your-classes-section, .stats-section {
+            flex: 1 1 350px;
+            min-width: 350px;
+        }
+        .your-classes-section .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        .class-stat-card {
+            background: #1a1a1a;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.18);
+            padding: 28px 24px 20px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 0;
+        }
+        .class-stat-card .stat-icon {
+            background: #242424;
+            border-radius: 8px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+        .class-stat-card .class-name {
+            color: #4f8cff;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        .class-stat-card .class-teacher,
+        .class-stat-card .class-description {
+            color: #a0a0a0;
+            font-size: 1rem;
+        }
+        .class-stat-card .class-stats {
+            display: flex;
+            gap: 18px;
+            font-size: 0.98rem;
+            color: #a0a0a0;
+            margin-bottom: 10px;
+        }
+        .class-stat-card .btn.btn-outline {
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar-overlay"></div>
+    
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="/dashboard" class="sidebar-logo">ThetaSummary</a>
+                <button class="close-menu">×</button>
+            </div>
+            
+            <div class="sidebar-menu">
+                <div class="sidebar-menu-title">Menu</div>
+                <a href="{{ url_for('dashboard') }}" class="menu-item active">
+                    <span class="menu-item-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 13A6 6 0 1 1 8 2a6 6 0 0 1 0 12z"/>
+                            <path d="M8 4a.5.5 0 0 1 .5.5v2.5H11a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V8H5a.5.5 0 0 1 0-1h2.5V4.5A.5.5 0 0 1 8 4z"/>
+                        </svg>
+                    </span>
+                    Dashboard
+                </a>
+                <a href="{{ url_for('create_class') }}" class="menu-item">
+                    <span class="menu-item-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 13A6 6 0 1 1 8 2a6 6 0 0 1 0 12z"/>
+                            <path d="M8 4a.5.5 0 0 1 .5.5v2.5H11a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V8H5a.5.5 0 0 1 0-1h2.5V4.5A.5.5 0 0 1 8 4z"/>
+                        </svg>
+                    </span>
+                    Create New Class
+                </a>
+                {% if current_user.is_admin %}
+                <a href="{{ url_for('admin_dashboard') }}" class="menu-item">
+                    <span class="menu-item-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 13A6 6 0 1 1 8 2a6 6 0 0 1 0 12z"/>
+                            <path d="M8 4a.5.5 0 0 1 .5.5v2.5H11a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V8H5a.5.5 0 0 1 0-1h2.5V4.5A.5.5 0 0 1 8 4z"/>
+                        </svg>
+                    </span>
+                    Admin Settings
+                </a>
+                {% endif %}
+            </div>
+            
+            <div class="sidebar-footer">
+                <div class="sidebar-footer-text">Logged in as {{ current_user.username }}</div>
+                <a href="/logout" class="logout-btn">
+                    <span class="logout-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z"/>
+                            <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/>
+                        </svg>
+                    </span>
+                    Logout
+                </a>
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="header">
+                <button class="menu-toggle">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/>
+                    </svg>
+                </button>
+                <h1 class="page-title">Dashboard</h1>
+                <div class="user-menu">
+                    <button class="user-button">
+                        <div class="user-avatar">{{ current_user.username[0].upper() }}</div>
+                        <span>{{ current_user.username }}</span>
+                    </button>
+                </div>
+            </header>
+            
+            <section class="welcome-section">
+                <h2 class="welcome-title">Welcome back, {{ current_user.username }}!</h2>
+                <p class="welcome-subtitle">Here's a summary of your activity on ThetaSummary.</p>
+            </section>
+            
+            <!-- Your Classes Section (full width, above stats) -->
+            <section class="your-classes-section">
+                <h3 class="section-title">Your Classes</h3>
+                <div class="classes-grid">
+                    {% for class in classes %}
+                    <div class="class-card">
+                        <div class="stat-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#4f8cff" viewBox="0 0 16 16">
+                                <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 13A6 6 0 1 1 8 2a6 6 0 0 1 0 12z"/>
+                                <path d="M8 4a.5.5 0 0 1 .5.5v2.5H11a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V8H5a.5.5 0 0 1 0-1h2.5V4.5A.5.5 0 0 1 8 4z"/>
+                            </svg>
+                        </div>
+                        <span class="class-name">{{ class.name }}</span>
+                        <span class="class-teacher">Teacher: {{ class.teacher.username }}</span>
+                        <span class="class-description">{{ class.description or 'No description provided' }}</span>
+                        <div class="class-stats">
+                            <span class="stat">{{ class.students|length }} Students</span>
+                            <span class="stat">{{ class.summaries|length }} Summaries</span>
+                        </div>
+                        <a href="{{ url_for('view_class', class_id=class.id) }}" class="btn btn-outline">View Class</a>
+                    </div>
+                    {% endfor %}
+                    {% if classes|length == 0 %}
+                    <div class="class-card empty-state">
+                        <span class="stat-label">You have no classes yet.</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </section>
+
+            <!-- Stats Cards Section -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#ffffff" viewBox="0 0 16 16">
+                            <path d="M14.5 3a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h13zm-13-1A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2h-13z"/>
+                            <path d="M3 5.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5z"/>
+                        </svg>
+                    </div>
+                    <span class="stat-value">{{ summaries }}</span>
+                    <span class="stat-label">Total Summaries</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#ffffff" viewBox="0 0 16 16">
+                            <path d="M5 3.5h6A1.5 1.5 0 0 1 12.5 5v6a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 11V5A1.5 1.5 0 0 1 5 3.5z"/>
+                        </svg>
+                    </div>
+                    <span class="stat-value">{{ summaries }}</span>
+                    <span class="stat-label">Recordings</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#ffffff" viewBox="0 0 16 16">
+                            <path d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0zM9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1zM11 8a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
+                        </svg>
+                    </div>
+                    <span class="stat-value">{{ summaries * 2 }}</span>
+                    <span class="stat-label">Total Files</span>
+                </div>
+            </div>
+            
+            <section class="quick-actions">
+                <h3 class="section-title">Quick Actions</h3>
+                <div class="actions-grid">
+                    {% if user_role == 'teacher' %}
+                    <a href="{{ url_for('create_class') }}" class="action-card">
+                        <div class="action-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#ffffff" viewBox="0 0 16 16">
+                                <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 13A6 6 0 1 1 8 2a6 6 0 0 1 0 12z"/>
+                                <path d="M8 4a.5.5 0 0 1 .5.5v2.5H11a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V8H5a.5.5 0 0 1 0-1h2.5V4.5A.5.5 0 0 1 8 4z"/>
+                            </svg>
+                        </div>
+                        <h4 class="action-title">Create New Class</h4>
+                        <p class="action-description">Set up a new class for your students</p>
+                    </a>
+                    {% endif %}
+                </div>
+            </section>
+        </main>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Sidebar functionality
+            const menuToggle = document.querySelector('.menu-toggle');
+            const closeMenu = document.querySelector('.close-menu');
+            const sidebar = document.querySelector('.sidebar');
+            const mainContent = document.querySelector('.main-content');
+            const sidebarOverlay = document.querySelector('.sidebar-overlay');
+            
+            // Function to toggle sidebar visibility
+            function toggleSidebar() {
+                sidebar.classList.toggle('active');
+                mainContent.classList.toggle('sidebar-active');
+                sidebarOverlay.classList.toggle('active');
+            }
+            
+            // Event listeners for sidebar toggle buttons
+            menuToggle.addEventListener('click', toggleSidebar);
+            closeMenu.addEventListener('click', toggleSidebar);
+            sidebarOverlay.addEventListener('click', toggleSidebar);
+            
+            // Handle responsive behavior
+            function handleResize() {
+                if (window.innerWidth < 768) {
+                    sidebar.classList.remove('active');
+                    mainContent.classList.remove('sidebar-active');
+                    sidebarOverlay.classList.remove('active');
+                }
+            }
+            
+            // Initial setup and resize handling
+            window.addEventListener('resize', handleResize);
+            handleResize();
+        });
+    </script>
+</body>
+</html> 

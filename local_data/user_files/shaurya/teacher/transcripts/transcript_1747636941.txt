@@ -1,0 +1,10 @@
+Please describe the audio recording.  I need information like:
+
+* **Subject Matter:** What general topic is being discussed (e.g., history, biology, physics, literature)?
+* **Style:** Is it formal or informal?  Is the speaker enthusiastic, monotone, or something in between?
+* **Key Words or Phrases:**  Any words or phrases you distinctly heard (even if you don't understand the context)?
+* **Sounds:** Are there any background noises (e.g., rustling papers, coughing, classroom chatter)?
+* **Pace:** Is the speech fast, slow, or moderate?
+* **Length:**  Approximately how long is the segment?
+
+The more detail you provide, the better I can create a realistic transcript.

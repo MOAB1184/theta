@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Summary - ThetaSummary</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- KaTeX CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5SLF1/0J2eUSnV/mIKjO7FzP7Wc+CTgy96HkBsV6Kelsv7s2w1Vr0" crossorigin="anonymous">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #121212; color: #e0e0e0; line-height: 1.6; min-height: 100vh; }
+        .app-container { display: flex; min-height: 100vh; }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            width: 250px;
+            background-color: #1a1a1a;
+            transition: all 0.3s ease;
+            overflow-y: auto;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            z-index: 100;
+            transform: translateX(-250px);
+        }
+        .sidebar.active {
+            transform: translateX(0);
+        }
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .sidebar-logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #ffffff;
+            text-decoration: none;
+        }
+        .close-menu {
+            background: none;
+            border: none;
+            color: #a0a0a0;
+            cursor: pointer;
+            font-size: 1.5rem;
+        }
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+        .sidebar-menu-title {
+            padding: 0 20px;
+            margin-bottom: 10px;
+            color: #a0a0a0;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .menu-item {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: #e0e0e0;
+            transition: all 0.2s ease;
+        }
+        .menu-item:hover, .menu-item.active {
+            background-color: #242424;
+        }
+        .menu-item-icon {
+            margin-right: 10px;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid #333;
+        }
+        .sidebar-footer-text {
+            color: #a0a0a0;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: #e0e0e0;
+            padding: 10px 15px;
+            background-color: #242424;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+        .logout-btn:hover {
+            background-color: #333;
+        }
+        .logout-icon {
+            margin-right: 8px;
+        }
+        
+        /* Sidebar Overlay for Mobile */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 99;
+            display: none;
+        }
+        .sidebar-overlay.active {
+            display: block;
+        }
+        
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            margin-left: 0;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        .main-content.sidebar-active {
+            margin-left: 250px;
+            width: calc(100% - 250px);
+        }
+        
+        /* Header Styles */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .menu-toggle {
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+        }
+        .page-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+        .user-menu {
+            position: relative;
+        }
+        .user-button {
+            background: none;
+            border: none;
+            color: #ffffff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        .user-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background-color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        
+        /* Summary Content Styles */
+        .summary-container {
+            background: #1a1a1a;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.18);
+            padding: 28px 24px;
+        }
+        .summary-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .summary-title {
+            font-size: 1.5rem;
+            color: #4f8cff;
+            margin: 0;
+        }
+        .summary-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        .back-btn, .summary-action-btn {
+            color: #7bb6ff;
+            text-decoration: none;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: color 0.2s;
+        }
+        .back-btn:hover, .summary-action-btn:hover {
+            color: #a7d3ff;
+            text-decoration: underline;
+        }
+        .summary-content {
+            font-size: 1.05rem;
+            color: #e0e0e0;
+            line-height: 1.8;
+        }
+        .summary-content h2 {
+            font-size: 1.4rem;
+            color: #ffffff;
+            margin: 20px 0 10px;
+        }
+        .summary-content strong {
+            font-weight: 700;
+            color: #ffffff;
+        }
+        .summary-content p {
+            margin-bottom: 15px;
+        }
+        .error-message {
+            background: #ff4f4f;
+            color: #fff;
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .error-message:not(.hidden) {
+            display: block;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        .loading:not(.hidden) {
+            display: block;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4f8cff;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .katex { font-size: 1.1em; }
+        
+        /* Responsive Styles */
+        @media (min-width: 768px) {
+            .sidebar {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 250px;
+                width: calc(100% - 250px);
+            }
+            .menu-toggle {
+                display: none;
+            }
+            .close-menu {
+                display: none;
+            }
+        }
+        @media (max-width: 767px) {
+            .main-content.sidebar-active {
+                margin-left: 0;
+                width: 100%;
+                opacity: 0.7;
+            }
+            .summary-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+    <!-- KaTeX JS -->
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkKLrphvbHU2DV3vS8zWt++tgb+2XahV5r+tm1nagbUrbgeJ6W3mUr3dUHUhLiC" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div class="sidebar-overlay"></div>
+    
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="/dashboard" class="sidebar-logo">ThetaSummary</a>
+                <button class="close-menu">×</button>
+            </div>
+            
+            <div class="sidebar-menu">
+                <div class="sidebar-menu-title">Menu</div>
+                <a href="{{ url_for('dashboard') }}" class="menu-item">
+                    <span class="menu-item-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 13A6 6 0 1 1 8 2a6 6 0 0 1 0 12z"/>
+                            <path d="M8 4a.5.5 0 0 1 .5.5v2.5H11a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V8H5a.5.5 0 0 1 0-1h2.5V4.5A.5.5 0 0 1 8 4z"/>
+                        </svg>
+                    </span>
+                    Dashboard
+                </a>
+                <a href="{{ url_for('create_class') }}" class="menu-item">
+                    <span class="menu-item-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 13A6 6 0 1 1 8 2a6 6 0 0 1 0 12z"/>
+                            <path d="M8 4a.5.5 0 0 1 .5.5v2.5H11a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V8H5a.5.5 0 0 1 0-1h2.5V4.5A.5.5 0 0 1 8 4z"/>
+                        </svg>
+                    </span>
+                    Create New Class
+                </a>
+                {% if current_user.is_admin %}
+                <a href="{{ url_for('admin_dashboard') }}" class="menu-item">
+                    <span class="menu-item-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 13A6 6 0 1 1 8 2a6 6 0 0 1 0 12z"/>
+                            <path d="M8 4a.5.5 0 0 1 .5.5v2.5H11a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V8H5a.5.5 0 0 1 0-1h2.5V4.5A.5.5 0 0 1 8 4z"/>
+                        </svg>
+                    </span>
+                    Admin Settings
+                </a>
+                {% endif %}
+            </div>
+            
+            <div class="sidebar-footer">
+                <div class="sidebar-footer-text">Logged in as {{ current_user.username }}</div>
+                <a href="{{ url_for('logout') }}" class="logout-btn">
+                    <span class="logout-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z"/>
+                            <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/>
+                        </svg>
+                    </span>
+                    Logout
+                </a>
+            </div>
+        </aside>
+        
+        <main class="main-content">
+            <header class="header">
+                <button class="menu-toggle">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/>
+                    </svg>
+                </button>
+                <h1 class="page-title">View Summary</h1>
+                <div class="user-menu">
+                    <button class="user-button">
+                        <div class="user-avatar">{{ current_user.username[0].upper() }}</div>
+                        <span>{{ current_user.username }}</span>
+                    </button>
+                </div>
+            </header>
+            
+            <div class="summary-container">
+                <div class="error-message hidden" id="error-message"></div>
+                <div class="loading hidden" id="loading">
+                    <div class="spinner"></div>
+                </div>
+                <div class="summary-header">
+                    <div>
+                        <h2 class="summary-title">{{ filename }}</h2>
+                    </div>
+                    <div class="summary-actions">
+                        <a href="/summaries" class="back-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+                            </svg>
+                            Back to Summaries
+                        </a>
+                        <a href="{{ url_for('download_file', filename=filename) }}" class="summary-action-btn" id="download-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+                            </svg>
+                            Download
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="summary-content" id="summary-content">
+                    {% if content %}
+                        {{ content | safe }}
+                    {% else %}
+                        <p>No content available.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                // Sidebar functionality
+                const menuToggle = document.querySelector('.menu-toggle');
+                const closeMenu = document.querySelector('.close-menu');
+                const sidebar = document.querySelector('.sidebar');
+                const mainContent = document.querySelector('.main-content');
+                const sidebarOverlay = document.querySelector('.sidebar-overlay');
+                const downloadBtn = document.getElementById('download-btn');
+                const errorMessage = document.getElementById('error-message');
+                const loading = document.getElementById('loading');
+                const summaryContent = document.getElementById('summary-content');
+                
+                // Function to toggle sidebar visibility
+                function toggleSidebar() {
+                    sidebar.classList.toggle('active');
+                    mainContent.classList.toggle('sidebar-active');
+                    sidebarOverlay.classList.toggle('active');
+                }
+                
+                // Event listeners for sidebar toggle buttons
+                menuToggle.addEventListener('click', toggleSidebar);
+                closeMenu.addEventListener('click', toggleSidebar);
+                sidebarOverlay.addEventListener('click', toggleSidebar);
+                
+                // Show error message
+                function showError(message) {
+                    errorMessage.textContent = message;
+                    errorMessage.classList.remove('hidden');
+                    setTimeout(() => {
+                        errorMessage.classList.add('hidden');
+                    }, 10000);
+                }
+                
+                // Format LaTeX content with KaTeX
+                let content = summaryContent.innerHTML.trim();
+                if (!content || content === '<p>No content available.</p>') {
+                    showError('Summary content is missing or unavailable.');
+                    content = '<p>No content available.</p>';
+                    summaryContent.innerHTML = content;
+                } else {
+                    // Preprocess content for HTML structure
+                    content = content
+                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Convert ** to bold
+                        .replace(/### (.*?)(?=\n)/g, '<h2>$1</h2>') // Convert ### to h2
+                        .replace(/\n\n/g, '<br><br>')
+                        .replace(/\n/g, '<br>');
+
+                    // Split content to isolate LaTeX expressions
+                    const parts = content.split(/(\$\$[\s\S]*?\$\$|\$[\s\S]*?\$)/g);
+                    let formattedContent = '';
+                    
+                    parts.forEach(part => {
+                        if ((part.startsWith('$$') && part.endsWith('$$')) || (part.startsWith('$') && part.endsWith('$'))) {
+                            // LaTeX expression
+                            const latex = part.slice(part.startsWith('$$') ? 2 : 1, - (part.startsWith('$$') ? 2 : 1)).trim();
+                            const tempDiv = document.createElement('div');
+                            try {
+                                katex.render(latex, tempDiv, {
+                                    throwOnError: false,
+                                    errorColor: '#cc0000',
+                                    displayMode: part.startsWith('$$')
+                                });
+                                formattedContent += tempDiv.innerHTML;
+                            } catch (err) {
+                                formattedContent += `<span style="color: #cc0000;">[LaTeX Error: ${err.message}]</span>`;
+                            }
+                        } else {
+                            // Regular HTML content
+                            formattedContent += part;
+                        }
+                    });
+                    
+                    summaryContent.innerHTML = formattedContent;
+                }
+                
+                // Handle download button click
+                downloadBtn.addEventListener('click', async function(e) {
+                    e.preventDefault();
+                    const filename = '{{ filename }}';
+                    loading.classList.remove('hidden');
+                    
+                    try {
+                        const response = await fetch('/api/check_file', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ filename: filename }),
+                        });
+                        const data = await response.json();
+                        
+                        if (data.status === 'success' && data.exists) {
+                            window.location.href = downloadBtn.href;
+                        } else {
+                            showError('Summary file not found or access denied.');
+                        }
+                    } catch (err) {
+                        showError('Error checking file availability: ' + err.message);
+                    } finally {
+                        loading.classList.add('hidden');
+                    }
+                });
+                
+                // Handle responsive behavior
+                function handleResize() {
+                    if (window.innerWidth < 768) {
+                        sidebar.classList.remove('active');
+                        mainContent.classList.remove('sidebar-active');
+                        sidebarOverlay.classList.remove('active');
+                    }
+                }
+                
+                // Initial setup and resize handling
+                window.addEventListener('resize', handleResize);
+                handleResize();
+            } catch (err) {
+                console.error('Error in DOMContentLoaded:', err);
+                showError('An error occurred while loading the page. Check the console for details.');
+            }
+        });
+    </script>
+</body>
+</html>

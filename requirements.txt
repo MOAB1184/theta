@@ -1,0 +1,10 @@
+flask
+google-genai
+openai 
+boto3 
+ffmpeg-python
+flask-login
+flask-sqlalchemy
+werkzeug
+google-generativeai
+python-dotenv

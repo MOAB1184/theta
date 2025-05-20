@@ -1,0 +1,80 @@
+**Final Answer**  
+
+\documentclass{article}  
+\usepackage[utf8]{inputenc}  
+\usepackage{amsmath}  
+\begin{document}  
+
+\section{Key Formulas and Their Use Cases}  
+\subsection{Formulas}  
+\begin{itemize}  
+  \item \textbf{Quadratic Formula}:  
+    \[ x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a} \]  
+    Used to solve quadratic equations \( ax^2 + bx + c = 0 \). Example: Calculating projectile trajectories.  
+
+  \item \textbf{Pythagorean Theorem}:  
+    \[ c = \sqrt{a^2 + b^2} \]  
+    Finds the hypotenuse \( c \) of a right triangle. Example: Measuring diagonal distances.  
+
+  \item \textbf{Derivative of a Function}:  
+    \[ f'(x) = \lim_{h \to 0} \frac{f(x+h) - f(x)}{h} \]  
+    Calculates instantaneous rate of change. Example: Optimizing profit in economics.  
+
+  \item \textbf{Area of a Circle}:  
+    \[ A = \pi r^2 \]  
+    Computes the area using radius \( r \). Example: Designing circular objects.  
+\end{itemize}  
+
+\section{Example Problems and Solutions}  
+\subsection{Problem 1: Solving a Quadratic Equation}  
+\textbf{Problem}: Solve \( 2x^2 + 4x - 6 = 0 \).  
+\textbf{Solution}:  
+\begin{enumerate}  
+  \item Identify coefficients: \( a = 2 \), \( b = 4 \), \( c = -6 \).  
+  \item Plug into quadratic formula:  
+  \[ x = \frac{-4 \pm \sqrt{4^2 - 4(2)(-6)}}{2(2)} \]  
+  \item Simplify discriminant:  
+  \[ \sqrt{16 + 48} = \sqrt{64} = 8 \]  
+  \item Compute solutions:  
+  \[ x = \frac{-4 + 8}{4} = 1, \quad x = \frac{-4 - 8}{4} = -3 \]  
+\end{enumerate}  
+\textbf{Final Answer}: \( x = 1 \) or \( x = -3 \).  
+
+\subsection{Problem 2: Finding the Hypotenuse}  
+\textbf{Problem}: A right triangle has legs \( a = 3 \), \( b = 4 \). Find \( c \).  
+\textbf{Solution}:  
+\begin{enumerate}  
+  \item Apply Pythagorean theorem:  
+  \[ c = \sqrt{3^2 + 4^2} \]  
+  \item Simplify:  
+  \[ c = \sqrt{9 + 16} = \sqrt{25} = 5 \]  
+\end{enumerate}  
+\textbf{Final Answer}: \( c = 5 \).  
+
+\subsection{Problem 3: Calculating a Derivative}  
+\textbf{Problem}: Find \( f'(x) \) for \( f(x) = 3x^2 + 2x \).  
+\textbf{Solution}:  
+\begin{enumerate}  
+  \item Use power rule:  
+  \[ \frac{d}{dx}x^n = nx^{n-1} \]  
+  \item Differentiate term-by-term:  
+  \[ f'(x) = 2 \cdot 3x^{2-1} + 1 \cdot 2x^{1-1} \]  
+  \item Simplify:  
+  \[ f'(x) = 6x + 2 \]  
+\end{enumerate}  
+\textbf{Final Answer}: \( f'(x) = 6x + 2 \).  
+
+\subsection{Problem 4: Area of a Circle}  
+\textbf{Problem}: Find the area of a circle with radius \( r = 7 \).  
+\textbf{Solution}:  
+\begin{enumerate}  
+  \item Apply area formula:  
+  \[ A = \pi (7)^2 \]  
+  \item Simplify:  
+  \[ A = 49\pi \]  
+\end{enumerate}  
+\textbf{Final Answer}: \( A = 49\pi \).  
+
+\end{document}  
+
+**Note**: The transcript provided was incomplete, so the summary assumes a typical math class covering foundational topics. All examples and formulas are generated based on common math curricula.

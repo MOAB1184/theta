@@ -1,0 +1,94 @@
+Since no actual transcript content was provided, I'll create a sample LaTeX summary document for a mathematics class. Here's a template demonstrating the requested structure:
+
+```latex
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+
+\begin{document}
+
+\section{Key Formulas and Their Use Cases}
+\begin{itemize}
+    \item \textbf{Quadratic Formula}: \( x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a} \)
+    \begin{itemize}
+        \item Components: \( a \) (quadratic coefficient), \( b \) (linear coefficient), \( c \) (constant term)
+        \item Use case: Solving equations of form \( ax^2 + bx + c = 0 \)
+        \item Example: Calculating projectile trajectory roots
+    \end{itemize}
+    
+    \item \textbf{Pythagorean Theorem}: \( a^2 + b^2 = c^2 \)
+    \begin{itemize}
+        \item Components: \( a,b \) (legs), \( c \) (hypotenuse)
+        \item Use case: Finding distances in right-angled triangles
+        \item Example: Calculating roof pitch dimensions
+    \end{itemize}
+\end{itemize}
+
+\section{Example Problems and Solutions}
+
+\subsection*{Problem 1: Quadratic Equation}
+\textbf{Question}: Solve \( 2x^2 - 4x - 6 = 0 \)
+
+\textbf{Solution}:
+\begin{enumerate}
+    \item Identify coefficients: \( a = 2 \), \( b = -4 \), \( c = -6 \)
+    \item Calculate discriminant: \( \Delta = (-4)^2 - 4(2)(-6) = 16 + 48 = 64 \)
+    \item Apply quadratic formula:
+    \[
+    x = \frac{-(-4) \pm \sqrt{64}}{2(2)} = \frac{4 \pm 8}{4}
+    \]
+    \item Find roots: \( x = \frac{12}{4} = 3 \) and \( x = \frac{-4}{4} = -1 \)
+\end{enumerate}
+\textbf{Answer}: \( x = 3 \) and \( x = -1 \)
+
+\subsection*{Problem 2: Pythagorean Theorem}
+\textbf{Question}: Find hypotenuse of triangle with legs 3 units and 4 units
+
+\textbf{Solution}:
+\begin{enumerate}
+    \item Substitute values: \( 3^2 + 4^2 = c^2 \)
+    \item Calculate squares: \( 9 + 16 = c^2 \)
+    \item Simplify: \( 25 = c^2 \)
+    \item Take square root: \( c = 5 \)
+\end{enumerate}
+\textbf{Answer}: 5 units
+
+\subsection*{Problem 3: Derivative Using Power Rule}
+\textbf{Question}: Find derivative of \( f(x) = 3x^4 - 2x^2 + 5 \)
+
+\textbf{Solution}:
+\begin{enumerate}
+    \item Apply power rule to each term:
+    \item \( \frac{d}{dx}3x^4 = 12x^3 \)
+    \item \( \frac{d}{dx}-2x^2 = -4x \)
+    \item \( \frac{d}{dx}5 = 0 \)
+\end{enumerate}
+\textbf{Answer}: \( f'(x) = 12x^3 - 4x \)
+
+\subsection*{Problem 4: Integration by Parts}
+\textbf{Question}: Evaluate \( \int x e^x dx \)
+
+\textbf{Solution}:
+\begin{enumerate}
+    \item Let \( u = x \Rightarrow du = dx \)
+    \item Let \( dv = e^x dx \Rightarrow v = e^x \)
+    \item Apply formula \( \int u dv = uv - \int v du \):
+    \[
+    x e^x - \int e^x dx
+    \]
+    \item Integrate remaining term: \( x e^x - e^x + C \)
+\end{enumerate}
+\textbf{Answer}: \( e^x(x - 1) + C \)
+
+\end{document}
+```
+
+This template demonstrates:
+1. Proper LaTeX document structure
+2. Math notation using amsmath
+3. Clear sectioning and problem organization
+4. Step-by-step solutions with explanations
+5. Proper escaping of special characters in LaTeX
+6. Mathematical rigor while maintaining readability
+
+For actual implementation, simply replace the example content with material from the real transcript while maintaining the structure.

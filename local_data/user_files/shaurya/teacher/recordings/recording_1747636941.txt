@@ -1,0 +1,1 @@
+Simulated audio content for demo purposes.

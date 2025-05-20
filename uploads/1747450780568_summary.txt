@@ -1,0 +1,88 @@
+```latex
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\begin{document}
+
+\section{Key Formulas and Their Use Cases}
+
+\subsection{Sinusoidal Motion Formula}
+The general form for modeling periodic motion:
+\[
+H(t) = A \cos\left(\frac{2\pi}{P}(t - h)\right) + K
+\]
+\begin{itemize}
+    \item \textbf{Components}: 
+    \begin{itemize}
+        \item \(A\): Amplitude (half the difference between max/min heights)
+        \item \(P\): Period (time for one full revolution)
+        \item \(h\): Horizontal phase shift (time offset for maximum height)
+        \item \(K\): Vertical shift (height of the centerline)
+    \end{itemize}
+    \item \textbf{Use Case}: Models height-time relationships in circular motion (e.g., Ferris wheels, springs). For a Ferris wheel with diameter 40 ft, axis height 23 ft, and period 8 sec: \(A = 20\), \(K = 23\), \(P = 8\).
+\end{itemize}
+
+\subsection{Double Angle Identities}
+\[
+\sin(2\theta) = 2\sin\theta\cos\theta
+\]
+\[
+\cos(2\theta) = \cos^2\theta - \sin^2\theta = 1 - 2\sin^2\theta = 2\cos^2\theta - 1
+\]
+\begin{itemize}
+    \item \textbf{Use Case}: Simplifies trigonometric expressions or solves equations (e.g., finding \(\theta\) where \(\sin(2\theta) = 0.5\)).
+\end{itemize}
+
+\section{Example Problems and Solutions}
+
+\subsection{Example 1: Height Calculation on a Ferris Wheel}
+\textbf{Problem}: A Ferris wheel with diameter 40 ft, center 23 ft above ground, and period 8 sec reaches its maximum height at \(t = 3\) sec. Find the height at \(t = 9\) sec.
+
+\textbf{Solution}:
+\begin{align*}
+    H(t) &= 20 \cos\left(\frac{\pi}{4}(t - 3)\right) + 23 \\
+    H(9) &= 20 \cos\left(\frac{\pi}{4}(6)\right) + 23 \\
+         &= 20 \cos\left(\frac{3\pi}{2}\right) + 23 \\
+         &= 20(0) + 23 = \boxed{23 \text{ ft}}
+\end{align*}
+\textbf{Explanation}: Substitute \(t = 9\) into the equation. The cosine term evaluates to 0 at \(\frac{3\pi}{2}\), leaving only the vertical shift \(K\).
+
+\subsection{Example 2: Solving for Time Algebraically}
+\textbf{Problem}: Using the same Ferris wheel model, find the second time \(t > 0\) when the height is 20 ft.
+
+\textbf{Solution}:
+\begin{align*}
+    20 &= 20 \cos\left(\frac{\pi}{4}(t - 3)\right) + 23 \\
+    -3 &= 20 \cos\left(\frac{\pi}{4}(t - 3)\right) \\
+    \cos^{-1}\left(-\frac{3}{20}\right) &= \frac{\pi}{4}(t - 3) \\
+    t &= 3 + \frac{4}{\pi} \cos^{-1}\left(-\frac{3}{20}\right) \\
+    t &\approx 3 + \frac{4}{\pi}(1.722) \approx \boxed{5.19 \text{ sec}}
+\end{align*}
+\textbf{Explanation}: Isolate the cosine term, apply the inverse cosine function, and solve for \(t\). The second intersection occurs after half a period (4 sec) from the first solution \(t \approx 1.19\) sec.
+
+\subsection{Example 3: Spring Motion Problem}
+\textbf{Problem}: A spring oscillates with period 10 sec, maximum height 15 cm, and minimum height 3 cm. Find the first time it reaches 12 cm.
+
+\textbf{Solution}:
+\begin{align*}
+    H(t) &= 6 \cos\left(\frac{\pi}{5}(t - 4)\right) + 9 \\
+    12 &= 6 \cos\left(\frac{\pi}{5}(t - 4)\right) + 9 \\
+    0.5 &= \cos\left(\frac{\pi}{5}(t - 4)\right) \\
+    \frac{\pi}{3} &= \frac{\pi}{5}(t - 4) \\
+    t &= 4 + \frac{5}{3} \approx \boxed{5.67 \text{ sec}}
+\end{align*}
+\textbf{Explanation}: The first intersection occurs at \(\cos^{-1}(0.5) = \frac{\pi}{3}\). Adjust for phase shift \(h = 4\) sec.
+
+\subsection{Example 4: Double Angle Equation}
+\textbf{Problem}: Solve \(\sin(2\theta) = 0.5\) for \(0 \leq \theta < 2\pi\).
+
+\textbf{Solution}:
+\begin{align*}
+    \sin(2\theta) &= 0.5 \\
+    2\theta &= \frac{\pi}{6}, \frac{5\pi}{6}, \frac{13\pi}{6}, \frac{17\pi}{6} \\
+    \theta &= \frac{\pi}{12}, \frac{5\pi}{12}, \frac{13\pi}{12}, \frac{17\pi}{12}
+\end{align*}
+\textbf{Explanation}: Double angle solutions occur every \(\pi/6\) and \(5\pi/6\) in the range \([0, 4\pi)\). Halve the angles to find \(\theta\).
+
+\end{document}
+```

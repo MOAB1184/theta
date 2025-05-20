@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Prompt - ThetaSummary</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Reset and Basic Styles */
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        header {
+            background-color: #1a1a1a;
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #ffffff;
+            text-decoration: none;
+        }
+        
+        .logo span {
+            color: #c084fc;
+        }
+        
+        .user-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .username {
+            font-weight: 500;
+            color: #b0b0b0;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            border: none;
+        }
+        
+        .btn-primary {
+            background: #c084fc;
+            color: #ffffff;
+        }
+        
+        .btn-primary:hover {
+            background: #a855f7;
+        }
+        
+        .btn-outline {
+            background: transparent;
+            color: #e0e0e0;
+            border: 1px solid #404040;
+        }
+        
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        main {
+            padding: 40px 0;
+        }
+        
+        .page-title {
+            font-size: 2rem;
+            margin-bottom: 30px;
+            color: #ffffff;
+        }
+        
+        form {
+            background-color: #1a1a1a;
+            border-radius: 8px;
+            padding: 30px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #ffffff;
+        }
+        
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #333;
+            border-radius: 4px;
+            background-color: #242424;
+            color: #e0e0e0;
+            font-size: 16px;
+            min-height: 300px;
+            font-family: inherit;
+            resize: vertical;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: #c084fc;
+            box-shadow: 0 0 0 2px rgba(192, 132, 252, 0.2);
+        }
+        
+        select.form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #333;
+            border-radius: 4px;
+            background-color: #242424;
+            color: #e0e0e0;
+            font-size: 16px;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23e0e0e0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+            cursor: pointer;
+        }
+        
+        select.form-control:focus {
+            outline: none;
+            border-color: #c084fc;
+            box-shadow: 0 0 0 2px rgba(192, 132, 252, 0.2);
+        }
+        
+        .help-text {
+            margin-top: 6px;
+            font-size: 0.875rem;
+            color: #999;
+        }
+        
+        .btn-warning {
+            background: #f59e0b;
+            color: #ffffff;
+        }
+        
+        .btn-warning:hover {
+            background: #d97706;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 30px;
+        }
+        
+        button {
+            cursor: pointer;
+        }
+
+        /* Flash Message Styles */
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+        }
+        .alert-success {
+            color: #3c763d;
+            background-color: #dff0d8;
+            border-color: #d6e9c6;
+        }
+        .alert-error {
+            color: #a94442;
+            background-color: #f2dede;
+            border-color: #ebccd1;
+        }
+
+        /* Add toggle switch styles */
+        .toggle-switch-container {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+            margin-right: 10px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #424242;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .toggle-slider {
+            background-color: #c084fc;
+        }
+        
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+        
+        .toggle-label {
+            font-size: 16px;
+            color: #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <a href="{{ url_for('dashboard') }}" class="logo">Theta<span>Summary</span> Admin</a>
+                <div class="user-actions">
+                    <span class="username">{{ current_user.username }}</span>
+                    <a href="{{ url_for('logout') }}" class="btn btn-outline">Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <main>
+        <div class="container">
+            <h1 class="page-title">Edit {{ prompt_title|default('Global Prompt') }}</h1>
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                <div class="flash-messages">
+                {% for category, message in messages %}
+                  <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+                </div>
+              {% endif %}
+            {% endwith %}
+
+            <form action="{{ url_for('edit_global_prompt') }}" method="POST">
+                <div class="form-group">
+                    <label for="use_latex">Format Mode</label>
+                    <div class="toggle-switch-container">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="use_latex" name="use_latex" {% if prompt.use_latex %}checked{% endif %}>
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span class="toggle-label">Use LaTeX Format</span>
+                    </div>
+                    <p class="help-text">Toggle to switch between normal formatting and LaTeX document format. LaTeX format is useful for mathematical content.</p>
+                </div>
+                
+                <div class="form-group">
+                    <label for="prompt_text">Prompt Text</label>
+                    <textarea id="prompt_text" name="prompt_text" rows="15">{{ prompt.prompt_text }}</textarea>
+                </div>
+                
+                <div class="action-buttons">
+                    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline">Cancel</a>
+                    <button type="button" id="reset-btn" class="btn btn-warning">Reset to Default</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+                
+                <!-- Hidden field to indicate if we're resetting to default -->
+                <input type="hidden" name="reset_to_default" id="reset_to_default" value="false">
+            </form>
+        </div>
+    </main>
+    
+    <script>
+        // Add JavaScript to handle toggle and reset
+        document.addEventListener('DOMContentLoaded', function() {
+            const resetBtn = document.getElementById('reset-btn');
+            const resetField = document.getElementById('reset_to_default');
+            
+            resetBtn.addEventListener('click', function() {
+                if (confirm('Are you sure you want to reset the prompt to the default? This will overwrite your current text.')) {
+                    resetField.value = 'true';
+                    document.querySelector('form').submit();
+                }
+            });
+        });
+    </script>
+</body>
+</html> 

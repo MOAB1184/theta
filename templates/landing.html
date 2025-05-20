@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ThetaSummary - AI-Powered Class Transcription & Summarization</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Reset and Basic Styles from DuggAi example */
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            background-color: #000000;
+            color: #e0e0e0;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        body {
+            padding-top: 86px; /* Space for fixed header */
+        }
+        
+        .container-content { /* General content container from DuggAi */
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px 0;
+        }
+
+        .container { /* Original container for landing page sections */
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px; 
+        }
+
+        a {
+            color: #c084fc; 
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            margin-top: 0;
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        /* Header Styles from DuggAi example */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding-top: 16px;
+            padding-bottom: 16px;
+            z-index: 1000;
+        }
+
+        .header .container { /* This is the rounded bar for the header */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 95%;
+            max-width: 1280px;
+            margin: 0 auto;
+            background-color: rgba(28, 28, 30, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            padding: 10px 25px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.25);
+        }
+
+        .logo {
+            font-size: 1.7em;
+            font-weight: bold;
+            color: #ffffff;
+            flex-shrink: 0;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo img {
+            height: 35px;
+            width: auto;
+            display: block;
+        }
+        
+        .logo-text {
+            color: #ffffff;
+            font-weight: bold;
+        }
+
+        .nav-links {
+            display: none; 
+            flex-grow: 1;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .nav-links a {
+            color: #b0b0b0;
+            font-size: 0.9em;
+            transition: color 0.3s ease;
+            text-decoration: none;
+        }
+
+        .nav-links a:hover {
+            color: #ffffff;
+        }
+
+        .header-buttons {
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .header-buttons .btn {
+            margin-left: 10px;
+            padding: 7px 14px;
+            border-radius: 6px;
+            font-size: 0.85em;
+            font-weight: 500;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            text-decoration: none;
+        }
+
+        .btn-secondary {
+            background-color: rgba(50, 50, 50, 0.7);
+            color: #e0e0e0;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        .btn-secondary:hover {
+            background-color: rgba(65, 65, 65, 0.8);
+            color: #ffffff;
+         }
+
+        .btn-primary {
+            background-color: #ffffff;
+            color: #000000;
+            font-weight: 600;
+        }
+        .btn-primary:hover {
+            background-color: #f0f0f0;
+        }
+
+        .mobile-menu-button {
+            display: block; 
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 1.5em;
+            cursor: pointer;
+        }
+        
+        .mobile-menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.95);
+            z-index: 2000;
+            display: none; 
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .mobile-menu.active {
+            display: flex;
+        }
+        
+        .mobile-menu a {
+            color: #ffffff;
+            font-size: 1.2em;
+            margin: 15px 0;
+            text-decoration: none;
+        }
+        
+        .close-mobile-menu {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 1.8em; 
+            cursor: pointer;
+        }
+
+        @media (max-width: 900px) { 
+            .nav-links {
+                display: none;
+            }
+            .mobile-menu-button {
+                display: block;
+            }
+        }
+
+        @media (max-width: 768px) { 
+            body {
+                padding-top: 70px; 
+            }
+            .header {
+                padding-top: 12px;
+                padding-bottom: 12px;
+            }
+             .header .container {
+                width: 92%;
+                padding: 8px 15px;
+            }
+            .logo {
+                font-size: 1.6em;
+            }
+             .header-buttons .btn {
+                font-size: 0.8em;
+                padding: 6px 10px;
+                margin-left: 6px;
+            }
+             .mobile-menu-button {
+                font-size: 1.3em;
+            }
+        }
+
+        @media (min-width: 901px) { 
+            .nav-links {
+                display: flex;
+            }
+            .mobile-menu-button {
+                display: none;
+            }
+        }
+
+        /* Landing Page Specific Styles */
+        .hero {
+            padding: 80px 0; 
+            text-align: center;
+        }
+        .hero-title {
+            font-size: 3.2rem; 
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+        .hero-subtitle {
+            font-size: 1.4rem; 
+            color: #b0b0b0;
+            max-width: 800px;
+            margin: 0 auto 40px;
+        }
+        .hero-buttons { 
+            display: flex;
+            gap: 15px; 
+            justify-content: center;
+        }
+        .hero-buttons .btn { 
+            padding: 14px 30px;
+            font-size: 1.05em;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        .hero-buttons .btn-large-primary { 
+             background-color: #ffffff;
+             color: #000000;
+        }
+        .hero-buttons .btn-large-primary:hover {
+            background-color: #e6e6e6;
+        }
+        .hero-buttons .btn-large-secondary { 
+            background-color: rgba(38, 38, 38, 0.8);
+            color: #ffffff;
+            border: 1px solid #404040;
+        }
+        .hero-buttons .btn-large-secondary:hover {
+            background-color: rgba(51, 51, 51, 0.9);
+        }
+
+        .features {
+            padding: 70px 0; 
+            background-color: #050505; 
+        }
+        .section-title {
+            font-size: 2.5rem; 
+            text-align: center;
+            margin-bottom: 60px;
+            color: #ffffff;
+        }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px; 
+        }
+        .feature-card { 
+            background-color: #0a0a0a;
+            padding: 35px;
+            border-radius: 12px;
+            border: 1px solid #202020;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 25px rgba(168, 85, 247, 0.1); 
+        }
+        .feature-icon { 
+            font-size: 2.5rem; 
+            margin-bottom: 20px;
+            color: #c084fc; 
+        }
+        .feature-title {
+            font-size: 1.6em; 
+            margin-bottom: 12px;
+            color: #f0f0f0;
+        }
+        .feature-description {
+            font-size: 1em; 
+            color: #909090;
+        }
+        
+        .how-it-works {
+            padding: 70px 0;
+            background-color: #000000; 
+        }
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+            gap: 30px;
+        }
+        .step-card { 
+            background-color: #0a0a0a;
+            padding: 30px; 
+            border-radius: 12px;
+            border: 1px solid #202020;
+            text-align: center;
+        }
+        .step-number { 
+            width: 40px;
+            height: 40px;
+            background-color: #ffffff;
+            color: #121212;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin: 0 auto 20px auto; 
+        }
+        .step-title {
+            font-size: 1.5em; 
+            margin-bottom: 10px;
+            color: #f0f0f0;
+        }
+        .step-description {
+            font-size: 1em;
+            color: #909090;
+        }
+        
+        .cta-section {
+            padding: 90px 20px;
+            text-align: center;
+            background-image: radial-gradient(at 10% 20%, hsla(270,80%,55%,0.3) 0px, transparent 55%),
+                              radial-gradient(at 85% 30%, hsla(210,75%,50%,0.25) 0px, transparent 60%),
+                              #000000; 
+        }
+        .cta-title {
+            font-size: clamp(2.5em, 5.5vw, 3.2em); 
+            margin-bottom: 25px;
+            color: #ffffff;
+        }
+        .cta-subtitle {
+            font-size: 1.25em; 
+            margin-bottom: 35px;
+            color: #c7c7c7;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .cta-section .btn-large-primary {
+            padding: 16px 40px;
+            font-size: 1.15em;
+            background-color: #ffffff;
+            color: #000000;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: transform 0.2s ease, background-color 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .cta-section .btn-large-primary:hover {
+            background-color: #f5f5f5;
+            transform: scale(1.03);
+        }
+        
+        footer { 
+            background-color: #000000;
+            color: #777777;
+            padding: 50px 0 30px;
+            text-align: center;
+            border-top: 1px solid #1a1a1a; 
+        }
+        footer .container { 
+            display: flex;
+            flex-direction: column; 
+            align-items: center;
+            padding-top: 20px; 
+            padding-bottom: 20px;
+        }
+        .footer-links { 
+            margin-bottom: 25px;
+        }
+        .footer-links a {
+            color: #888888;
+            margin: 0 12px;
+            font-size: 0.9em;
+            transition: color 0.3s ease;
+            text-decoration: none;
+        }
+        .footer-links a:hover {
+            color: #ffffff;
+        }
+        .copyright { 
+            margin: 8px 0;
+            font-size: 0.85em;
+            color: #777777; 
+        }
+
+        @media (min-width: 769px) {
+            footer .container {
+                flex-direction: row;
+                justify-content: space-between;
+            }
+             .footer-links {
+                margin-bottom: 0;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="mobile-menu" id="mobile-menu">
+        <button class="close-mobile-menu" id="close-mobile-menu" aria-label="Close menu">&times;</button>
+        <a href="#features">Features</a>
+        <a href="#how-it-works">How It Works</a>
+        <a href="{{ url_for('pricing') }}">Pricing</a>
+        <a href="#">Blog</a>
+        <a href="{{ url_for('login') }}">Login</a>
+        <a href="{{ url_for('register') }}">Sign Up</a>
+    </div>
+
+    <header class="header">
+        <div class="container">
+            <a href="{{ url_for('index') }}" class="logo">
+                <img src="{{ url_for('static', filename='images/theta_logo.png') }}" alt="ThetaSummary Logo">
+                <span class="logo-text">ThetaSummary</span>
+            </a>
+            <nav class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#how-it-works">How It Works</a>
+                <a href="{{ url_for('pricing') }}">Pricing</a>
+                <a href="#">Blog</a>
+            </nav>
+            <div class="header-buttons">
+                <a href="{{ url_for('login') }}" class="btn btn-secondary">Login</a>
+                <a href="{{ url_for('register') }}" class="btn btn-primary">Sign Up</a>
+            </div>
+            <button class="mobile-menu-button" aria-label="Open menu">☰</button>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <h1 class="hero-title">Transform Your students Learning Experience</h1>
+            <p class="hero-subtitle">Record classes, lectures, or study sessions, and let our AI generate comprehensive, structured summaries in seconds.</p>
+            <div class="hero-buttons">
+                <a href="{{ url_for('register') }}" class="btn btn-large-primary">Get Started</a>
+                <a href="#features" class="btn btn-large-secondary">Learn More</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="features" id="features">
+        <div class="container">
+            <h2 class="section-title">Key Features</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🎙️</div>
+                    <h3 class="feature-title">Seamless Recording</h3>
+                    <p class="feature-description">Easily record audio from lectures, meetings, or study groups directly in the app.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🧠</div>
+                    <h3 class="feature-title">AI-Powered Transcription</h3>
+                    <p class="feature-description">Get accurate, fast transcriptions of your recordings using advanced AI.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📄</div>
+                    <h3 class="feature-title">Intelligent Summaries</h3>
+                    <p class="feature-description">Receive concise, structured summaries highlighting key points and concepts.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔬</div>
+                    <h3 class="feature-title">Subject-Specific Formatting</h3>
+                    <p class="feature-description">Automatic LaTeX formatting for math, plus tailored outputs for science and social studies.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <h3 class="feature-title">Secure Storage</h3>
+                    <p class="feature-description">Your recordings and summaries are stored securely and privately in your account.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💬</div>
+                    <h3 class="feature-title">AI Chat & Voice Assistant</h3>
+                    <p class="feature-description">Interact with your content, ask questions, and control the app using AI chat and voice commands.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="how-it-works" id="how-it-works">
+        <div class="container">
+            <h2 class="section-title">How ThetaSummary Works</h2>
+            <div class="steps">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <h3 class="step-title">Record Audio</h3>
+                    <p class="step-description">Capture any lecture, meeting, or voice note with our simple recording interface.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <h3 class="step-title">AI Processing</h3>
+                    <p class="step-description">Our AI transcribes the audio and analyzes the content for subject matter and key information.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <h3 class="step-title">Receive Summary</h3>
+                    <p class="step-description">Get a detailed transcript and a structured, easy-to-read summary, formatted for the detected subject.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">4</div>
+                    <h3 class="step-title">Review & Utilize</h3>
+                    <p class="step-description">Students access, review, and download your summaries. Use the AI chatbot for further understanding.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta-section">
+        <div class="container">
+            <h2 class="cta-title">Ready to Elevate Your Classroom?</h2>
+            <p class="cta-subtitle">Sign up for ThetaSummary today and experience the future of automated transcription and summarization. Focus on understanding, not just note-taking.</p>
+
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="footer-links">
+                <a href="#">Support</a>
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+            </div>
+            <p class="copyright">&copy; 2024 ThetaSummary. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileMenuButton = document.querySelector('.mobile-menu-button');
+            const closeMobileMenu = document.querySelector('.close-mobile-menu');
+            const mobileMenu = document.getElementById('mobile-menu');
+            
+            if (mobileMenuButton && mobileMenu && closeMobileMenu) {
+                mobileMenuButton.addEventListener('click', function() {
+                    mobileMenu.classList.add('active');
+                });
+                
+                closeMobileMenu.addEventListener('click', function() {
+                    mobileMenu.classList.remove('active');
+                });
+
+                const mobileNavLinks = mobileMenu.querySelectorAll('a');
+                mobileNavLinks.forEach(link => {
+                    link.addEventListener('click', () => {
+                        if (mobileMenu.classList.contains('active')) {
+                            if (link.getAttribute('href').startsWith('#') || 
+                                link.getAttribute('href').startsWith(window.location.pathname + '#')) {
+                                mobileMenu.classList.remove('active');
+                            }
+                            else if (!link.getAttribute('href').startsWith('javascript:')) {
+                                mobileMenu.classList.remove('active');
+                            }
+                        }
+                    });
+                });
+            }
+
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    const hrefAttribute = this.getAttribute('href');
+                    if (hrefAttribute && hrefAttribute !== '#' && hrefAttribute !== '#!') {
+                        const targetElement = document.querySelector(hrefAttribute);
+                        if (targetElement) {
+                            e.preventDefault();
+                            targetElement.scrollIntoView({
+                                behavior: 'smooth'
+                            });
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ class_obj.name }} - ThetaSummary</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #121212; color: #e0e0e0; line-height: 1.6; min-height: 100vh; }
+        .app-container { display: flex; min-height: 100vh; }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            width: 250px;
+            background-color: #1a1a1a;
+            transition: all 0.3s ease;
+            overflow-y: auto;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            z-index: 100;
+            transform: translateX(-250px);
+        }
+        .sidebar.active {
+            transform: translateX(0);
+        }
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .sidebar-logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #ffffff;
+            text-decoration: none;
+        }
+        .close-menu {
+            background: none;
+            border: none;
+            color: #a0a0a0;
+            cursor: pointer;
+            font-size: 1.5rem;
+        }
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+        .sidebar-menu-title {
+            padding: 0 20px;
+            margin-bottom: 10px;
+            color: #a0a0a0;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .menu-item {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: #e0e0e0;
+            transition: all 0.2s ease;
+        }
+        .menu-item:hover, .menu-item.active {
+            background-color: #242424;
+        }
+        .menu-item-icon {
+            margin-right: 10px;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid #333;
+        }
+        .sidebar-footer-text {
+            color: #a0a0a0;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: #e0e0e0;
+            padding: 10px 15px;
+            background-color: #242424;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+        .logout-btn:hover {
+            background-color: #333;
+        }
+        .logout-icon {
+            margin-right: 8px;
+        }
+        
+        /* Sidebar Overlay for Mobile */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 99;
+            display: none;
+        }
+        .sidebar-overlay.active {
+            display: block;
+        }
+        
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            margin-left: 0;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        .main-content.sidebar-active {
+            margin-left: 250px;
+            width: calc(100% - 250px);
+        }
+        
+        /* Header Styles */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .menu-toggle {
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+        }
+        .page-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+        .user-menu {
+            position: relative;
+        }
+        .user-button {
+            background: none;
+            border: none;
+            color: #ffffff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        .user-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background-color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        
+        /* Class Details Styles */
+        .class-details-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 32px;
+            margin-bottom: 40px;
+        }
+        .class-info-card {
+            background: #1a1a1a;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.18);
+            padding: 28px 24px 20px 24px;
+            min-width: 320px;
+            max-width: 420px;
+            flex: 1 1 320px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .class-title {
+            color: #4f8cff;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+        .class-teacher {
+            color: #a0a0a0;
+            font-size: 1rem;
+            margin-bottom: 6px;
+        }
+        .class-description {
+            color: #e0e0e0;
+            font-size: 1.05rem;
+            margin-bottom: 10px;
+        }
+        .class-stats {
+            display: flex;
+            gap: 18px;
+            font-size: 0.98rem;
+            color: #a0a0a0;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+        .class-stats .stat-icon {
+            margin-right: 6px;
+        }
+        .btn.btn-primary {
+            background: #4f8cff;
+            color: #fff;
+            padding: 10px 22px;
+            border-radius: 6px;
+            font-size: 1rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.2s;
+        }
+        .btn.btn-primary:hover {
+            background: #2563eb;
+        }
+        
+        /* Summaries Section */
+        .summaries-section {
+            background: #1a1a1a;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.18);
+            padding: 28px 24px 20px 24px;
+            margin-top: 0;
+            flex: 2 1 400px;
+            min-width: 320px;
+        }
+        .summaries-section h2 {
+            font-size: 1.2rem;
+            color: #fff;
+            margin-bottom: 18px;
+        }
+        .summaries-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 18px;
+        }
+        .summary-card {
+            background: #242424;
+            border-radius: 8px;
+            padding: 18px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .summary-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .summary-header h3 {
+            font-size: 1.05rem;
+            color: #4f8cff;
+            margin: 0;
+        }
+        .summary-date {
+            color: #a0a0a0;
+            font-size: 0.95rem;
+        }
+        .summary-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+        }
+        .btn.btn-outline {
+            background: none;
+            border: none;
+            color: #7bb6ff;
+            font-weight: 500;
+            font-size: 1rem;
+            box-shadow: none;
+            padding: 0;
+            text-align: left;
+            transition: color 0.2s, text-decoration 0.2s;
+            text-decoration: none;
+        }
+        .btn.btn-outline:hover {
+            color: #a7d3ff;
+            text-decoration: underline;
+            background: none;
+        }
+        .empty-state {
+            color: #a0a0a0;
+            font-size: 1.1rem;
+            padding: 30px 0;
+            text-align: center;
+        }
+        
+        /* Responsive Styles */
+        @media (min-width: 768px) {
+            .sidebar {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 250px;
+                width: calc(100% - 250px);
+            }
+            .menu-toggle {
+                display: none;
+            }
+            .close-menu {
+                display: none;
+            }
+        }
+        @media (max-width: 900px) {
+            .main-content {
+                padding: 20px 10px 10px 10px;
+            }
+            .class-details-section {
+                flex-direction: column;
+                gap: 24px;
+            }
+            .class-info-card, .summaries-section {
+                min-width: 0;
+                max-width: 100%;
+            }
+        }
+        @media (max-width: 767px) {
+            .main-content.sidebar-active {
+                margin-left: 0;
+                width: 100%;
+                opacity: 0.7;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar-overlay"></div>
+    
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="/dashboard" class="sidebar-logo">ThetaSummary</a>
+                <button class="close-menu">×</button>
+            </div>
+            
+            <div class="sidebar-menu">
+                <div class="sidebar-menu-title">Menu</div>
+                <a href="{{ url_for('dashboard') }}" class="menu-item">
+                    <span class="menu-item-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 13A6 6 0 1 1 8 2a6 6 0 0 1 0 12z"/>
+                            <path d="M8 4a.5.5 0 0 1 .5.5v2.5H11a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V8H5a.5.5 0 0 1 0-1h2.5V4.5A.5.5 0 0 1 8 4z"/>
+                        </svg>
+                    </span>
+                    Dashboard
+                </a>
+                <a href="{{ url_for('create_class') }}" class="menu-item">
+                    <span class="menu-item-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 13A6 6 0 1 1 8 2a6 6 0 0 1 0 12z"/>
+                            <path d="M8 4a.5.5 0 0 1 .5.5v2.5H11a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V8H5a.5.5 0 0 1 0-1h2.5V4.5A.5.5 0 0 1 8 4z"/>
+                        </svg>
+                    </span>
+                    Create New Class
+                </a>
+                {% if current_user.is_admin %}
+                <a href="{{ url_for('admin_dashboard') }}" class="menu-item">
+                    <span class="menu-item-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 13A6 6 0 1 1 8 2a6 6 0 0 1 0 12z"/>
+                            <path d="M8 4a.5.5 0 0 1 .5.5v2.5H11a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V8H5a.5.5 0 0 1 0-1h2.5V4.5A.5.5 0 0 1 8 4z"/>
+                        </svg>
+                    </span>
+                    Admin Settings
+                </a>
+                {% endif %}
+            </div>
+            
+            <div class="sidebar-footer">
+                <div class="sidebar-footer-text">Logged in as {{ current_user.username }}</div>
+                <a href="{{ url_for('logout') }}" class="logout-btn">
+                    <span class="logout-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z"/>
+                            <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/>
+                        </svg>
+                    </span>
+                    Logout
+                </a>
+            </div>
+        </aside>
+        
+        <main class="main-content">
+            <header class="header">
+                <button class="menu-toggle">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/>
+                    </svg>
+                </button>
+                <h1 class="page-title">{{ class_obj.name }}</h1>
+                <div class="user-menu">
+                    <button class="user-button">
+                        <div class="user-avatar">{{ current_user.username[0].upper() }}</div>
+                        <span>{{ current_user.username }}</span>
+                    </button>
+                </div>
+            </header>
+            
+            <div class="class-details-section">
+                <div class="class-info-card">
+                    <span class="class-title">{{ class_obj.name }}</span>
+                    <span class="class-teacher">Teacher: {{ class_obj.teacher.username }}</span>
+                    <span class="class-description">{{ class_obj.description or 'No description provided' }}</span>
+                    <div class="class-stats">
+                        <span><span class="stat-icon">👥</span>{{ class_obj.students|length }} Students</span>
+                        <span><span class="stat-icon">📄</span>{{ class_obj.summaries|length }} Summaries</span>
+                    </div>
+                    <a href="/recordings?class_id={{ class_obj.id }}" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M8 11a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v3a3 3 0 0 0 3 3z"/>
+                            <path d="M13 8c0 2.21-1.79 4-4 4-2.21 0-4-1.79-4-4H3c0 2.67 2.04 4.87 4.65 5.27V16h2.7v-2.73c2.61-.4 4.65-2.6 4.65-5.27h-2z"/>
+                        </svg>
+                        Record Audio
+                    </a>
+                </div>
+                <div class="summaries-section">
+                    <h2>Class Summaries</h2>
+                    
+                    {% if summaries %}
+                    <div class="summaries-grid">
+                        {% for summary in summaries %}
+                        <div class="summary-card">
+                            <div class="summary-header">
+                                <h3>{{ summary.filename }}</h3>
+                                <span class="summary-date">{{ summary.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                            </div>
+                            <div class="summary-actions">
+                                <a href="{{ url_for('view_summary', filename=summary.filename) }}" class="btn btn-outline">View Summary</a>
+                                <a href="{{ url_for('download_file', filename=summary.filename) }}" class="btn btn-outline">Download</a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <p>No summaries have been created for this class yet.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Sidebar functionality
+            const menuToggle = document.querySelector('.menu-toggle');
+            const closeMenu = document.querySelector('.close-menu');
+            const sidebar = document.querySelector('.sidebar');
+            const mainContent = document.querySelector('.main-content');
+            const sidebarOverlay = document.querySelector('.sidebar-overlay');
+            
+            // Function to toggle sidebar visibility
+            function toggleSidebar() {
+                sidebar.classList.toggle('active');
+                mainContent.classList.toggle('sidebar-active');
+                sidebarOverlay.classList.toggle('active');
+            }
+            
+            // Event listeners for sidebar toggle buttons
+            menuToggle.addEventListener('click', toggleSidebar);
+            closeMenu.addEventListener('click', toggleSidebar);
+            sidebarOverlay.addEventListener('click', toggleSidebar);
+            
+            // Handle responsive behavior
+            function handleResize() {
+                if (window.innerWidth < 768) {
+                    sidebar.classList.remove('active');
+                    mainContent.classList.remove('sidebar-active');
+                    sidebarOverlay.classList.remove('active');
+                }
+            }
+            
+            // Initial setup and resize handling
+            window.addEventListener('resize', handleResize);
+            handleResize();
+        });
+    </script>
+</body>
+</html>
