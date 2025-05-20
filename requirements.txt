@@ -8,3 +8,5 @@ flask-sqlalchemy
 werkzeug
 google-generativeai
 python-dotenv
+stripe
+requests
