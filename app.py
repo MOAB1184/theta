@@ -19,7 +19,6 @@ import string
 from stripe.error import SignatureVerificationError
 import boto3
 from botocore.exceptions import ClientError
-from wasabi_scanner import scan_wasabi_files
 
 # Try to load environment variables from .env file
 try:
@@ -47,10 +46,9 @@ app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
 
 # Configure user files directory
 USER_FILES_DIR = os.path.join(BASE_DATA_DIR, 'user_files')
-app.config['UPLOAD_FOLDER'] = USER_FILES_DIR
 
-# Ensure upload folder exists
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+# Update UPLOAD_FOLDER to use Wasabi
+app.config['UPLOAD_FOLDER'] = os.getenv('WASABI_BUCKET_NAME')
 
 # Initialize SQLAlchemy
 db = SQLAlchemy(app)
