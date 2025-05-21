@@ -1171,9 +1171,26 @@ def scan_wasabi_files(username, class_code=None):
             print(f"Error scanning user files: {e}")
     return files
 
-# Ensure database tables are created on every cold start (Vercel)
+# Ensure database tables are created and default data is present on every cold start (Vercel)
 with app.app_context():
     db.create_all()
+    # Create default school if none exist
+    if School.query.count() == 0:
+        default_school = School(name='Default High School', district='Default District', state='CA')
+        db.session.add(default_school)
+        db.session.commit()
+    # Create admin user if not present
+    admin = User.query.filter_by(username="admin").first()
+    if not admin:
+        admin = User(username="admin", is_admin=True, role="admin")
+        admin.set_password("duggy")
+        db.session.add(admin)
+        db.session.commit()
+    else:
+        if admin.role != "admin":
+            admin.role = "admin"
+            admin.is_admin = True
+            db.session.commit()
 
 if __name__ == '__main__':
     with app.app_context():
