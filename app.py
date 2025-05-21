@@ -1171,6 +1171,10 @@ def scan_wasabi_files(username, class_code=None):
             print(f"Error scanning user files: {e}")
     return files
 
+# Ensure database tables are created on every cold start (Vercel)
+with app.app_context():
+    db.create_all()
+
 if __name__ == '__main__':
     with app.app_context():
         # Create tables
