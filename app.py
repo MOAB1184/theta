@@ -401,9 +401,8 @@ def register():
             return redirect(url_for('dashboard'))
         except Exception as e:
             import traceback
-            print("REGISTER ERROR:", e)
-            traceback.print_exc()
-            return render_template('register.html', error='An unexpected error occurred. Please try again.', username=request.form.get('username'), role=request.form.get('role'), schools=schools)
+            error_message = f"REGISTER ERROR: {e}<br><pre>{traceback.format_exc()}</pre>"
+            return render_template('register.html', error=error_message, username=request.form.get('username'), role=request.form.get('role'), schools=schools)
     
     return render_template('register.html', role='student', schools=schools)
 
