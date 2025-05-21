@@ -215,13 +215,19 @@
     <main>
         <div class="container">
             <h1 class="page-title">Admin Dashboard</h1>
-            
+            <div style="display:flex;gap:16px;align-items:center;margin-bottom:24px;">
+                <a href="{{ url_for('create_school') }}" class="btn btn-primary" style="background:#c084fc;">+ Create School</a>
+            </div>
             <h2 class="section-title">Upload Recording</h2>
             <form method="POST" action="/admin/upload_recording" enctype="multipart/form-data" style="margin-bottom:30px; background:#181818; padding:20px; border-radius:8px;">
                 <label for="admin_password">Password:</label>
                 <input type="password" id="admin_password" name="admin_password" placeholder="Enter admin password" style="margin-bottom:10px; width:100%; padding:8px; border-radius:4px; border:1px solid #444; background:#222; color:#fff;">
                 <label for="recording_file">Recording File:</label>
-                <input type="file" id="recording_file" name="recording_file" accept="audio/*" style="margin-bottom:10px; width:100%;">
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+                    <input type="file" id="recording_file" name="recording_file" accept="audio/*" style="display:none;" onchange="document.getElementById('file-label').textContent = this.files[0] ? this.files[0].name : 'No file selected';">
+                    <label for="recording_file" class="btn btn-outline" style="cursor:pointer;padding:8px 18px;">Browse</label>
+                    <span id="file-label" style="color:#a0a0a0;">No file selected</span>
+                </div>
                 <button type="submit" class="btn btn-primary" style="width:100%;">Upload</button>
             </form>
 
@@ -263,6 +269,7 @@
                             <th>Username</th>
                             <th>Role</th>
                             <th>Admin Status</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -272,6 +279,13 @@
                             <td>{{ user_account.username }}</td>
                             <td>{{ user_account.role|capitalize }}</td>
                             <td>{% if user_account.is_admin %}Yes{% else %}No{% endif %}</td>
+                            <td>
+                                {% if user_account.role != 'admin' %}
+                                <form method="POST" action="{{ url_for('admin_delete_user', user_id=user_account.id) }}" style="display:inline;">
+                                    <button type="submit" class="btn btn-danger btn-sm" style="background:#ff4f4f;color:#fff;border:none;padding:6px 14px;border-radius:5px;cursor:pointer;" onclick="return confirm('Are you sure you want to remove this user? This cannot be undone.');">Remove</button>
+                                </form>
+                                {% endif %}
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>

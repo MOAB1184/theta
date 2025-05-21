@@ -1,7 +1,7 @@
 flask
 google-genai
 openai 
-boto3 
+boto3>=1.28.0
 ffmpeg-python
 flask-login
 flask-sqlalchemy

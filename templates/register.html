@@ -149,7 +149,7 @@
                 <form action="/register" method="POST">
                     <div class="form-group">
                         <label for="username">Username</label>
-                        <input type="text" id="username" name="username" required>
+                        <input type="text" id="username" name="username" required value="{{ username|default('') }}">
                     </div>
                     
                     <div class="form-group">
@@ -159,9 +159,19 @@
 
                     <div class="form-group">
                         <label for="role">I am a:</label>
-                        <select id="role" name="role" required>
+                        <select id="role" name="role" required onchange="toggleSchoolDropdown()">
                             <option value="student" {% if role == 'student' %}selected{% endif %}>Student</option>
                             <option value="teacher" {% if role == 'teacher' %}selected{% endif %}>Teacher</option>
+                        </select>
+                    </div>
+                    
+                    <div id="school-dropdown" style="display: {% if role == 'teacher' %}block{% else %}none{% endif %}; margin-bottom: 18px;">
+                        <label for="school_id">School</label>
+                        <select id="school_id" name="school_id" {% if role == 'teacher' %}required{% endif %}>
+                            <option value="">Select a school</option>
+                            {% for school in schools %}
+                            <option value="{{ school.id }}" {% if school.id|string == school_id|string %}selected{% endif %}>{{ school.name }} ({{ school.district }}, {{ school.state }})</option>
+                            {% endfor %}
                         </select>
                     </div>
                     
@@ -180,5 +190,20 @@
             <p>&copy; 2023 ThetaSummary. All rights reserved.</p>
         </div>
     </footer>
+
+    <script>
+    function toggleSchoolDropdown() {
+        var role = document.getElementById('role').value;
+        var schoolDropdown = document.getElementById('school-dropdown');
+        if (role === 'teacher') {
+            schoolDropdown.style.display = 'block';
+            document.getElementById('school_id').setAttribute('required', 'required');
+        } else {
+            schoolDropdown.style.display = 'none';
+            document.getElementById('school_id').removeAttribute('required');
+        }
+    }
+    document.addEventListener('DOMContentLoaded', toggleSchoolDropdown);
+    </script>
 </body>
 </html> 

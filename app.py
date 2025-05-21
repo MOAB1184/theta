@@ -17,6 +17,9 @@ import stripe
 import random
 import string
 from stripe.error import SignatureVerificationError
+import boto3
+from botocore.exceptions import ClientError
+from wasabi_scanner import scan_wasabi_files
 
 # Try to load environment variables from .env file
 try:
@@ -212,16 +215,32 @@ Transcript:
 # Use BASE_PROMPT as default
 DEFAULT_GLOBAL_PROMPT = BASE_PROMPT
 
+# Initialize Wasabi S3 client
+s3_client = boto3.client(
+    's3',
+    aws_access_key_id=os.getenv('WASABI_ACCESS_KEY_ID'),
+    aws_secret_access_key=os.getenv('WASABI_SECRET_ACCESS_KEY'),
+    endpoint_url=os.getenv('WASABI_ENDPOINT'),
+    region_name=os.getenv('WASABI_REGION')
+)
+
+# School model
+class School(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), unique=True, nullable=False)
+    district = db.Column(db.String(100), nullable=False)
+    state = db.Column(db.String(50), nullable=False)
+    teachers = db.relationship('User', backref='school', lazy=True)
+
 # User model with admin flag
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100), unique=True, nullable=False)
     password_hash = db.Column(db.String(200), nullable=False)
-    is_admin = db.Column(db.Boolean, default=False)  # Kept for now, but role='admin' is preferred
-    role = db.Column(db.String(50), nullable=False, default='student') # student, teacher, admin
-    subscribed = db.Column(db.Boolean, default=False)  # New: track paid/invite access
-    
-    # Add relationships for classes
+    is_admin = db.Column(db.Boolean, default=False)
+    role = db.Column(db.String(50), nullable=False, default='student')
+    subscribed = db.Column(db.Boolean, default=False)
+    school_id = db.Column(db.Integer, db.ForeignKey('school.id'), nullable=True)  # Only for teachers
     teaching_classes = db.relationship('Class', backref='teacher', lazy=True, foreign_keys='Class.teacher_id')
     enrolled_classes = db.relationship('Class', secondary='class_enrollment', backref='students', lazy=True)
     
@@ -352,20 +371,28 @@ def register():
     if current_user.is_authenticated:
         return redirect(url_for('dashboard'))
 
+    schools = School.query.order_by(School.name).all()
+
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
         role = request.form.get('role')
+        school_id = request.form.get('school_id') if role == 'teacher' else None
 
         if not role or role not in ['student', 'teacher']:
-            return render_template('register.html', error='Invalid role selected', username=username)
+            return render_template('register.html', error='Invalid role selected', username=username, schools=schools)
+
+        if role == 'teacher' and not school_id:
+            return render_template('register.html', error='Please select a school.', username=username, role=role, schools=schools)
 
         existing_user = User.query.filter_by(username=username).first()
         if existing_user:
-            return render_template('register.html', error='Username already exists', role=role, username=username)
+            return render_template('register.html', error='Username already exists', role=role, username=username, schools=schools)
         
         new_user = User(username=username, role=role)
         new_user.is_admin = False
+        if role == 'teacher':
+            new_user.school_id = int(school_id)
 
         new_user.set_password(password)
         db.session.add(new_user)
@@ -379,7 +406,7 @@ def register():
         login_user(new_user)
         return redirect(url_for('dashboard'))
     
-    return render_template('register.html', role='student')
+    return render_template('register.html', role='student', schools=schools)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -573,25 +600,18 @@ def transcribe():
             elif current_user.role == 'student' and class_obj not in current_user.enrolled_classes:
                 return jsonify({'status': 'error', 'message': 'Unauthorized access to class'}), 403
             
-            class_dir = os.path.join(app.config['UPLOAD_FOLDER'], current_user.username, 'classes', class_obj.class_code)
-            os.makedirs(class_dir, exist_ok=True)
-            
-            recording_path = os.path.join(class_dir, recording_filename)
-            transcript_path = os.path.join(class_dir, transcript_filename)
+            class_dir = f"{current_user.username}/classes/{class_obj.class_code}"
+            recording_path = f"{class_dir}/{recording_filename}"
+            transcript_path = f"{class_dir}/{transcript_filename}"
         else:
             # Save to user's personal directory
-            user_dir = os.path.join(app.config['UPLOAD_FOLDER'], current_user.username)
-            os.makedirs(user_dir, exist_ok=True)
-            
-            recording_path = os.path.join(user_dir, recording_filename)
-            transcript_path = os.path.join(user_dir, transcript_filename)
+            user_dir = f"{current_user.username}"
+            recording_path = f"{user_dir}/{recording_filename}"
+            transcript_path = f"{user_dir}/{transcript_filename}"
 
-        # Save received base64 audio and real transcript
-        with open(recording_path, 'w', encoding='utf-8') as f:
-            f.write(audio_base64)
-            
-        with open(transcript_path, 'w', encoding='utf-8') as f:
-            f.write(transcript)
+        # Save received base64 audio and real transcript to Wasabi
+        s3_client.put_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=recording_path, Body=audio_base64)
+        s3_client.put_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=transcript_path, Body=transcript)
             
         return jsonify({
             'status': 'success',
@@ -660,12 +680,10 @@ def summarize():
             elif current_user.role == 'student' and class_obj not in current_user.enrolled_classes:
                 return jsonify({'status': 'error', 'message': 'Unauthorized access to class'}), 403
             
-            class_dir = os.path.join(app.config['UPLOAD_FOLDER'], current_user.username, 'classes', class_obj.class_code)
-            os.makedirs(class_dir, exist_ok=True)
-            summary_path = os.path.join(class_dir, summary_filename)
+            class_dir = f"{current_user.username}/classes/{class_obj.class_code}"
+            summary_path = f"{class_dir}/{summary_filename}"
             
-            with open(summary_path, 'w', encoding='utf-8') as f:
-                f.write(summary)
+            s3_client.put_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=summary_path, Body=summary)
             
             # Add to DB if not already present
             if not Summary.query.filter_by(filename=summary_filename, class_id=class_id).first():
@@ -673,12 +691,10 @@ def summarize():
                 db.session.commit()
         else:
             # Save to user's personal directory
-            user_dir = os.path.join(app.config['UPLOAD_FOLDER'], current_user.username)
-            os.makedirs(user_dir, exist_ok=True)
-            summary_path = os.path.join(user_dir, summary_filename)
+            user_dir = f"{current_user.username}"
+            summary_path = f"{user_dir}/{summary_filename}"
             
-            with open(summary_path, 'w', encoding='utf-8') as f:
-                f.write(summary)
+            s3_client.put_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=summary_path, Body=summary)
         
         return jsonify({
             'status': 'success',
@@ -729,10 +745,13 @@ def check_file():
             return jsonify({'status': 'error', 'message': 'Invalid filename'}), 400
         
         # Check user-specific summaries
-        user_summaries_dir = os.path.join(app.config['UPLOAD_FOLDER'], current_user.username, current_user.role, 'summaries')
-        user_file_path = os.path.join(user_summaries_dir, filename)
-        if os.path.exists(user_file_path) and os.path.isfile(user_file_path):
+        user_summaries_dir = f"{current_user.username}/{current_user.role}/summaries"
+        user_file_path = f"{user_summaries_dir}/{filename}"
+        try:
+            s3_client.head_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=user_file_path)
             return jsonify({'status': 'success', 'exists': True, 'path': 'user'})
+        except ClientError:
+            pass
         
         # Check class-specific summaries
         classes = []
@@ -742,10 +761,13 @@ def check_file():
             classes = current_user.enrolled_classes
         
         for class_obj in classes:
-            class_summaries_dir = os.path.join(app.config['UPLOAD_FOLDER'], 'class_summaries', str(class_obj.id))
-            class_file_path = os.path.join(class_summaries_dir, filename)
-            if os.path.exists(class_file_path) and os.path.isfile(class_file_path):
+            class_summaries_dir = f"class_summaries/{class_obj.id}"
+            class_file_path = f"{class_summaries_dir}/{filename}"
+            try:
+                s3_client.head_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=class_file_path)
                 return jsonify({'status': 'success', 'exists': True, 'path': 'class', 'class_id': class_obj.id})
+            except ClientError:
+                pass
         
         return jsonify({'status': 'success', 'exists': False}), 200
     except Exception as e:
@@ -758,35 +780,44 @@ def view_summary(filename):
     if not filename.startswith('summary_'):
         return "Invalid file type for this view.", 400
 
-    # Check user-specific summaries
-    user_summaries_dir = os.path.join(app.config['UPLOAD_FOLDER'], current_user.username, current_user.role, 'summaries')
-    user_file_path = os.path.join(user_summaries_dir, filename)
-    if os.path.exists(user_file_path) and os.path.isfile(user_file_path):
-        try:
-            with open(user_file_path, 'r', encoding='utf-8') as f:
-                content = f.read()
-            return render_template('view_summary.html', content=content, filename=filename)
-        except Exception as e:
-            return f"Error reading file: {str(e)}", 500
+    # Check user-specific summaries (legacy, if any)
+    user_summaries_dir = f"{current_user.username}/{current_user.role}/summaries"
+    user_file_path = f"{user_summaries_dir}/{filename}"
+    try:
+        response = s3_client.get_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=user_file_path)
+        content = response['Body'].read().decode('utf-8')
+        return render_template('view_summary.html', content=content, filename=filename)
+    except ClientError:
+        pass
 
-    # Check class-specific summaries
+    # Check new structure: user/classes/class_code/summary_xxx.txt
     classes = []
     if current_user.role == 'teacher':
         classes = Class.query.filter_by(teacher_id=current_user.id).all()
     elif current_user.role == 'student':
         classes = current_user.enrolled_classes
-    
+
     for class_obj in classes:
-        class_summaries_dir = os.path.join(app.config['UPLOAD_FOLDER'], 'class_summaries', str(class_obj.id))
-        class_file_path = os.path.join(class_summaries_dir, filename)
-        if os.path.exists(class_file_path) and os.path.isfile(class_file_path):
-            try:
-                with open(class_file_path, 'r', encoding='utf-8') as f:
-                    content = f.read()
-                return render_template('view_summary.html', content=content, filename=filename)
-            except Exception as e:
-                return f"Error reading file: {str(e)}", 500
-    
+        class_dir = f"{current_user.username}/classes/{class_obj.class_code}"
+        class_file_path = f"{class_dir}/{filename}"
+        try:
+            response = s3_client.get_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=class_file_path)
+            content = response['Body'].read().decode('utf-8')
+            return render_template('view_summary.html', content=content, filename=filename)
+        except ClientError:
+            pass
+
+    # Check old class_summaries dir (legacy, if any)
+    for class_obj in classes:
+        class_summaries_dir = f"class_summaries/{class_obj.id}"
+        class_file_path = f"{class_summaries_dir}/{filename}"
+        try:
+            response = s3_client.get_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=class_file_path)
+            content = response['Body'].read().decode('utf-8')
+            return render_template('view_summary.html', content=content, filename=filename)
+        except ClientError:
+            pass
+
     return "File not found or access denied.", 404
 
 @app.route('/download/<filename>')
@@ -796,17 +827,20 @@ def download_file(filename):
     filename = os.path.basename(filename)
     
     # Check user-specific files
-    user_role_dir = os.path.join(app.config['UPLOAD_FOLDER'], current_user.username, current_user.role)
+    user_role_dir = f"{current_user.username}/{current_user.role}"
     file_path = None
     if filename.startswith('summary_'):
-        file_path = os.path.join(user_role_dir, 'summaries', filename)
+        file_path = f"{user_role_dir}/summaries/{filename}"
     elif filename.startswith('transcript_'):
-        file_path = os.path.join(user_role_dir, 'transcripts', filename)
+        file_path = f"{user_role_dir}/transcripts/{filename}"
     elif filename.startswith('recording_'):
-        file_path = os.path.join(user_role_dir, 'recordings', filename)
+        file_path = f"{user_role_dir}/recordings/{filename}"
     
-    if file_path and os.path.exists(file_path) and os.path.isfile(file_path):
-        return send_file(file_path, as_attachment=True)
+    try:
+        response = s3_client.get_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=file_path)
+        return send_file(response['Body'], as_attachment=True, download_name=filename)
+    except ClientError:
+        pass
     
     # Check class-specific summaries
     classes = []
@@ -816,10 +850,13 @@ def download_file(filename):
         classes = current_user.enrolled_classes
     
     for class_obj in classes:
-        class_summaries_dir = os.path.join(app.config['UPLOAD_FOLDER'], 'class_summaries', str(class_obj.id))
-        class_file_path = os.path.join(class_summaries_dir, filename)
-        if os.path.exists(class_file_path) and os.path.isfile(class_file_path):
-            return send_file(class_file_path, as_attachment=True)
+        class_summaries_dir = f"class_summaries/{class_obj.id}"
+        class_file_path = f"{class_summaries_dir}/{filename}"
+        try:
+            response = s3_client.get_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=class_file_path)
+            return send_file(response['Body'], as_attachment=True, download_name=filename)
+        except ClientError:
+            pass
     
     return "File not found or access denied.", 404
 
@@ -914,7 +951,10 @@ def view_class(class_id):
     # Get summaries for this class
     summaries = Summary.query.filter_by(class_id=class_id).order_by(Summary.created_at.desc()).all()
     
-    return render_template('view_class.html', class_obj=class_obj, summaries=summaries)
+    # Scan for files in Wasabi
+    files = scan_wasabi_files(current_user.username, class_obj.class_code)
+    
+    return render_template('view_class.html', class_obj=class_obj, summaries=summaries, files=files)
 
 @app.route('/classes/<int:class_id>/enroll', methods=['POST'])
 @login_required
@@ -1028,12 +1068,115 @@ def admin_upload_recording():
     if not file or file.filename == '':
         flash('No file selected.', 'error')
         return redirect(url_for('admin_dashboard'))
-    admin_upload_dir = os.path.join(BASE_DATA_DIR, 'admin_uploads')
-    os.makedirs(admin_upload_dir, exist_ok=True)
-    save_path = os.path.join(admin_upload_dir, file.filename)
-    file.save(save_path)
+    admin_upload_dir = 'admin_uploads'
+    save_path = f"{admin_upload_dir}/{file.filename}"
+    s3_client.upload_fileobj(file, os.getenv('WASABI_BUCKET_NAME'), save_path)
     flash('Recording uploaded successfully!', 'success')
     return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin/delete_user/<int:user_id>', methods=['POST'])
+@login_required
+def admin_delete_user(user_id):
+    if not current_user.is_admin and current_user.role != 'admin':
+        return redirect(url_for('dashboard'))
+    user = User.query.get_or_404(user_id)
+    if user.role == 'teacher':
+        # Delete all classes taught by this teacher
+        for c in Class.query.filter_by(teacher_id=user.id).all():
+            db.session.delete(c)
+    elif user.role == 'student':
+        # Remove student from all classes
+        user.enrolled_classes.clear()
+    db.session.delete(user)
+    db.session.commit()
+    flash('User deleted successfully.', 'success')
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin/delete_class/<int:class_id>', methods=['POST'])
+@login_required
+def admin_delete_class(class_id):
+    if not current_user.is_admin and current_user.role != 'admin':
+        return redirect(url_for('dashboard'))
+    class_obj = Class.query.get_or_404(class_id)
+    db.session.delete(class_obj)
+    db.session.commit()
+    flash('Class deleted successfully.', 'success')
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/classes/<int:class_id>/remove_student/<int:student_id>', methods=['POST'])
+@login_required
+def remove_student_from_class(class_id, student_id):
+    class_obj = Class.query.get_or_404(class_id)
+    if current_user.role != 'teacher' or class_obj.teacher_id != current_user.id:
+        return redirect(url_for('dashboard'))
+    student = User.query.get_or_404(student_id)
+    if student in class_obj.students:
+        class_obj.students.remove(student)
+        db.session.commit()
+        flash('Student removed from class.', 'success')
+    return redirect(url_for('view_class', class_id=class_id))
+
+@app.route('/classes/<int:class_id>/delete', methods=['POST'])
+@login_required
+def teacher_delete_class(class_id):
+    class_obj = Class.query.get_or_404(class_id)
+    if current_user.role != 'teacher' or class_obj.teacher_id != current_user.id:
+        return redirect(url_for('dashboard'))
+    db.session.delete(class_obj)
+    db.session.commit()
+    flash('Class deleted successfully.', 'success')
+    return redirect(url_for('dashboard'))
+
+@app.route('/admin/create_school', methods=['GET', 'POST'])
+@login_required
+def create_school():
+    if not current_user.is_admin and current_user.role != 'admin':
+        return redirect(url_for('dashboard'))
+    if request.method == 'POST':
+        name = request.form.get('name', '').strip()
+        district = request.form.get('district', '').strip()
+        state = request.form.get('state', '').strip()
+        if not name or not district or not state:
+            flash('All fields are required.', 'error')
+            return redirect(url_for('create_school'))
+        if School.query.filter_by(name=name).first():
+            flash('School already exists.', 'error')
+            return redirect(url_for('create_school'))
+        new_school = School(name=name, district=district, state=state)
+        db.session.add(new_school)
+        db.session.commit()
+        flash('School created successfully!', 'success')
+        return redirect(url_for('admin_dashboard'))
+    return render_template('create_school.html', schools=School.query.all())
+
+def scan_wasabi_files(username, class_code=None):
+    """Scan Wasabi S3 for summaries, recordings, and transcripts in the respective folders."""
+    files = []
+    if class_code:
+        # Scan class-specific files
+        class_dir = f"{username}/classes/{class_code}"
+        try:
+            response = s3_client.list_objects_v2(Bucket=os.getenv('WASABI_BUCKET_NAME'), Prefix=class_dir)
+            if 'Contents' in response:
+                for obj in response['Contents']:
+                    key = obj['Key']
+                    if key.endswith('.txt'):
+                        files.append(key)
+        except ClientError as e:
+            print(f"Error scanning class files: {e}")
+    else:
+        # Scan user-specific files
+        user_dir = f"{username}"
+        try:
+            response = s3_client.list_objects_v2(Bucket=os.getenv('WASABI_BUCKET_NAME'), Prefix=user_dir)
+            if 'Contents' in response:
+                for obj in response['Contents']:
+                    key = obj['Key']
+                    if key.endswith('.txt'):
+                        files.append(key)
+        except ClientError as e:
+            print(f"Error scanning user files: {e}")
+    return files
 
 if __name__ == '__main__':
     with app.app_context():

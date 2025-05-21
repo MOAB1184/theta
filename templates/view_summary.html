@@ -7,7 +7,9 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- KaTeX CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5SLF1/0J2eUSnV/mIKjO7FzP7Wc+CTgy96HkBsV6Kelsv7s2w1Vr0" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css" integrity="sha384-5TcZemv2l/9On385z///+d7MSYlvIEw9FuZTIdZ14vJLqWphw7e7ZPuOiCHJcFCP" crossorigin="anonymous">
+    <!-- KaTeX JS -->
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js" integrity="sha384-cMkvdD8LoxVzGF/RPUKAcvmm49FQ0oxwDF3BGKtDXcEc+T1b2N+teh/OJfpU0jr6" crossorigin="anonymous"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #121212; color: #e0e0e0; line-height: 1.6; min-height: 100vh; }
@@ -295,9 +297,58 @@
                 align-items: flex-start;
             }
         }
+        
+        /* LaTeX Content Styles */
+        .latex-content {
+            overflow-x: auto;
+            padding: 10px 0;
+            margin: 10px 0;
+        }
+        .latex-content .katex {
+            font-size: 1.1em;
+        }
+        .latex-content .katex-display {
+            margin: 1em 0;
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding: 10px 0;
+        }
+        .latex-content .katex-display > .katex {
+            display: inline-block;
+            text-align: center;
+            max-width: 100%;
+        }
+        .latex-content .katex-display > .katex > .katex-html {
+            display: block;
+            position: relative;
+            overflow-x: auto;
+            overflow-y: hidden;
+            text-align: center;
+        }
+        .latex-content .katex-display > .katex > .katex-html > .tag {
+            position: absolute;
+            right: 0;
+        }
+        .latex-error {
+            color: #ff4f4f;
+            font-family: monospace;
+        }
+        
+        /* Text Formatting Styles */
+        .summary-content strong {
+            font-weight: 700;
+            color: #ffffff;
+        }
+        .summary-content em {
+            font-style: italic;
+            color: #e0e0e0;
+        }
+        .summary-content h2 {
+            font-size: 1.4rem;
+            color: #ffffff;
+            margin: 20px 0 10px;
+        }
     </style>
-    <!-- KaTeX JS -->
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkKLrphvbHU2DV3vS8zWt++tgb+2XahV5r+tm1nagbUrbgeJ6W3mUr3dUHUhLiC" crossorigin="anonymous"></script>
 </head>
 <body>
     <div class="sidebar-overlay"></div>
@@ -451,39 +502,53 @@
                     content = '<p>No content available.</p>';
                     summaryContent.innerHTML = content;
                 } else {
-                    // Preprocess content for HTML structure
+                    // First, handle text formatting
                     content = content
                         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Convert ** to bold
+                        .replace(/\*(.*?)\*/g, '<em>$1</em>') // Convert * to italic
                         .replace(/### (.*?)(?=\n)/g, '<h2>$1</h2>') // Convert ### to h2
-                        .replace(/\n\n/g, '<br><br>')
-                        .replace(/\n/g, '<br>');
-
-                    // Split content to isolate LaTeX expressions
-                    const parts = content.split(/(\$\$[\s\S]*?\$\$|\$[\s\S]*?\$)/g);
-                    let formattedContent = '';
+                        // First, replace all double (or more) newlines with a placeholder
+                        .replace(/\n{2,}/g, '[[PARA]]')
+                        // Then, replace all remaining single newlines with a space
+                        .replace(/\n/g, ' ')
+                        // Finally, restore paragraph breaks
+                        .replace(/\[\[PARA\]\]/g, '<br><br>');
                     
-                    parts.forEach(part => {
-                        if ((part.startsWith('$$') && part.endsWith('$$')) || (part.startsWith('$') && part.endsWith('$'))) {
-                            // LaTeX expression
-                            const latex = part.slice(part.startsWith('$$') ? 2 : 1, - (part.startsWith('$$') ? 2 : 1)).trim();
-                            const tempDiv = document.createElement('div');
-                            try {
-                                katex.render(latex, tempDiv, {
-                                    throwOnError: false,
-                                    errorColor: '#cc0000',
-                                    displayMode: part.startsWith('$$')
-                                });
-                                formattedContent += tempDiv.innerHTML;
-                            } catch (err) {
-                                formattedContent += `<span style="color: #cc0000;">[LaTeX Error: ${err.message}]</span>`;
-                            }
-                        } else {
-                            // Regular HTML content
-                            formattedContent += part;
+                    // Process LaTeX content using \( ... \) and \[ ... \] delimiters
+                    const latexRegex = /\\\((.+?)\\\)|\\\[(.+?)\\\]/g;
+                    let match;
+                    let lastIndex = 0;
+                    let processedContent = '';
+                    
+                    while ((match = latexRegex.exec(content)) !== null) {
+                        // Add text before LaTeX
+                        processedContent += content.slice(lastIndex, match.index);
+                        
+                        // Process LaTeX
+                        const latex = match[1] || match[2];
+                        const isDisplay = !!match[2];
+                        
+                        try {
+                            const rendered = katex.renderToString(latex, {
+                                displayMode: isDisplay,
+                                throwOnError: false,
+                                errorColor: '#ff4f4f',
+                                output: 'html'
+                            });
+                            processedContent += `<div class="latex-content">${rendered}</div>`;
+                        } catch (err) {
+                            console.error('KaTeX rendering error:', err);
+                            processedContent += `<span class="latex-error">${match[0]}</span>`;
                         }
-                    });
+                        
+                        lastIndex = match.index + match[0].length;
+                    }
                     
-                    summaryContent.innerHTML = formattedContent;
+                    // Add remaining content
+                    processedContent += content.slice(lastIndex);
+                    
+                    // Update content with processed LaTeX
+                    summaryContent.innerHTML = processedContent;
                 }
                 
                 // Handle download button click
