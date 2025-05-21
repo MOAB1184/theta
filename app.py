@@ -372,32 +372,38 @@ def register():
     schools = School.query.order_by(School.name).all()
 
     if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-        role = request.form.get('role')
-        school_id = request.form.get('school_id') if role == 'teacher' else None
+        try:
+            username = request.form.get('username')
+            password = request.form.get('password')
+            role = request.form.get('role')
+            school_id = request.form.get('school_id') if role == 'teacher' else None
 
-        if not role or role not in ['student', 'teacher']:
-            return render_template('register.html', error='Invalid role selected', username=username, schools=schools)
+            if not role or role not in ['student', 'teacher']:
+                return render_template('register.html', error='Invalid role selected', username=username, schools=schools)
 
-        if role == 'teacher' and not school_id:
-            return render_template('register.html', error='Please select a school.', username=username, role=role, schools=schools)
+            if role == 'teacher' and not school_id:
+                return render_template('register.html', error='Please select a school.', username=username, role=role, schools=schools)
 
-        existing_user = User.query.filter_by(username=username).first()
-        if existing_user:
-            return render_template('register.html', error='Username already exists', role=role, username=username, schools=schools)
-        
-        new_user = User(username=username, role=role)
-        new_user.is_admin = False
-        if role == 'teacher':
-            new_user.school_id = int(school_id)
+            existing_user = User.query.filter_by(username=username).first()
+            if existing_user:
+                return render_template('register.html', error='Username already exists', role=role, username=username, schools=schools)
+            
+            new_user = User(username=username, role=role)
+            new_user.is_admin = False
+            if role == 'teacher':
+                new_user.school_id = int(school_id)
 
-        new_user.set_password(password)
-        db.session.add(new_user)
-        db.session.commit()
-        
-        login_user(new_user)
-        return redirect(url_for('dashboard'))
+            new_user.set_password(password)
+            db.session.add(new_user)
+            db.session.commit()
+            
+            login_user(new_user)
+            return redirect(url_for('dashboard'))
+        except Exception as e:
+            import traceback
+            print("REGISTER ERROR:", e)
+            traceback.print_exc()
+            return render_template('register.html', error='An unexpected error occurred. Please try again.', username=request.form.get('username'), role=request.form.get('role'), schools=schools)
     
     return render_template('register.html', role='student', schools=schools)
 
