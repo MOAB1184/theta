@@ -1,7 +1,6 @@
 from flask import Flask, render_template, redirect, url_for, request, jsonify, send_file, flash, session
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_sqlalchemy import SQLAlchemy
-from flask_session import Session
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
 import time
@@ -34,14 +33,13 @@ os.makedirs(BASE_DATA_DIR, exist_ok=True)
 # Initialize Flask app
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'thetasummary-secret-key'
-app.config['SESSION_TYPE'] = 'filesystem'
 app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(days=7)  # Sessions last 7 days
 app.config['SESSION_PERMANENT'] = True
 
-# Use absolute path for SQLite database
-DB_DIR = os.path.join(BASE_DATA_DIR, 'database')
-os.makedirs(DB_DIR, exist_ok=True)
-db_path = os.path.join(DB_DIR, 'users.db')
+# Use absolute path for SQLite database in /tmp for Vercel compatibility
+# DB_DIR = os.path.join(BASE_DATA_DIR, 'database')
+# os.makedirs(DB_DIR, exist_ok=True)
+db_path = '/tmp/users.db'
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
 
 # Configure user files directory
@@ -52,9 +50,6 @@ app.config['UPLOAD_FOLDER'] = os.getenv('WASABI_BUCKET_NAME')
 
 # Initialize SQLAlchemy
 db = SQLAlchemy(app)
-
-# Initialize Flask-Session
-Session(app)
 
 # Initialize login manager
 login_manager = LoginManager()
