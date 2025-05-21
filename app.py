@@ -396,11 +396,6 @@ def register():
         db.session.add(new_user)
         db.session.commit()
         
-        # Create user directory structure
-        user_base_dir = os.path.join(app.config['UPLOAD_FOLDER'], username)
-        os.makedirs(user_base_dir, exist_ok=True)
-        os.makedirs(os.path.join(user_base_dir, 'classes'), exist_ok=True)
-        
         login_user(new_user)
         return redirect(url_for('dashboard'))
     
