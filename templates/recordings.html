@@ -455,6 +455,18 @@
                     {{ class.name }}
                 </a>
                 {% endfor %}
+                {% elif user_role == 'student' %}
+                <!-- List all classes for student -->
+                {% for class in classes %}
+                <a href="{{ url_for('view_class', class_id=class._id) }}" class="menu-item">
+                    <span class="menu-item-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#4f8cff" viewBox="0 0 16 16">
+                            <circle cx="8" cy="8" r="7" stroke="#4f8cff" stroke-width="2" fill="none"/>
+                        </svg>
+                    </span>
+                    {{ class.name }}
+                </a>
+                {% endfor %}
                 {% endif %}
                 <a href="{{ url_for('create_class') }}" class="menu-item">
                     <span class="menu-item-icon">
@@ -557,13 +569,6 @@
                             </a>
                         </div>
                         <div id="summary-content" class="card-content"></div>
-                    </div>
-                    
-                    <div class="result-card">
-                        <div class="card-header">
-                            <h2 class="card-title">Detected Subject</h2>
-                        </div>
-                        <div id="subject-content" class="card-content"></div>
                     </div>
                 </div>
             </div>
@@ -790,7 +795,6 @@
                                             document.getElementById('summary-content').innerHTML = formatSummary(summarizeData.summary);
                                             downloadSummary.href = `/download/${summarizeData.summary_filename}`;
                                             downloadSummary.download = summarizeData.summary_filename;
-                                            document.getElementById('subject-content').textContent = summarizeData.subject || "General";
                                             document.getElementById('summary-section').classList.remove('hidden');
                                             loadingSection.classList.add('hidden');
                                             statusDot.className = 'status-dot complete';

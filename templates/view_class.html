@@ -608,8 +608,8 @@
                     const filename = this.dataset.filename;
                     const errorMessage = document.getElementById('error-message');
                     const loading = document.getElementById('loading');
-                    errorMessage.classList.add('hidden');
-                    loading.classList.remove('hidden');
+                    if (errorMessage) errorMessage.classList.add('hidden');
+                    if (loading) loading.classList.remove('hidden');
                     try {
                         const response = await fetch('/api/check_file', {
                             method: 'POST',
@@ -620,14 +620,18 @@
                         if (data.status === 'success' && data.exists) {
                             window.location.href = this.href;
                         } else {
-                            errorMessage.textContent = 'Summary file not found or access denied.';
-                            errorMessage.classList.remove('hidden');
+                            if (errorMessage) {
+                                errorMessage.textContent = 'Summary file not found or access denied.';
+                                errorMessage.classList.remove('hidden');
+                            }
                         }
                     } catch (err) {
-                        errorMessage.textContent = 'Error checking file availability: ' + err.message;
-                        errorMessage.classList.remove('hidden');
+                        if (errorMessage) {
+                            errorMessage.textContent = 'Error checking file availability: ' + err.message;
+                            errorMessage.classList.remove('hidden');
+                        }
                     } finally {
-                        loading.classList.add('hidden');
+                        if (loading) loading.classList.add('hidden');
                     }
                 });
             });
