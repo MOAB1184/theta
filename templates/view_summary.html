@@ -496,6 +496,10 @@
                         processedContent = escapeMath(processedContent, inlineMathRegex, 'INLINE');
                         processedContent = escapeMath(processedContent, displayMathRegex, 'DISPLAY');
 
+                        // Replace lines with only --- or -- with a few spaces
+                        processedContent = processedContent.replace(/^\s*---+\s*$/gm, '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;');
+                        processedContent = processedContent.replace(/^\s*--\s*$/gm, '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;');
+
                         // Step 2: Parse Markdown with marked.js
                         marked.setOptions({
                             gfm: true,

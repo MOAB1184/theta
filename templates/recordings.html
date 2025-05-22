@@ -421,7 +421,19 @@
             border: 1.5px solid #4f8cff;
             box-shadow: 0 0 0 2px #4f8cff33;
         }
+        /* Left-align KaTeX output in summary */
+        #summary-content .katex-display {
+            text-align: left !important;
+        }
+        #summary-content .katex {
+            text-align: left !important;
+        }
     </style>
+    <!-- KaTeX CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css" crossorigin="anonymous">
+    <!-- KaTeX JS -->
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
 </head>
 <body>
     <div class="sidebar-overlay"></div>
@@ -773,6 +785,8 @@
                                     transcriptContent.textContent = transcribeData.transcript;
                                     downloadTranscript.href = `/download/${transcribeData.transcript_filename}`;
                                     downloadTranscript.download = transcribeData.transcript_filename;
+                                    downloadTranscript.classList.remove('hidden');
+                                    downloadTranscript.removeAttribute('disabled');
                                     loadingSection.classList.remove('hidden');
                                     resultsSection.classList.remove('hidden');
                                     statusDot.className = 'status-dot complete';
@@ -790,7 +804,14 @@
                                                 class_id: classId
                                             }),
                                         });
-                                        const summarizeData = await summarizeResponse.json();
+                                        let summarizeData;
+                                        const contentType = summarizeResponse.headers.get('content-type');
+                                        if (contentType && contentType.includes('application/json')) {
+                                            summarizeData = await summarizeResponse.json();
+                                        } else {
+                                            const text = await summarizeResponse.text();
+                                            throw new Error('Server did not return JSON: ' + text);
+                                        }
                                         if (summarizeData.status === 'success') {
                                             document.getElementById('summary-content').innerHTML = formatSummary(summarizeData.summary);
                                             downloadSummary.href = `/download/${summarizeData.summary_filename}`;
@@ -799,6 +820,17 @@
                                             loadingSection.classList.add('hidden');
                                             statusDot.className = 'status-dot complete';
                                             statusText.textContent = 'Summary generation complete';
+                                            // Render LaTeX in summary
+                                            if (window.renderMathInElement) {
+                                                renderMathInElement(document.getElementById('summary-content'), {
+                                                    delimiters: [
+                                                        {left: "$$", right: "$$", display: true},
+                                                        {left: "$", right: "$", display: false},
+                                                        {left: "\\(", right: "\\)", display: false},
+                                                        {left: "\\[", right: "\\]", display: true}
+                                                    ]
+                                                });
+                                            }
                                         } else {
                                             loadingSection.classList.add('hidden');
                                             showError(summarizeData.message || 'Unknown error occurred during summarization');
@@ -836,18 +868,48 @@
                     }
                 }
 
-                // Format summary for LaTeX content
+                // Format summary for LaTeX content and markdown-like syntax
                 function formatSummary(summary) {
-                    return summary.replace(/\\section\{([^}]+)\}/g, '<h2>$1</h2>')
-                                .replace(/\\subsection\{([^}]+)\}/g, '<h3>$1</h3>')
-                                .replace(/\\begin\{document\}/g, '')
-                                .replace(/\\end\{document\}/g, '')
-                                .replace(/\\begin\{itemize\}/g, '<div class="itemize">')
-                                .replace(/\\end\{itemize\}/g, '</div>')
-                                .replace(/\\item/g, '<div class="item">')
-                                .replace(/\\textbf\{([^}]+)\}/g, '<strong>$1</strong>')
-                                .replace(/\\emph\{([^}]+)\}/g, '<em>$1</em>')
-                                .replace(/\n\n/g, '<br><br>');
+                    // Split summary into LaTeX and non-LaTeX segments
+                    const latexRegex = /(\$\$[\s\S]*?\$\$|\$[^$]+\$|\\\([\s\S]*?\\\)|\\\[[\s\S]*?\\\])/g;
+                    let parts = [];
+                    let lastIndex = 0;
+                    let match;
+                    while ((match = latexRegex.exec(summary)) !== null) {
+                        if (match.index > lastIndex) {
+                            parts.push({text: summary.slice(lastIndex, match.index), isLatex: false});
+                        }
+                        parts.push({text: match[0], isLatex: true});
+                        lastIndex = latexRegex.lastIndex;
+                    }
+                    if (lastIndex < summary.length) {
+                        parts.push({text: summary.slice(lastIndex), isLatex: false});
+                    }
+                    // Markdown-like formatting for non-LaTeX parts
+                    function mdFormat(text) {
+                        // Replace lines with only --- or -- with a few spaces
+                        text = text.replace(/^\s*---+\s*$/gm, '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;');
+                        text = text.replace(/^\s*--\s*$/gm, '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;');
+                        text = text.replace(/^### (.*)$/gm, '<h3>$1</h3>');
+                        text = text.replace(/^## (.*)$/gm, '<h2>$1</h2>');
+                        text = text.replace(/^# (.*)$/gm, '<h1>$1</h1>');
+                        text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+                        text = text.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+                        // LaTeX section/subsection
+                        text = text.replace(/\\section\{([^}]+)\}/g, '<h2>$1</h2>');
+                        text = text.replace(/\\subsection\{([^}]+)\}/g, '<h3>$1</h3>');
+                        // LaTeX environments
+                        text = text.replace(/\\begin\{document\}/g, '');
+                        text = text.replace(/\\end\{document\}/g, '');
+                        text = text.replace(/\\begin\{itemize\}/g, '<div class="itemize">');
+                        text = text.replace(/\\end\{itemize\}/g, '</div>');
+                        text = text.replace(/\\item/g, '<div class="item">');
+                        text = text.replace(/\\textbf\{([^}]+)\}/g, '<strong>$1</strong>');
+                        text = text.replace(/\\emph\{([^}]+)\}/g, '<em>$1</em>');
+                        text = text.replace(/\n\n/g, '<br><br>');
+                        return text;
+                    }
+                    return parts.map(part => part.isLatex ? part.text : mdFormat(part.text)).join('');
                 }
 
                 // Show error message

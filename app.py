@@ -1270,6 +1270,19 @@ def edit_summary(filename):
             continue
     return '', 404
 
+@app.errorhandler(Exception)
+def handle_exception(e):
+    # Only return JSON for API routes
+    if request.path.startswith('/api/'):
+        import traceback
+        return jsonify({
+            "status": "error",
+            "message": str(e),
+            "trace": traceback.format_exc()
+        }), 500
+    # Otherwise, use default error handling
+    return str(e), 500
+
 if __name__ == '__main__':
     ensure_admin_and_school()
     app.run(debug=True) 
