@@ -434,12 +434,35 @@
             </div>
             <div class="sidebar-menu">
                 <div class="sidebar-menu-title">Menu</div>
-                <a href="/dashboard" class="menu-item">
-                    <div class="menu-item-icon">📊</div>
+                <a href="{{ url_for('dashboard') }}" class="menu-item">
+                    <span class="menu-item-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 13A6 6 0 1 1 8 2a6 6 0 0 1 0 12z"/>
+                            <path d="M8 4a.5.5 0 0 1 .5.5v2.5H11a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V8H5a.5.5 0 0 1 0-1h2.5V4.5A.5.5 0 0 1 8 4z"/>
+                        </svg>
+                    </span>
                     Dashboard
                 </a>
-                <a href="/classes/create" class="menu-item">
-                    <div class="menu-item-icon">🏫</div>
+                {% if user_role == 'teacher' %}
+                <!-- List all classes for teacher -->
+                {% for class in classes %}
+                <a href="{{ url_for('view_class', class_id=class._id) }}" class="menu-item">
+                    <span class="menu-item-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#4f8cff" viewBox="0 0 16 16">
+                            <circle cx="8" cy="8" r="7" stroke="#4f8cff" stroke-width="2" fill="none"/>
+                        </svg>
+                    </span>
+                    {{ class.name }}
+                </a>
+                {% endfor %}
+                {% endif %}
+                <a href="{{ url_for('create_class') }}" class="menu-item">
+                    <span class="menu-item-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 13A6 6 0 1 1 8 2a6 6 0 0 1 0 12z"/>
+                            <path d="M8 4a.5.5 0 0 1 .5.5v2.5H11a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V8H5a.5.5 0 0 1 0-1h2.5V4.5A.5.5 0 0 1 8 4z"/>
+                        </svg>
+                    </span>
                     Create New Class
                 </a>
             </div>

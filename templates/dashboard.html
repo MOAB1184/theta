@@ -482,6 +482,18 @@
                     Dashboard
                 </a>
                 {% if user_role == 'teacher' %}
+                <!-- List all classes for teacher -->
+                {% for class in classes %}
+                <a href="{{ url_for('view_class', class_id=class._id) }}" class="menu-item">
+                    <span class="menu-item-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#4f8cff" viewBox="0 0 16 16">
+                            <circle cx="8" cy="8" r="7" stroke="#4f8cff" stroke-width="2" fill="none"/>
+                        </svg>
+                    </span>
+                    {{ class.name }}
+                </a>
+                {% endfor %}
+                {% endif %}
                 <a href="{{ url_for('create_class') }}" class="menu-item">
                     <span class="menu-item-icon">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
@@ -491,7 +503,6 @@
                     </span>
                     Create New Class
                 </a>
-                {% endif %}
                 {% if user_role == 'student' %}
                 <a href="{{ url_for('join_class') }}" class="menu-item">
                     <span class="menu-item-icon">

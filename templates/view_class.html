@@ -333,6 +333,18 @@
                     Dashboard
                 </a>
                 {% if user_role == 'teacher' %}
+                <!-- List all classes for teacher -->
+                {% for class in classes %}
+                <a href="{{ url_for('view_class', class_id=class._id) }}" class="menu-item">
+                    <span class="menu-item-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#4f8cff" viewBox="0 0 16 16">
+                            <circle cx="8" cy="8" r="7" stroke="#4f8cff" stroke-width="2" fill="none"/>
+                        </svg>
+                    </span>
+                    {{ class.name }}
+                </a>
+                {% endfor %}
+                {% endif %}
                 <a href="{{ url_for('create_class') }}" class="menu-item">
                     <span class="menu-item-icon">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
@@ -342,7 +354,6 @@
                     </span>
                     Create New Class
                 </a>
-                {% endif %}
                 {% if user_role == 'student' %}
                 <a href="{{ url_for('join_class') }}" class="menu-item">
                     <span class="menu-item-icon">
@@ -384,8 +395,8 @@
             <div class="container" style="max-width:1200px;margin:0 auto;padding:0 20px;">
                 <header class="header" style="border-bottom:none;padding:32px 0 24px 0;margin-bottom:0;background:none;">
                     <h1 class="page-title" style="font-size:2.2rem;font-weight:800;color:#4f8cff;margin:0;text-align:center;">{{ class_obj.name }}</h1>
-                </header>
-                
+            </header>
+            
                 <!-- Top Section: Class Info and Student Management -->
                 <div class="top-section">
                     <!-- Class Info Card -->
@@ -394,7 +405,7 @@
                         <div style="margin-bottom:10px;"><span style="color:#a0a0a0;">Teacher:</span> <span style="color:#fff;">{% for user in users %}{% if user._id == class_obj.teacher_id or user._id|string == class_obj.teacher_id|string %}{{ user.username }}{% endif %}{% endfor %}</span></div>
                         <div style="margin-bottom:10px;"><span style="color:#a0a0a0;">Description:</span> <span style="color:#fff;">{{ class_obj.description or 'No description provided' }}</span></div>
                         <div class="class-code-section"><span class="class-code-label">Class Code:</span><span class="class-code">{{ class_obj.class_code }}</span></div>
-                        <div class="class-stats">
+                    <div class="class-stats">
                             {% if user_role != 'student' %}
                                 <span><span class="stat-icon">👥</span>{{ student_count }} Students</span>
                             {% endif %}
@@ -455,7 +466,7 @@
                         <div class="summary-card">
                             <div class="summary-header">
                                 <div style="display:flex;align-items:center;gap:10px;">
-                                    <h3>{{ summary.filename }}</h3>
+                                <h3>{{ summary.filename }}</h3>
                                     {% if user_role == 'teacher' %}
                                         {% if not summary.approved %}
                                             <span style="color:#ffb300;font-size:0.95rem;">Pending Approval</span>
@@ -468,7 +479,7 @@
                             </div>
                             <div class="summary-actions">
                                 <a href="{{ url_for('view_summary', filename=summary.filename) }}" class="btn btn-outline">View Summary</a>
-                                <a href="{{ url_for('download_file', filename=summary.filename) }}" class="btn btn-outline">Download</a>
+                                <a href="{{ url_for('download_file', filename=summary.filename) }}" class="btn btn-outline download-btn" data-filename="{{ summary.filename }}">Download</a>
                                 {% if user_role == 'teacher' and not summary.approved %}
                                 <a href="#" class="btn btn-outline edit-summary-btn" data-filename="{{ summary.filename }}">Edit</a>
                                 <form method="POST" action="{{ url_for('approve_summary', class_id=class_obj._id, filename=summary.filename) }}" style="display:inline;">
@@ -502,9 +513,9 @@
             const sidebarOverlay = document.querySelector('.sidebar-overlay');
             if (menuToggle && closeMenu && sidebar && mainContent && sidebarOverlay) {
                 menuToggle.addEventListener('click', function() {
-                    sidebar.classList.toggle('active');
-                    mainContent.classList.toggle('sidebar-active');
-                    sidebarOverlay.classList.toggle('active');
+                sidebar.classList.toggle('active');
+                mainContent.classList.toggle('sidebar-active');
+                sidebarOverlay.classList.toggle('active');
                 });
                 closeMenu.addEventListener('click', function() {
                     sidebar.classList.remove('active');
@@ -590,6 +601,36 @@
                     });
                 };
             }
+            // Download button handler for summaries
+            document.querySelectorAll('.download-btn').forEach(function(downloadBtn) {
+                downloadBtn.addEventListener('click', async function(e) {
+                    e.preventDefault();
+                    const filename = this.dataset.filename;
+                    const errorMessage = document.getElementById('error-message');
+                    const loading = document.getElementById('loading');
+                    errorMessage.classList.add('hidden');
+                    loading.classList.remove('hidden');
+                    try {
+                        const response = await fetch('/api/check_file', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ filename: filename })
+                        });
+                        const data = await response.json();
+                        if (data.status === 'success' && data.exists) {
+                            window.location.href = this.href;
+                        } else {
+                            errorMessage.textContent = 'Summary file not found or access denied.';
+                            errorMessage.classList.remove('hidden');
+                        }
+                    } catch (err) {
+                        errorMessage.textContent = 'Error checking file availability: ' + err.message;
+                        errorMessage.classList.remove('hidden');
+                    } finally {
+                        loading.classList.add('hidden');
+                    }
+                });
+            });
         });
     </script>
     

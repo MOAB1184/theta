@@ -335,6 +335,9 @@
         .latex-error {
             color: #ff4f4f;
             font-family: monospace;
+            background: #2a1a1a;
+            padding: 2px 4px;
+            border-radius: 3px;
         }
         
         /* Text Formatting Styles */
@@ -374,6 +377,19 @@
                     </span>
                     Dashboard
                 </a>
+                {% if user_role == 'teacher' %}
+                <!-- List all classes for teacher -->
+                {% for class in classes %}
+                <a href="{{ url_for('view_class', class_id=class._id) }}" class="menu-item">
+                    <span class="menu-item-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#4f8cff" viewBox="0 0 16 16">
+                            <circle cx="8" cy="8" r="7" stroke="#4f8cff" stroke-width="2" fill="none"/>
+                        </svg>
+                    </span>
+                    {{ class.name }}
+                </a>
+                {% endfor %}
+                {% endif %}
                 <a href="{{ url_for('create_class') }}" class="menu-item">
                     <span class="menu-item-icon">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
@@ -436,11 +452,11 @@
                         <h2 class="summary-title">{{ filename }}</h2>
                     </div>
                     <div class="summary-actions">
-                        <a href="/summaries" class="back-btn">
+                        <a href="{{ url_for('view_class', class_id=class_id) }}" class="back-btn">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                                 <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
                             </svg>
-                            Back to Summaries
+                            Back to Class
                         </a>
                         <a href="{{ url_for('download_file', filename=filename) }}" class="summary-action-btn" id="download-btn">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
@@ -452,13 +468,169 @@
                     </div>
                 </div>
                 
-                <div id="summary-content" style="font-size:1.1rem;line-height:1.7;"></div>
+                <div id="summary-content" class="latex-content"></div>
+                <script type="application/json" id="summary-raw-content">{{ content|tojson }}</script>
                 <script>
-                // Render the summary as Markdown and MathJax
-                const rawContent = `{{ content|e }}`;
-                const htmlContent = marked.parse(rawContent);
-                document.getElementById('summary-content').innerHTML = htmlContent;
-                if (window.MathJax) MathJax.typesetPromise();
+                    // Show error message
+                    function showError(message) {
+                        const errorMessage = document.getElementById('error-message');
+                        errorMessage.textContent = message;
+                        errorMessage.classList.remove('hidden');
+                        setTimeout(() => {
+                            errorMessage.classList.add('hidden');
+                        }, 10000);
+                    }
+
+                    // Process raw LaTeX content
+                    function processLatexContent(rawContent) {
+                        let htmlContent = '';
+                        let currentPos = 0;
+
+                        // Regex patterns for LaTeX elements
+                        const inlineMathRegex = /\\\(.*?\\\)/gs; // Matches \(...\)
+                        const displayMathRegex = /\\\[.*?\\\]/gs; // Matches \[...\]
+                        const envRegex = /\\begin\{(.*?)\}(.*?)\\end\{\1\}/gs; // Matches \begin{env}...\end{env}
+                        const sectionRegex = /\\section\{(.*?)\}/g; // Matches \section{...}
+                        const itemRegex = /\\item\s+(.+?)(?=(?:\\item|\\end|$))/gs; // Matches \item ...
+                        const documentclassRegex = /\\documentclass.*?\\begin\{document\}/gs; // Matches preamble
+                        const usePackageRegex = /\\usepackage.*?}/gs; // Matches \usepackage
+                        const whitespaceRegex = /^\s*$(?:\r\n?|\n)/gm; // Matches empty lines
+
+                        // Split content into tokens (math, environments, sections, items, text)
+                        const tokens = [];
+                        const regexes = [
+                            { regex: inlineMathRegex, type: 'inlineMath' },
+                            { regex: displayMathRegex, type: 'displayMath' },
+                            { regex: envRegex, type: 'environment' },
+                            { regex: sectionRegex, type: 'section' },
+                            { regex: itemRegex, type: 'item' },
+                            { regex: documentclassRegex, type: 'preamble' },
+                            { regex: usePackageRegex, type: 'preamble' }
+                        ];
+
+                        // Collect all matches
+                        rawContent.replace(whitespaceRegex, ''); // Remove empty lines
+                        while (currentPos < rawContent.length) {
+                            let nextMatch = { index: rawContent.length, type: 'text', content: '' };
+                            
+                            // Find the earliest match
+                            for (const { regex, type } of regexes) {
+                                regex.lastIndex = currentPos;
+                                const match = regex.exec(rawContent);
+                                if (match && match.index < nextMatch.index) {
+                                    nextMatch = { index: match.index, type, content: match[0], fullMatch: match };
+                                }
+                            }
+
+                            // Add text before the match
+                            if (nextMatch.index > currentPos) {
+                                tokens.push({
+                                    type: 'text',
+                                    content: rawContent.slice(currentPos, nextMatch.index)
+                                });
+                            }
+
+                            // Add the matched LaTeX element
+                            if (nextMatch.type !== 'text') {
+                                tokens.push({
+                                    type: nextMatch.type,
+                                    content: nextMatch.content,
+                                    fullMatch: nextMatch.fullMatch
+                                });
+                            }
+
+                            currentPos = nextMatch.index + nextMatch.content.length;
+                        }
+
+                        // Process tokens
+                        let inList = false;
+                        tokens.forEach(token => {
+                            try {
+                                if (token.type === 'inlineMath') {
+                                    // Render inline math: \(...\)
+                                    const tex = token.content.slice(2, -2).trim();
+                                    const rendered = katex.renderToString(tex, {
+                                        throwOnError: false,
+                                        strict: false,
+                                        trust: true
+                                    });
+                                    htmlContent += `<span class="katex">${rendered}</span>`;
+                                } else if (token.type === 'displayMath') {
+                                    // Render display math: \[...\]
+                                    const tex = token.content.slice(2, -2).trim();
+                                    const rendered = katex.renderToString(tex, {
+                                        throwOnError: false,
+                                        displayMode: true,
+                                        strict: false,
+                                        trust: true
+                                    });
+                                    htmlContent += `<div class="katex-display">${rendered}</div>`;
+                                } else if (token.type === 'environment') {
+                                    // Render LaTeX environments like \begin{align*}...\end{align*}
+                                    const envContent = token.fullMatch[2].trim();
+                                    const rendered = katex.renderToString(envContent, {
+                                        throwOnError: false,
+                                        displayMode: true,
+                                        strict: false,
+                                        trust: true
+                                    });
+                                    htmlContent += `<div class="katex-display">${rendered}</div>`;
+                                } else if (token.type === 'section') {
+                                    // Convert \section{...} to <h2>
+                                    const title = token.fullMatch[1].replace(/\\.*?{|}/g, '').trim();
+                                    htmlContent += `<h2>${title}</h2>`;
+                                } else if (token.type === 'item') {
+                                    // Convert \item ... to <li>
+                                    if (!inList) {
+                                        htmlContent += '<ul>';
+                                        inList = true;
+                                    }
+                                    const itemContent = token.fullMatch[1].trim();
+                                    htmlContent += `<li>${itemContent}</li>`;
+                                } else if (token.type === 'preamble') {
+                                    // Skip preamble (e.g., \documentclass, \usepackage)
+                                    return;
+                                } else if (token.type === 'text') {
+                                    // Process plain text, preserving structure
+                                    let text = token.content.trim();
+                                    if (text) {
+                                        // Close list if text follows items
+                                        if (inList && !text.startsWith('\\item')) {
+                                            htmlContent += '</ul>';
+                                            inList = false;
+                                        }
+                                        // Split text into paragraphs
+                                        text = text.replace(/\n\n+/g, '</p><p>').replace(/^\n+|\n+$/g, '');
+                                        if (!text.startsWith('<p>')) text = `<p>${text}`;
+                                        if (!text.endsWith('</p>')) text += '</p>';
+                                        htmlContent += text;
+                                    }
+                                }
+                            } catch (err) {
+                                console.error(`Error rendering ${token.type}:`, err);
+                                htmlContent += `<span class="latex-error">${token.content}</span>`;
+                            }
+                        });
+
+                        // Close any open list
+                        if (inList) {
+                            htmlContent += '</ul>';
+                        }
+
+                        return htmlContent;
+                    }
+
+                    // Initialize content rendering
+                    document.addEventListener('DOMContentLoaded', function() {
+                        try {
+                            const rawContent = JSON.parse(document.getElementById('summary-raw-content').textContent);
+                            const summaryContent = document.getElementById('summary-content');
+                            summaryContent.innerHTML = processLatexContent(rawContent);
+                        } catch (err) {
+                            console.error('Error processing LaTeX content:', err);
+                            showError('Failed to render summary content. Check the console for details.');
+                        }
+                    });
                 </script>
             </div>
         </main>
@@ -488,15 +660,6 @@
                 menuToggle.addEventListener('click', toggleSidebar);
                 closeMenu.addEventListener('click', toggleSidebar);
                 sidebarOverlay.addEventListener('click', toggleSidebar);
-                
-                // Show error message
-                function showError(message) {
-                    errorMessage.textContent = message;
-                    errorMessage.classList.remove('hidden');
-                    setTimeout(() => {
-                        errorMessage.classList.add('hidden');
-                    }, 10000);
-                }
                 
                 // Handle download button click
                 downloadBtn.addEventListener('click', async function(e) {
