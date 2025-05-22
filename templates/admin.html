@@ -205,7 +205,7 @@
             <div class="header-content">
                 <a href="{{ url_for('dashboard') }}" class="logo">Theta<span>Summary</span> Admin</a>
                 <div class="user-actions">
-                    <span class="username">{{ current_user.username }}</span>
+                    <span class="username">{{ username }}</span>
                     <a href="{{ url_for('logout') }}" class="btn btn-outline">Logout</a>
                 </div>
             </div>
@@ -216,7 +216,7 @@
         <div class="container">
             <h1 class="page-title">Admin Dashboard</h1>
             <div style="display:flex;gap:16px;align-items:center;margin-bottom:24px;">
-                <a href="{{ url_for('create_school') }}" class="btn btn-primary" style="background:#c084fc;">+ Create School</a>
+                <a href="{{ url_for('create_school_route') }}" class="btn btn-primary" style="background:#c084fc;">+ Create School</a>
             </div>
             <h2 class="section-title">Upload Recording</h2>
             <form method="POST" action="/admin/upload_recording" enctype="multipart/form-data" style="margin-bottom:30px; background:#181818; padding:20px; border-radius:8px;">
@@ -290,6 +290,39 @@
                         {% endfor %}
                     </tbody>
                 </table>
+            </div>
+            
+            <div class="pending-teachers-section">
+                <h2>Pending Teacher Approvals</h2>
+                {% if pending_teachers and pending_teachers|length > 0 %}
+                <table class="user-table">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>School</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for teacher in pending_teachers %}
+                        <tr>
+                            <td>{{ teacher.username }}</td>
+                            <td>{% if teacher.school_id %}{{ teacher.school_id }}{% else %}N/A{% endif %}</td>
+                            <td>
+                                <form method="POST" action="{{ url_for('approve_teacher', teacher_id=teacher._id) }}" style="display:inline;">
+                                    <button type="submit" class="btn btn-success btn-sm" style="background:#4caf50;color:#fff;border:none;padding:6px 14px;border-radius:5px;cursor:pointer;">Approve</button>
+                                </form>
+                                <form method="POST" action="{{ url_for('deny_teacher', teacher_id=teacher._id) }}" style="display:inline;">
+                                    <button type="submit" class="btn btn-danger btn-sm" style="background:#ff4f4f;color:#fff;border:none;padding:6px 14px;border-radius:5px;cursor:pointer;">Deny</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p>No pending teacher requests.</p>
+                {% endif %}
             </div>
             
             <a href="{{ url_for('dashboard') }}" class="btn btn-outline" style="margin-top: 20px;">Back to Dashboard</a>

@@ -104,7 +104,7 @@
     <div class="container">
         <div class="join-class-card">
             <h1 class="page-title">Join a Class</h1>
-            <p class="instructions">Enter the class code provided by your teacher to join their class. The code should be 8 characters long and may contain letters and numbers.</p>
+            <p class="instructions">Enter the class code provided by your teacher to join their class. The code should be 6 characters long and may contain letters and numbers.</p>
             
             {% if error %}
             <div class="error-message">{{ error }}</div>
@@ -113,7 +113,7 @@
             <form method="POST" action="{{ url_for('join_class') }}">
                 <div class="form-group">
                     <label class="form-label" for="class_code">Class Code</label>
-                    <input type="text" id="class_code" name="class_code" class="form-input" placeholder="Enter class code" required maxlength="8" pattern="[A-Z0-9]{8}" title="Please enter an 8-character code containing only uppercase letters and numbers">
+                    <input type="text" id="class_code" name="class_code" class="form-input" placeholder="Enter class code" required maxlength="6" pattern="[A-Z0-9]{6}" title="Please enter a 6-character code containing only uppercase letters and numbers">
                 </div>
                 <button type="submit" class="btn">Join Class</button>
             </form>

@@ -386,7 +386,7 @@
                     </span>
                     Dashboard
                 </a>
-                {% if current_user.role == 'teacher' %}
+                {% if user_role == 'teacher' %}
                 <a href="{{ url_for('create_class') }}" class="menu-item">
                     <span class="menu-item-icon">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
@@ -397,7 +397,7 @@
                     Create New Class
                 </a>
                 {% endif %}
-                {% if current_user.role == 'student' %}
+                {% if user_role == 'student' %}
                 <a href="{{ url_for('join_class') }}" class="menu-item">
                     <span class="menu-item-icon">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
@@ -408,7 +408,7 @@
                     Join Class
                 </a>
                 {% endif %}
-                {% if current_user.is_admin %}
+                {% if is_admin %}
                 <a href="{{ url_for('admin_dashboard') }}" class="menu-item">
                     <span class="menu-item-icon">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
@@ -422,7 +422,7 @@
             </div>
             
             <div class="sidebar-footer">
-                <div class="sidebar-footer-text">Logged in as {{ current_user.username }}</div>
+                <div class="sidebar-footer-text">Logged in as {{ username }}</div>
                 <a href="{{ url_for('logout') }}" class="logout-btn">
                     <span class="logout-icon">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
@@ -435,133 +435,230 @@
             </div>
         </aside>
         
-        <main class="main-content">
-            <header class="header">
-                <button class="menu-toggle">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
-                        <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/>
-                    </svg>
-                </button>
-                <h1 class="page-title">{{ class_obj.name }}</h1>
-                <div class="user-menu">
-                    <button class="user-button">
-                        <div class="user-avatar">{{ current_user.username[0].upper() }}</div>
-                        <span>{{ current_user.username }}</span>
-                    </button>
-                </div>
-            </header>
-            
-            <div class="class-details-section">
-                <div class="class-info-card">
-                    <span class="class-title">{{ class_obj.name }}</span>
-                    <span class="class-teacher">Teacher: {{ class_obj.teacher.username }}</span>
-                    <span class="class-description">{{ class_obj.description or 'No description provided' }}</span>
-                    {% if current_user.role == 'teacher' %}
-                    <div class="class-code-section">
-                        <span class="class-code-label">Class Code:</span>
-                        <span class="class-code">{{ class_obj.class_code }}</span>
-                    </div>
-                    {% endif %}
-                    <div class="class-stats">
-                        <span><span class="stat-icon">👥</span>{{ class_obj.students|length }} Students</span>
-                        <span><span class="stat-icon">📄</span>{{ class_obj.summaries|length }} Summaries</span>
-                    </div>
-                    {% if current_user.role == 'teacher' %}
-                    <a href="/recordings?class_id={{ class_obj.id }}" class="btn btn-primary">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                            <path d="M8 11a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v3a3 3 0 0 0 3 3z"/>
-                            <path d="M13 8c0 2.21-1.79 4-4 4-2.21 0-4-1.79-4-4H3c0 2.67 2.04 4.87 4.65 5.27V16h2.7v-2.73c2.61-.4 4.65-2.6 4.65-5.27h-2z"/>
-                        </svg>
-                        Record Audio
-                    </a>
-                    {% endif %}
-                </div>
-                <div class="summaries-section">
-                    <h2>Class Summaries</h2>
-                    
-                    {% if summaries %}
-                    <div class="summaries-grid">
-                        {% for summary in summaries %}
-                        <div class="summary-card">
-                            <div class="summary-header">
-                                <h3>{{ summary.filename }}</h3>
-                                <span class="summary-date">{{ summary.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
-                            </div>
-                            <div class="summary-actions">
-                                <a href="{{ url_for('view_summary', filename=summary.filename) }}" class="btn btn-outline">View Summary</a>
-                                <a href="{{ url_for('download_file', filename=summary.filename) }}" class="btn btn-outline">Download</a>
-                            </div>
+        <main class="main-content" style="background:#121212;min-height:100vh;">
+            <div class="container" style="max-width:1200px;margin:0 auto;padding:0 20px;">
+                <header class="header" style="border-bottom:none;padding:32px 0 24px 0;margin-bottom:0;background:none;">
+                    <h1 class="page-title" style="font-size:2.2rem;font-weight:800;color:#4f8cff;margin:0;text-align:center;">{{ class_obj.name }}</h1>
+                </header>
+                <div class="dashboard-cards" style="display:flex;gap:32px;flex-wrap:wrap;align-items:flex-start;">
+                    <!-- Class Info Card -->
+                    <div class="dashboard-card" style="background:#101522;border-radius:10px;box-shadow:0 2px 10px #0002;padding:28px 24px 20px 24px;min-width:320px;max-width:400px;flex:1 1 320px;">
+                        <div class="card-title" style="font-size:1.3rem;color:#4f8cff;font-weight:600;margin-bottom:10px;">Class Information</div>
+                        <div style="margin-bottom:10px;"><span style="color:#a0a0a0;">Teacher:</span> <span style="color:#fff;">{% for user in users %}{% if user._id == class_obj.teacher_id or user._id|string == class_obj.teacher_id|string %}{{ user.username }}{% endif %}{% endfor %}</span></div>
+                        <div style="margin-bottom:10px;"><span style="color:#a0a0a0;">Description:</span> <span style="color:#fff;">{{ class_obj.description or 'No description provided' }}</span></div>
+                        <div style="margin-bottom:10px;"><span style="color:#a0a0a0;">Class Code:</span> <span style="color:#fff;font-family:monospace;">{{ class_obj.class_code }}</span></div>
+                        <div class="class-stats" style="display:flex;gap:18px;font-size:1.05rem;color:#a0a0a0;margin-bottom:18px;align-items:center;">
+                            {% if user_role != 'student' %}
+                                <span><span class="stat-icon">👥</span>{{ student_count }} Students</span>
+                            {% endif %}
+                            <span><span class="stat-icon">📄</span>{{ summary_count }} Summaries</span>
                         </div>
-                        {% endfor %}
-                    </div>
-                    {% else %}
-                    <div class="empty-state">
-                        <p>No summaries have been created for this class yet.</p>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-            
-            {% if current_user.role == 'teacher' and class_obj.teacher_id == current_user.id %}
-            <div style="margin-bottom: 32px; display: flex; gap: 32px; align-items: flex-start; flex-wrap: wrap;">
-                <div style="background:#242424;padding:24px 20px;border-radius:10px;box-shadow:0 2px 8px #0002;min-width:260px;max-width:340px;flex:1;">
-                    <form method="POST" action="{{ url_for('teacher_delete_class', class_id=class_obj.id) }}" onsubmit="return confirm('Are you sure you want to delete this class? This cannot be undone.');">
-                        <button type="submit" class="btn btn-danger" style="background:#ff4f4f;color:#fff;border:none;padding:12px 24px;border-radius:6px;font-size:1rem;cursor:pointer;width:100%;margin-bottom:10px;">Delete Class</button>
-                    </form>
-                    <h3 style="margin:18px 0 10px 0;font-size:1.1rem;color:#fff;">Students in this class</h3>
-                    <ul style="list-style:none;padding:0;margin:0;">
-                        {% for student in class_obj.students %}
-                        <li style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #333;">
-                            <span style="color:#e0e0e0;font-size:1rem;">{{ student.username }}</span>
-                            <form method="POST" action="{{ url_for('remove_student_from_class', class_id=class_obj.id, student_id=student.id) }}" style="display:inline;">
-                                <button type="submit" class="btn btn-outline btn-sm" style="color:#ff4f4f;border:1px solid #ff4f4f;background:none;padding:4px 12px;border-radius:4px;font-size:0.95rem;cursor:pointer;" onclick="return confirm('Remove this student from the class?');">Remove</button>
-                            </form>
-                        </li>
-                        {% endfor %}
-                        {% if class_obj.students|length == 0 %}
-                        <li style="color:#a0a0a0;padding:8px 0;">No students enrolled yet.</li>
+                        {% if user_role == 'teacher' %}
+                        <a href="/recordings?class_id={{ class_obj._id }}" class="btn btn-primary" style="background:#2563eb;color:#fff;padding:10px 22px;border-radius:6px;font-size:1rem;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:background 0.2s;margin-top:10px;">🎤 Record Audio</a>
                         {% endif %}
-                    </ul>
+                    </div>
+                    <!-- Summaries Card -->
+                    <div class="dashboard-card" style="background:#101522;border-radius:10px;box-shadow:0 2px 10px #0002;padding:28px 24px 20px 24px;flex:2 1 400px;min-width:320px;">
+                        <div class="card-title" style="font-size:1.3rem;color:#4f8cff;font-weight:600;margin-bottom:10px;">Class Summaries</div>
+                    {% if summaries %}
+                        <div class="summaries-grid" style="display:grid;grid-template-columns:1fr;gap:18px;">
+                        {% for summary in summaries %}
+                            <div class="summary-card" style="background:#181e2a;border-radius:8px;padding:18px 16px;display:flex;flex-direction:column;gap:8px;">
+                                <div class="summary-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                                    <div style="display:flex;align-items:center;gap:10px;">
+                                        <h3 style="font-size:1.05rem;color:#4f8cff;margin:0;">{{ summary.filename }}</h3>
+                                        {% if user_role == 'teacher' %}
+                                            {% if not summary.approved %}
+                                                <span style="color:#ffb300;font-size:0.95rem;">Pending Approval</span>
+                                            {% else %}
+                                                <span style="color:#4caf50;font-size:0.95rem;">Approved</span>
+                                            {% endif %}
+                                        {% endif %}
+                                    </div>
+                                    <span class="summary-date" style="color:#a0a0a0;font-size:0.95rem;">{{ summary.created_at }}</span>
+                                </div>
+                                <div class="summary-actions" style="display:flex;gap:12px;margin-top:8px;align-items:center;">
+                                    <a href="{{ url_for('view_summary', filename=summary.filename) }}" class="btn btn-outline" style="color:#2563eb;border:1px solid #2563eb;background:none;padding:6px 18px;border-radius:4px;font-size:1rem;text-decoration:none;">View Summary</a>
+                                    <a href="{{ url_for('download_file', filename=summary.filename) }}" class="btn btn-outline" style="color:#2563eb;border:1px solid #2563eb;background:none;padding:6px 18px;border-radius:4px;font-size:1rem;text-decoration:none;">Download</a>
+                                    {% if user_role == 'teacher' and not summary.approved %}
+                                        <a href="#" class="btn btn-outline edit-summary-btn" data-filename="{{ summary.filename }}" style="color:#2563eb;border:1px solid #2563eb;background:none;padding:6px 18px;border-radius:4px;font-size:1rem;text-decoration:none;">Edit</a>
+                                        <form method="POST" action="{{ url_for('approve_summary', class_id=class_obj._id, filename=summary.filename) }}" style="display:inline;">
+                                            <button type="submit" class="btn btn-outline btn-sm approve-summary-btn" style="color:#4caf50;border:1px solid #4caf50;background:none;padding:4px 12px;border-radius:4px;font-size:0.95rem;cursor:pointer;">Approve</button>
+                                        </form>
+                                        <form method="POST" action="{{ url_for('deny_summary', class_id=class_obj._id, filename=summary.filename) }}" style="display:inline;margin-left:6px;">
+                                            <button type="submit" class="btn btn-outline btn-sm deny-summary-btn" style="color:#ff4f4f;border:1px solid #ff4f4f;background:none;padding:4px 12px;border-radius:4px;font-size:0.95rem;cursor:pointer;" onclick="return confirm('Deny and delete this summary?');">Deny</button>
+                                        </form>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                            </div>
+                        {% else %}
+                        <div class="empty-state" style="color:#a0a0a0;font-size:1.1rem;padding:30px 0;text-align:center;">
+                            <p>No summaries have been created for this class yet.</p>
+                        </div>
+                        {% endif %}
+                    </div>
                 </div>
+                {% if user_role == 'teacher' and (class_obj.teacher_id == user_id or class_obj.teacher_id|string == user_id|string) %}
+                <div class="dashboard-cards" style="display:flex;gap:32px;flex-wrap:wrap;align-items:flex-start;margin-top:32px;">
+                    <!-- Student Management Card -->
+                    <div class="dashboard-card" style="background:#101522;border-radius:10px;box-shadow:0 2px 10px #0002;padding:28px 24px 20px 24px;min-width:320px;max-width:400px;flex:1 1 320px;">
+                        <div class="card-title" style="font-size:1.2rem;color:#4f8cff;font-weight:600;margin-bottom:10px;">Student Management</div>
+                        <h3 style="margin:18px 0 10px 0;font-size:1.1rem;color:#fff;">Enrolled Students</h3>
+                        <ul style="list-style:none;padding:0;margin:0;">
+                            {% for student in students %}
+                            <li style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #333;">
+                                <span style="color:#e0e0e0;font-size:1rem;">{{ student.username }}</span>
+                                <form method="POST" action="{{ url_for('remove_student_from_class', class_id=class_obj._id, student_id=student.id) }}" style="display:inline;">
+                                    <button type="submit" class="btn btn-outline btn-sm" style="color:#ff4f4f;border:1px solid #ff4f4f;background:none;padding:4px 12px;border-radius:4px;font-size:0.95rem;cursor:pointer;" onclick="return confirm('Remove this student from the class?');">Remove</button>
+                                </form>
+                            </li>
+                            {% endfor %}
+                            {% if students|length == 0 %}
+                            <li style="color:#a0a0a0;padding:8px 0;">No students enrolled yet.</li>
+                            {% endif %}
+                        </ul>
+                        {% if pending_requests|length > 0 %}
+                        <h3 style="margin:18px 0 10px 0;font-size:1.1rem;color:#fff;">Pending Approvals</h3>
+                        <ul style="list-style:none;padding:0;margin:0;">
+                            {% for student in pending_requests %}
+                            <li style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #333;">
+                                <span style="color:#e0e0e0;font-size:1rem;">{{ student.username }}</span>
+                                <form method="POST" action="{{ url_for('approve_student', class_id=class_obj._id, student_id=student.id) }}" style="display:inline;">
+                                    <button type="submit" class="btn btn-outline btn-sm" style="color:#4caf50;border:1px solid #4caf50;background:none;padding:4px 12px;border-radius:4px;font-size:0.95rem;cursor:pointer;" onclick="return confirm('Approve this student?');">Approve</button>
+                                </form>
+                                <form method="POST" action="{{ url_for('remove_student_from_class', class_id=class_obj._id, student_id=student.id) }}" style="display:inline;">
+                                    <button type="submit" class="btn btn-outline btn-sm" style="color:#ff4f4f;border:1px solid #ff4f4f;background:none;padding:4px 12px;border-radius:4px;font-size:0.95rem;cursor:pointer;" onclick="return confirm('Reject and remove this student?');">Reject</button>
+                                </form>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                        <form method="POST" action="{{ url_for('teacher_delete_class', class_id=class_obj._id) }}" onsubmit="return confirm('Are you sure you want to delete this class? This cannot be undone.');" style="margin-top:24px;">
+                            <button type="submit" class="btn btn-danger" style="background:#ff4f4f;color:#fff;border:none;padding:12px 24px;border-radius:6px;font-size:1rem;cursor:pointer;width:100%;">Delete Class</button>
+                        </form>
+                    </div>
+                </div>
+                {% endif %}
             </div>
-            {% endif %}
         </main>
     </div>
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Sidebar functionality
+            // Sidebar functionality (only add listeners if elements exist)
             const menuToggle = document.querySelector('.menu-toggle');
             const closeMenu = document.querySelector('.close-menu');
             const sidebar = document.querySelector('.sidebar');
             const mainContent = document.querySelector('.main-content');
             const sidebarOverlay = document.querySelector('.sidebar-overlay');
-            
-            // Function to toggle sidebar visibility
-            function toggleSidebar() {
-                sidebar.classList.toggle('active');
-                mainContent.classList.toggle('sidebar-active');
-                sidebarOverlay.classList.toggle('active');
-            }
-            
-            // Event listeners for sidebar toggle buttons
-            menuToggle.addEventListener('click', toggleSidebar);
-            closeMenu.addEventListener('click', toggleSidebar);
-            sidebarOverlay.addEventListener('click', toggleSidebar);
-            
-            // Handle responsive behavior
-            function handleResize() {
-                if (window.innerWidth < 768) {
+            if (menuToggle && closeMenu && sidebar && mainContent && sidebarOverlay) {
+                menuToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('active');
+                    mainContent.classList.toggle('sidebar-active');
+                    sidebarOverlay.classList.toggle('active');
+                });
+                closeMenu.addEventListener('click', function() {
                     sidebar.classList.remove('active');
                     mainContent.classList.remove('sidebar-active');
                     sidebarOverlay.classList.remove('active');
-                }
+                });
+                sidebarOverlay.addEventListener('click', function() {
+                    sidebar.classList.remove('active');
+                    mainContent.classList.remove('sidebar-active');
+                    sidebarOverlay.classList.remove('active');
+                });
             }
-            
-            // Initial setup and resize handling
-            window.addEventListener('resize', handleResize);
-            handleResize();
+            // Approve/Deny/Edit summary via AJAX (check for elements before attaching)
+            document.querySelectorAll('.approve-summary-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const form = btn.closest('form');
+                    if (form) {
+                        fetch(form.action, { method: 'POST' })
+                            .then(res => {
+                                if (res.ok) {
+                                    // Update UI: hide approve/deny/edit, show Approved badge
+                                    const card = btn.closest('.summary-card');
+                                    if (card) {
+                                        card.querySelectorAll('.approve-summary-btn, .deny-summary-btn, .edit-summary-btn').forEach(el => el.style.display = 'none');
+                                        let badge = card.querySelector('.summary-header span[style*="#ffb300"]');
+                                        if (badge) { badge.textContent = 'Approved'; badge.style.color = '#4caf50'; }
+                                    }
+                                }
+                            });
+                    }
+                });
+            });
+            document.querySelectorAll('.deny-summary-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const form = btn.closest('form');
+                    if (form) {
+                        fetch(form.action, { method: 'POST' })
+                            .then(res => {
+                                if (res.ok) {
+                                    // Remove the summary card from the UI
+                                    const card = btn.closest('.summary-card');
+                                    if (card) card.remove();
+                                }
+                            });
+                    }
+                });
+            });
+            document.querySelectorAll('.edit-summary-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const filename = btn.dataset.filename;
+                    const modal = document.getElementById('edit-summary-modal');
+                    const textarea = document.getElementById('edit-summary-textarea');
+                    const saveBtn = document.getElementById('save-edit-summary-btn');
+                    if (!modal || !textarea || !saveBtn) return;
+                    fetch(`/view_summary_raw/${filename}`)
+                        .then(res => res.text())
+                        .then(text => {
+                            textarea.value = text;
+                            modal.style.display = 'block';
+                            saveBtn.dataset.filename = filename;
+                        });
+                });
+            });
+            const closeEditModal = document.getElementById('close-edit-summary-modal');
+            if (closeEditModal) {
+                closeEditModal.onclick = function() {
+                    document.getElementById('edit-summary-modal').style.display = 'none';
+                };
+            }
+            const saveEditBtn = document.getElementById('save-edit-summary-btn');
+            if (saveEditBtn) {
+                saveEditBtn.onclick = function() {
+                    const filename = this.dataset.filename;
+                    const content = document.getElementById('edit-summary-textarea').value;
+                    fetch(`/edit_summary/${filename}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ content })
+                    }).then(() => {
+                        document.getElementById('edit-summary-modal').style.display = 'none';
+                        location.reload();
+                    });
+                };
+            }
         });
     </script>
+    <!-- Edit Summary Modal -->
+    <div id="edit-summary-modal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.95);z-index:9999;align-items:center;justify-content:center;overflow:auto;">
+        <div style="background:#181e2a;padding:0;max-width:100vw;width:100vw;height:100vh;display:flex;flex-direction:column;">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:24px 32px 0 32px;">
+                <h2 style="color:#4f8cff;margin-bottom:0;">Edit Summary</h2>
+                <button id="close-edit-summary-modal" style="background:none;border:none;color:#fff;font-size:2rem;cursor:pointer;">&times;</button>
+            </div>
+            <textarea id="edit-summary-textarea" style="flex:1 1 auto;width:100%;background:#23272b;color:#fff;border:none;border-radius:0;padding:32px 32px 0 32px;font-size:1.1rem;resize:none;min-height:0;max-height:100vh;"></textarea>
+            <div style="padding:24px 32px 32px 32px;display:flex;justify-content:flex-end;gap:16px;">
+                <button id="save-edit-summary-btn" class="btn btn-primary" style="min-width:120px;">Save</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

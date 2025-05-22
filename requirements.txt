@@ -11,3 +11,5 @@ python-dotenv
 stripe
 requests
 Flask-Session
+flask-pymongo
+pymongo

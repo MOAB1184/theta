@@ -1,5 +1,4 @@
 from flask import Flask, render_template, redirect, url_for, request, jsonify, send_file, flash, session
-from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
@@ -18,6 +17,8 @@ import string
 from stripe.error import SignatureVerificationError
 import boto3
 from botocore.exceptions import ClientError
+from flask_pymongo import PyMongo
+from bson.objectid import ObjectId
 
 # Try to load environment variables from .env file
 try:
@@ -50,11 +51,6 @@ app.config['UPLOAD_FOLDER'] = os.getenv('WASABI_BUCKET_NAME')
 
 # Initialize SQLAlchemy
 db = SQLAlchemy(app)
-
-# Initialize login manager
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = 'login'
 
 # Configure Deepseek
 DEEPSEEK_MODEL = "deepseek-reasoner"
@@ -217,154 +213,47 @@ s3_client = boto3.client(
     region_name=os.getenv('WASABI_REGION')
 )
 
-# School model
-class School(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), unique=True, nullable=False)
-    district = db.Column(db.String(100), nullable=False)
-    state = db.Column(db.String(50), nullable=False)
-    teachers = db.relationship('User', backref='school', lazy=True)
+# MongoDB config
+app.config["MONGO_URI"] = os.getenv("MONGO_URI")
+app.config["MONGO_DBNAME"] = os.getenv("MONGO_DBNAME")
+mongo = PyMongo(app)
 
-# User model with admin flag
-class User(UserMixin, db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(100), unique=True, nullable=False)
-    password_hash = db.Column(db.String(200), nullable=False)
-    is_admin = db.Column(db.Boolean, default=False)
-    role = db.Column(db.String(50), nullable=False, default='student')
-    subscribed = db.Column(db.Boolean, default=False)
-    school_id = db.Column(db.Integer, db.ForeignKey('school.id'), nullable=True)  # Only for teachers
-    teaching_classes = db.relationship('Class', backref='teacher', lazy=True, foreign_keys='Class.teacher_id')
-    enrolled_classes = db.relationship('Class', secondary='class_enrollment', backref='students', lazy=True)
-    
-    def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
-    
-    def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
+print("MONGO_URI:", app.config["MONGO_URI"])
+print("mongo:", mongo)
+print("mongo.db:", mongo.db)
 
-# Class model
-class Class(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    description = db.Column(db.Text)
-    teacher_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
-    class_code = db.Column(db.String(16), unique=True, nullable=False)  # New: join code
-    
-    # Add relationship for summaries
-    summaries = db.relationship('Summary', backref='class', lazy=True)
+# Helper functions for user, class, and school management
 
-# Class enrollment association table
-class_enrollment = db.Table('class_enrollment',
-    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
-    db.Column('class_id', db.Integer, db.ForeignKey('class.id'), primary_key=True)
-)
+def get_user_by_username(username):
+    return mongo.db.users.find_one({"username": username})
 
-# Summary model to track summaries per class
-class Summary(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    filename = db.Column(db.String(200), nullable=False)
-    class_id = db.Column(db.Integer, db.ForeignKey('class.id'), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+def create_user(username, password_hash, role, is_admin=False, school_id=None):
+    user = {
+        "username": username,
+        "password_hash": password_hash,
+        "role": role,
+        "is_admin": is_admin,
+        "school_id": ObjectId(school_id) if school_id else None,
+        "subscribed": False
+    }
+    return mongo.db.users.insert_one(user)
 
-# Simplified Prompt model
-class Prompt(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    prompt_type = db.Column(db.String(50), nullable=False, unique=True, default='global')
-    prompt_text = db.Column(db.Text, nullable=False)
-    use_latex = db.Column(db.Boolean, default=False)  # Toggle for LaTeX format
-    
-    @staticmethod
-    def get_prompt(prompt_type='global'): 
-        prompt = Prompt.query.filter_by(prompt_type=prompt_type).first()
-        if prompt:
-            # Return the appropriate prompt based on the LaTeX setting
-            if prompt.use_latex:
-                return LATEX_PROMPT
-            return prompt.prompt_text
-        # Return default if not found
-        return DEFAULT_GLOBAL_PROMPT
-    
-    @staticmethod
-    def is_latex(prompt_type='global'):
-        """Check if LaTeX format is enabled"""
-        prompt = Prompt.query.filter_by(prompt_type=prompt_type).first()
-        if prompt:
-            return prompt.use_latex
-        return False
+def get_school_by_id(school_id):
+    return mongo.db.schools.find_one({"_id": ObjectId(school_id)})
 
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
+def get_all_schools():
+    return list(mongo.db.schools.find())
 
-def create_admin_user():
-    """Create admin user if it doesn't exist"""
-    admin = User.query.filter_by(username="admin").first()
-    if not admin:
-        admin = User(username="admin", is_admin=True, role="admin")
-        admin.set_password("duggy")
-        db.session.add(admin)
-        db.session.commit()
-        print("Admin user created")
-    else:
-        # Ensure existing admin has the role
-        if admin.role != "admin":
-            admin.role = "admin"
-            admin.is_admin = True # Ensure is_admin is also true
-            db.session.commit()
-            print("Updated existing admin user to have 'admin' role.")
-        else:
-            print("Admin user already exists with correct role")
+def create_school(name, district, state):
+    return mongo.db.schools.insert_one({"name": name, "district": district, "state": state})
 
-def initialize_prompts():
-    """Initialize the global prompt if it doesn't exist"""
-    existing_prompt = Prompt.query.filter_by(prompt_type='global').first()
-    if not existing_prompt:
-        # Create with default prompt text and LaTeX setting
-        new_prompt = Prompt(
-            prompt_type='global', 
-            prompt_text=DEFAULT_GLOBAL_PROMPT,
-            use_latex=False
-        )
-        db.session.add(new_prompt)
-        db.session.commit()
-        print("Global prompt initialized")
-    else:
-        # Update fields if needed for existing prompts
-        if not hasattr(existing_prompt, 'use_latex') or existing_prompt.use_latex is None:
-            existing_prompt.use_latex = False
-            db.session.commit()
-            print("Updated existing prompt with LaTeX setting")
-        print("Global prompt already exists")
-
-def count_user_summaries(username, role):
-    summary_count = 0
-    
-    # Count class summaries
-    classes = []
-    if role == 'teacher':
-        classes = Class.query.filter_by(teacher_id=User.query.filter_by(username=username).first().id).all()
-    elif role == 'student':
-        user = User.query.filter_by(username=username).first()
-        classes = user.enrolled_classes
-    
-    for class_obj in classes:
-        class_dir = os.path.join(app.config['UPLOAD_FOLDER'], username, 'classes', class_obj.class_code)
-        if os.path.exists(class_dir):
-            for filename in os.listdir(class_dir):
-                if filename.startswith('summary_'):
-                    summary_count += 1
-    
-    return summary_count
-
-# Authentication routes
+# Authentication routes using MongoDB
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    if current_user.is_authenticated:
+    if 'user_id' in session:
         return redirect(url_for('dashboard'))
 
-    schools = School.query.order_by(School.name).all()
+    schools = get_all_schools()
 
     if request.method == 'POST':
         try:
@@ -379,20 +268,29 @@ def register():
             if role == 'teacher' and not school_id:
                 return render_template('register.html', error='Please select a school.', username=username, role=role, schools=schools)
 
-            existing_user = User.query.filter_by(username=username).first()
+            existing_user = get_user_by_username(username)
             if existing_user:
                 return render_template('register.html', error='Username already exists', role=role, username=username, schools=schools)
             
-            new_user = User(username=username, role=role)
-            new_user.is_admin = False
+            password_hash = generate_password_hash(password)
             if role == 'teacher':
-                new_user.school_id = int(school_id)
-
-            new_user.set_password(password)
-            db.session.add(new_user)
-            db.session.commit()
-            
-            login_user(new_user)
+                # Add to pending_teachers for admin approval
+                teacher = {
+                    "username": username,
+                    "password_hash": password_hash,
+                    "role": role,
+                    "is_admin": False,
+                    "school_id": ObjectId(school_id) if school_id else None,
+                    "subscribed": False
+                }
+                mongo.db.pending_teachers.insert_one(teacher)
+                return render_template('register.html', error='Teacher account request sent! Waiting for admin approval.', schools=schools)
+            else:
+                create_user(username, password_hash, role, is_admin=False, school_id=school_id)
+                user = get_user_by_username(username)
+                session['user_id'] = str(user['_id'])
+                session['username'] = user['username']
+                session['role'] = user['role']
             return redirect(url_for('dashboard'))
         except Exception as e:
             import traceback
@@ -403,34 +301,31 @@ def register():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if current_user.is_authenticated:
+    if 'user_id' in session:
         return redirect(url_for('dashboard'))
 
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
-        # Role selection on login is not implemented here as it's part of user data
-        
-        user = User.query.filter_by(username=username).first()
-        
-        if user and user.check_password(password):
-            login_user(user, remember=True)  # Set remember=True to make the session permanent
+        user = get_user_by_username(username)
+        if user and check_password_hash(user['password_hash'], password):
+            session['user_id'] = str(user['_id'])
+            session['username'] = user['username']
+            session['role'] = user['role']
             return redirect(url_for('dashboard'))
         else:
             return render_template('login.html', error='Invalid username or password', username=username)
-    
     return render_template('login.html')
 
 @app.route('/logout')
-@login_required
 def logout():
-    logout_user()
+    session.clear()
     return redirect(url_for('index'))
 
 # Main routes
 @app.route('/')
 def index():
-    if current_user.is_authenticated:
+    if 'user_id' in session:
         return redirect(url_for('dashboard'))
     return render_template('landing.html')
 
@@ -439,32 +334,110 @@ def pricing():
     return render_template('pricing.html')
 
 @app.route('/dashboard')
-@login_required
 def dashboard():
-    # Get summary count for the current user
-    summary_count = count_user_summaries(current_user.username, current_user.role)
-    
-    if current_user.role == 'teacher':
-        # Teachers see only their own classes
-        classes = Class.query.filter_by(teacher_id=current_user.id).order_by(Class.created_at.desc()).all()
-        return render_template('dashboard.html', classes=classes, user_role=current_user.role, summaries=summary_count)
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
+    if not user:
+        return redirect(url_for('logout'))
+    users = list(mongo.db.users.find())
+    class_data = []
+    if user['role'] == 'teacher':
+        classes = list(mongo.db.classes.find({"teacher_id": user['_id']}))
+        for class_obj in classes:
+            class_code = class_obj.get('class_code')
+            class_dir = f"{user['username']}/classes/{class_code}"
+            summary_count = 0
+            recording_count = 0
+            transcript_count = 0
+            try:
+                response = s3_client.list_objects_v2(Bucket=os.getenv('WASABI_BUCKET_NAME'), Prefix=class_dir)
+                if 'Contents' in response:
+                    for obj in response['Contents']:
+                        key = obj['Key']
+                        if key.startswith(f"{class_dir}/summary_"):
+                            summary_count += 1
+                        elif key.startswith(f"{class_dir}/recording_"):
+                            recording_count += 1
+                        elif key.startswith(f"{class_dir}/transcript_"):
+                            transcript_count += 1
+            except Exception as e:
+                print(f"Error counting files for class {class_code}: {e}")
+            class_obj['summary_count'] = summary_count
+            class_obj['recording_count'] = recording_count
+            class_obj['transcript_count'] = transcript_count
+            class_data.append(class_obj)
+        return render_template('dashboard.html', 
+                             classes=class_data, 
+                             user_role=user['role'], 
+                             is_admin=user.get('is_admin', False),
+                             username=user['username'],
+                             users=users)
     else:
         # Students see only their enrolled classes
-        enrolled_classes = current_user.enrolled_classes
-        return render_template('dashboard.html', classes=enrolled_classes, user_role=current_user.role, summaries=summary_count)
+        enrolled_class_ids = user.get('enrolled_classes', [])
+        classes = list(mongo.db.classes.find({"_id": {"$in": enrolled_class_ids}})) if enrolled_class_ids else []
+        for class_obj in classes:
+            class_code = class_obj.get('class_code')
+            class_dir = f"{user['username']}/classes/{class_code}"
+            summary_count = 0
+            recording_count = 0
+            transcript_count = 0
+            try:
+                response = s3_client.list_objects_v2(Bucket=os.getenv('WASABI_BUCKET_NAME'), Prefix=class_dir)
+                if 'Contents' in response:
+                    for obj in response['Contents']:
+                        key = obj['Key']
+                        if key.startswith(f"{class_dir}/summary_"):
+                            summary_count += 1
+                        elif key.startswith(f"{class_dir}/recording_"):
+                            recording_count += 1
+                        elif key.startswith(f"{class_dir}/transcript_"):
+                            transcript_count += 1
+            except Exception as e:
+                print(f"Error counting files for class {class_code}: {e}")
+            class_obj['summary_count'] = summary_count
+            class_obj['recording_count'] = recording_count
+            class_obj['transcript_count'] = transcript_count
+            class_data.append(class_obj)
+        return render_template('dashboard.html', 
+                             classes=class_data, 
+                             user_role=user['role'], 
+                             is_admin=user.get('is_admin', False),
+                             username=user['username'],
+                             users=users)
 
 @app.route('/recordings')
-@login_required
 def recordings():
-    return render_template('recordings.html')
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
+    if not user:
+        return redirect(url_for('logout'))
+    
+    # Get user's classes
+    if user['role'] == 'teacher':
+        classes = list(mongo.db.classes.find({"teacher_id": user['_id']}))
+    else:
+        enrolled_class_ids = user.get('enrolled_classes', [])
+        classes = list(mongo.db.classes.find({"_id": {"$in": enrolled_class_ids}})) if enrolled_class_ids else []
+    
+    return render_template('recordings.html', 
+                         classes=classes,
+                         username=user['username'])
 
 @app.route('/summaries')
-@login_required
 def summaries():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
+    if not user:
+        return redirect(url_for('logout'))
+        
     summary_files_data = []
     
     # Get user-specific summaries
-    user_summaries_dir = os.path.join(app.config['UPLOAD_FOLDER'], current_user.username, current_user.role, 'summaries')
+    user_summaries_dir = os.path.join(app.config['UPLOAD_FOLDER'], session['username'], session['role'], 'summaries')
     if os.path.exists(user_summaries_dir):
         for filename in os.listdir(user_summaries_dir):
             if filename.startswith('summary_'):
@@ -496,13 +469,13 @@ def summaries():
     
     # Get class-specific summaries
     classes = []
-    if current_user.role == 'teacher':
-        classes = Class.query.filter_by(teacher_id=current_user.id).all()
-    elif current_user.role == 'student':
-        classes = current_user.enrolled_classes
+    if session['role'] == 'teacher':
+        classes = mongo.db.classes.find({"teacher_id": session['user_id']})
+    elif session['role'] == 'student':
+        classes = mongo.db.classes.find({"students": session['user_id']})
     
     for class_obj in classes:
-        class_summaries_dir = os.path.join(app.config['UPLOAD_FOLDER'], 'class_summaries', str(class_obj.id))
+        class_summaries_dir = os.path.join(app.config['UPLOAD_FOLDER'], 'class_summaries', str(class_obj['_id']))
         if os.path.exists(class_summaries_dir):
             for filename in os.listdir(class_summaries_dir):
                 if filename.startswith('summary_'):
@@ -529,14 +502,15 @@ def summaries():
                         'filename': filename,
                         'date': date_str,
                         'preview': preview,
-                        'class_name': class_obj.name
+                        'class_name': class_obj['name']
                     })
     
     summary_files_data.sort(key=lambda x: x['date'], reverse=True)
-    return render_template('summaries.html', summaries=summary_files_data)
+    return render_template('summaries.html', 
+                         summaries=summary_files_data,
+                         username=user['username'])
 
 @app.route('/api/transcribe', methods=['POST'])
-@login_required
 def transcribe():
     try:
         audio_base64 = request.json.get('audio_base64')
@@ -581,24 +555,24 @@ def transcribe():
         timestamp = str(int(time.time()))
         recording_filename = f"recording_{timestamp}.txt"
         transcript_filename = f"transcript_{timestamp}.txt"
-        
+            
         if class_id:
             # Save to class directory under user's directory
-            class_obj = Class.query.get(class_id)
+            class_obj = mongo.db.classes.find_one({"_id": ObjectId(class_id)})
             if not class_obj:
                 return jsonify({'status': 'error', 'message': 'Class not found'}), 404
             # Verify user access
-            if current_user.role == 'teacher' and class_obj.teacher_id != current_user.id:
+            if session['role'] == 'teacher' and class_obj['teacher_id'] != ObjectId(session['user_id']):
                 return jsonify({'status': 'error', 'message': 'Unauthorized access to class'}), 403
-            elif current_user.role == 'student' and class_obj not in current_user.enrolled_classes:
+            elif session['role'] == 'student' and ObjectId(session['user_id']) not in class_obj.get('students', []):
                 return jsonify({'status': 'error', 'message': 'Unauthorized access to class'}), 403
             
-            class_dir = f"{current_user.username}/classes/{class_obj.class_code}"
+            class_dir = f"{session['username']}/classes/{class_obj['class_code']}"
             recording_path = f"{class_dir}/{recording_filename}"
             transcript_path = f"{class_dir}/{transcript_filename}"
         else:
             # Save to user's personal directory
-            user_dir = f"{current_user.username}"
+            user_dir = f"{session['username']}"
             recording_path = f"{user_dir}/{recording_filename}"
             transcript_path = f"{user_dir}/{transcript_filename}"
 
@@ -621,7 +595,6 @@ def transcribe():
         }), 500
 
 @app.route('/api/summarize', methods=['POST'])
-@login_required
 def summarize():
     try:
         transcript = request.json.get('transcript')
@@ -634,10 +607,9 @@ def summarize():
         if not DEEPSEEK_API_KEY:
             return jsonify({'status': 'error', 'message': "Deepseek API key not configured. Please set the DEEPSEEK_API_KEY environment variable."}), 500
         
-        if Prompt.is_latex('global'):
-            summarization_prompt_template = LATEX_PROMPT
-        else:
-            summarization_prompt_template = Prompt.get_prompt('global')
+        # Use LATEX_PROMPT if latex is needed, otherwise BASE_PROMPT
+        use_latex = False  # Set this based on your logic or config if needed
+        summarization_prompt_template = LATEX_PROMPT if use_latex else BASE_PROMPT
         
         if not summarization_prompt_template.strip().endswith("Transcript:"):
             full_summarization_prompt = summarization_prompt_template + "\n\nTranscript:\n" + transcript
@@ -663,28 +635,26 @@ def summarize():
         summary_filename = f"summary_{timestamp}.txt"
         summary_path = None
         if class_id:
-            # Save to class directory under user's directory
-            class_obj = Class.query.get(class_id)
+            # Save to class directory under teacher's directory
+            class_obj = mongo.db.classes.find_one({"_id": ObjectId(class_id)})
             if not class_obj:
                 return jsonify({'status': 'error', 'message': 'Class not found'}), 404
-            # Verify user access
-            if current_user.role == 'teacher' and class_obj.teacher_id != current_user.id:
-                return jsonify({'status': 'error', 'message': 'Unauthorized access to class'}), 403
-            elif current_user.role == 'student' and class_obj not in current_user.enrolled_classes:
-                return jsonify({'status': 'error', 'message': 'Unauthorized access to class'}), 403
-            
-            class_dir = f"{current_user.username}/classes/{class_obj.class_code}"
+            teacher = mongo.db.users.find_one({"_id": class_obj['teacher_id']})
+            class_dir = f"{teacher['username']}/classes/{class_obj['class_code']}"
             summary_path = f"{class_dir}/{summary_filename}"
-            
             s3_client.put_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=summary_path, Body=summary)
-            
             # Add to DB if not already present
-            if not Summary.query.filter_by(filename=summary_filename, class_id=class_id).first():
-                db.session.add(Summary(filename=summary_filename, class_id=class_id))
-                db.session.commit()
+            mongo.db.classes.update_one(
+                {"_id": ObjectId(class_id)},
+                {"$addToSet": {"summaries": {
+                    "filename": summary_filename,
+                    "created_at": datetime.datetime.utcnow(),
+                    "approved": False
+                }}}
+            )
         else:
             # Save to user's personal directory
-            user_dir = f"{current_user.username}"
+            user_dir = f"{session['username']}"
             summary_path = f"{user_dir}/{summary_filename}"
             
             s3_client.put_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=summary_path, Body=summary)
@@ -730,7 +700,6 @@ def detect_subject(summary_text):
         return "General"
 
 @app.route('/api/check_file', methods=['POST'])
-@login_required
 def check_file():
     try:
         filename = request.json.get('filename')
@@ -738,7 +707,7 @@ def check_file():
             return jsonify({'status': 'error', 'message': 'Invalid filename'}), 400
         
         # Check user-specific summaries
-        user_summaries_dir = f"{current_user.username}/{current_user.role}/summaries"
+        user_summaries_dir = f"{session['username']}/{session['role']}/summaries"
         user_file_path = f"{user_summaries_dir}/{filename}"
         try:
             s3_client.head_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=user_file_path)
@@ -747,18 +716,13 @@ def check_file():
             pass
         
         # Check class-specific summaries
-        classes = []
-        if current_user.role == 'teacher':
-            classes = Class.query.filter_by(teacher_id=current_user.id).all()
-        elif current_user.role == 'student':
-            classes = current_user.enrolled_classes
-        
+        classes = mongo.db.classes.find({"teacher_id": session['user_id']})
         for class_obj in classes:
-            class_summaries_dir = f"class_summaries/{class_obj.id}"
+            class_summaries_dir = f"class_summaries/{class_obj['_id']}"
             class_file_path = f"{class_summaries_dir}/{filename}"
             try:
                 s3_client.head_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=class_file_path)
-                return jsonify({'status': 'success', 'exists': True, 'path': 'class', 'class_id': class_obj.id})
+                return jsonify({'status': 'success', 'exists': True, 'path': 'class', 'class_id': class_obj['_id']})
             except ClientError:
                 pass
         
@@ -768,59 +732,57 @@ def check_file():
         return jsonify({'status': 'error', 'message': f"Error checking file: {str(e)}"}), 500
 
 @app.route('/view_summary/<filename>')
-@login_required
 def view_summary(filename):
     if not filename.startswith('summary_'):
         return "Invalid file type for this view.", 400
 
+    user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
+    if not user:
+        return redirect(url_for('logout'))
+
     # Check user-specific summaries (legacy, if any)
-    user_summaries_dir = f"{current_user.username}/{current_user.role}/summaries"
+    user_summaries_dir = f"{session['username']}/{session['role']}/summaries"
     user_file_path = f"{user_summaries_dir}/{filename}"
     try:
         response = s3_client.get_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=user_file_path)
         content = response['Body'].read().decode('utf-8')
-        return render_template('view_summary.html', content=content, filename=filename)
+        return render_template('view_summary.html', 
+                             content=content, 
+                             filename=filename,
+                             is_admin=user.get('is_admin', False),
+                             username=user['username'])
     except ClientError:
         pass
 
-    # Check new structure: user/classes/class_code/summary_xxx.txt
-    classes = []
-    if current_user.role == 'teacher':
-        classes = Class.query.filter_by(teacher_id=current_user.id).all()
-    elif current_user.role == 'student':
-        classes = current_user.enrolled_classes
-
+    # Check all classes the user is a teacher or student in
+    class_query = {"$or": [
+        {"teacher_id": user['_id']},
+        {"students": user['_id']}
+    ]}
+    classes = mongo.db.classes.find(class_query)
     for class_obj in classes:
-        class_dir = f"{current_user.username}/classes/{class_obj.class_code}"
+        teacher = mongo.db.users.find_one({"_id": class_obj['teacher_id']})
+        if not teacher:
+            continue
+        class_dir = f"{teacher['username']}/classes/{class_obj['class_code']}"
         class_file_path = f"{class_dir}/{filename}"
         try:
             response = s3_client.get_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=class_file_path)
             content = response['Body'].read().decode('utf-8')
-            return render_template('view_summary.html', content=content, filename=filename)
+            return render_template('view_summary.html', 
+                                 content=content, 
+                                 filename=filename,
+                                 is_admin=user.get('is_admin', False),
+                                 username=user['username'])
         except ClientError:
             pass
-
-    # Check old class_summaries dir (legacy, if any)
-    for class_obj in classes:
-        class_summaries_dir = f"class_summaries/{class_obj.id}"
-        class_file_path = f"{class_summaries_dir}/{filename}"
-        try:
-            response = s3_client.get_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=class_file_path)
-            content = response['Body'].read().decode('utf-8')
-            return render_template('view_summary.html', content=content, filename=filename)
-        except ClientError:
-            pass
-
     return "File not found or access denied.", 404
 
 @app.route('/download/<filename>')
-@login_required
 def download_file(filename):
     # Sanitize filename
     filename = os.path.basename(filename)
-    
-    # Check user-specific files
-    user_role_dir = f"{current_user.username}/{current_user.role}"
+    user_role_dir = f"{session['username']}/{session['role']}"
     file_path = None
     if filename.startswith('summary_'):
         file_path = f"{user_role_dir}/summaries/{filename}"
@@ -828,51 +790,52 @@ def download_file(filename):
         file_path = f"{user_role_dir}/transcripts/{filename}"
     elif filename.startswith('recording_'):
         file_path = f"{user_role_dir}/recordings/{filename}"
-    
     try:
         response = s3_client.get_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=file_path)
         return send_file(response['Body'], as_attachment=True, download_name=filename)
     except ClientError:
         pass
-    
-    # Check class-specific summaries
-    classes = []
-    if current_user.role == 'teacher':
-        classes = Class.query.filter_by(teacher_id=current_user.id).all()
-    elif current_user.role == 'student':
-        classes = current_user.enrolled_classes
-    
+    # Check all classes the user is a teacher or student in
+    user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
+    class_query = {"$or": [
+        {"teacher_id": user['_id']},
+        {"students": user['_id']}
+    ]}
+    classes = mongo.db.classes.find(class_query)
     for class_obj in classes:
-        class_summaries_dir = f"class_summaries/{class_obj.id}"
-        class_file_path = f"{class_summaries_dir}/{filename}"
+        teacher = mongo.db.users.find_one({"_id": class_obj['teacher_id']})
+        if not teacher:
+            continue
+        class_dir = f"{teacher['username']}/classes/{class_obj['class_code']}"
+        class_file_path = f"{class_dir}/{filename}"
         try:
             response = s3_client.get_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=class_file_path)
             return send_file(response['Body'], as_attachment=True, download_name=filename)
         except ClientError:
             pass
-    
     return "File not found or access denied.", 404
 
 # Admin routes
 @app.route('/admin')
-@login_required
 def admin_dashboard():
-    if not current_user.is_admin and current_user.role != 'admin':
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
+    if not user or not user.get('is_admin'):
         return redirect(url_for('dashboard'))
-    
-    # Fetch the single global prompt
-    global_prompt = Prompt.query.filter_by(prompt_type='global').first()
-    if not global_prompt:
-        global_prompt = Prompt(prompt_type='global', prompt_text=DEFAULT_GLOBAL_PROMPT, use_latex=False)
-    
-    users = User.query.all()
-    return render_template('admin.html', global_prompt=global_prompt, users=users)
+    users = list(mongo.db.users.find())
+    schools = list(mongo.db.schools.find())
+    pending_teachers = list(mongo.db.pending_teachers.find())
+    return render_template('admin.html', users=users, schools=schools, pending_teachers=pending_teachers)
 
 @app.route('/admin/prompts/edit', methods=['GET', 'POST'])
-@login_required
 def edit_global_prompt():
-    if not current_user.is_admin and current_user.role != 'admin':
+    if not session.get('is_admin') and session.get('role') != 'admin':
         return redirect(url_for('dashboard'))
+    
+    user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
+    if not user:
+        return redirect(url_for('logout'))
     
     prompt = Prompt.query.filter_by(prompt_type='global').first()
     
@@ -899,248 +862,228 @@ def edit_global_prompt():
         flash("Global prompt updated successfully!", "success")
         return redirect(url_for('admin_dashboard'))
     
-    return render_template('edit_prompt.html', prompt=prompt, prompt_title="Global Summarization Prompt")
+    return render_template('edit_prompt.html', 
+                         prompt=prompt, 
+                         prompt_title="Global Summarization Prompt",
+                         username=user['username'])
 
-@app.route('/classes/create', methods=['GET', 'POST'])
-@login_required
+@app.route('/create_class', methods=['GET', 'POST'])
 def create_class():
-    if current_user.role != 'teacher':
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
+    if not user or user['role'] != 'teacher':
         return redirect(url_for('dashboard'))
+        
     if request.method == 'POST':
         name = request.form.get('name')
         description = request.form.get('description')
-        if not name:
-            return render_template('create_class.html', error='Class name is required')
-        # Generate unique class code
-        def generate_class_code():
-            while True:
-                code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
-                if not Class.query.filter_by(class_code=code).first():
-                    return code
-        class_code = generate_class_code()
-        new_class = Class(
-            name=name,
-            description=description,
-            teacher_id=current_user.id,
-            class_code=class_code
-        )
-        db.session.add(new_class)
-        db.session.commit()
-        flash(f'Class created! Class code: {class_code}', 'success')
+        class_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+            
+        new_class = {
+            "name": name,
+            "description": description,
+            "class_code": class_code,
+            "teacher_id": user['_id'],
+            "students": [],
+            "summaries": []
+        }
+        
+        mongo.db.classes.insert_one(new_class)
         return redirect(url_for('dashboard'))
-    return render_template('create_class.html')
+        
+    return render_template('create_class.html', 
+                         error=None,
+                         is_admin=user.get('is_admin', False),
+                         username=user['username'])
 
-@app.route('/classes/<int:class_id>')
-@login_required
+@app.route('/classes/<class_id>')
 def view_class(class_id):
-    class_obj = Class.query.get_or_404(class_id)
-    
-    # Check if user has access to this class
-    if current_user.role == 'teacher' and class_obj.teacher_id != current_user.id:
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
+    class_obj = mongo.db.classes.find_one({"_id": ObjectId(class_id)})
+    if not class_obj:
         return redirect(url_for('dashboard'))
-    elif current_user.role == 'student' and class_obj not in current_user.enrolled_classes:
+    # Check if user has access
+    if user['role'] == 'teacher' and class_obj['teacher_id'] != user['_id']:
         return redirect(url_for('dashboard'))
-    
-    # Get summaries for this class
-    summaries = Summary.query.filter_by(class_id=class_id).order_by(Summary.created_at.desc()).all()
-    
-    # Scan for files in Wasabi
-    files = scan_wasabi_files(current_user.username, class_obj.class_code)
-    
-    return render_template('view_class.html', class_obj=class_obj, summaries=summaries, files=files)
+    elif user['role'] == 'student' and user['_id'] not in class_obj.get('students', []):
+        return redirect(url_for('dashboard'))
 
-@app.route('/classes/<int:class_id>/enroll', methods=['POST'])
-@login_required
-def enroll_in_class(class_id):
-    if current_user.role != 'student':
-        return redirect(url_for('dashboard'))
-        
-    class_obj = Class.query.get_or_404(class_id)
-    
-    if class_obj in current_user.enrolled_classes:
-        flash('You are already enrolled in this class', 'info')
+    # Always use teacher's username for summary S3 path
+    teacher = mongo.db.users.find_one({"_id": class_obj['teacher_id']})
+    class_code = class_obj.get('class_code')
+    class_dir = f"{teacher['username']}/classes/{class_code}"
+    all_summaries = []
+    try:
+        response = s3_client.list_objects_v2(Bucket=os.getenv('WASABI_BUCKET_NAME'), Prefix=class_dir)
+        if 'Contents' in response:
+            for obj in response['Contents']:
+                key = obj['Key']
+                if key.startswith(f"{class_dir}/summary_"):
+                    filename = key.split('/')[-1]
+                    timestamp_str = filename.split('_')[1].split('.')[0]
+                    try:
+                        timestamp = int(timestamp_str)
+                        date_obj = datetime.datetime.fromtimestamp(timestamp)
+                        date_str = date_obj.strftime('%Y-%m-%d %H:%M')
+                    except Exception:
+                        date_str = 'Unknown date'
+                        timestamp = 0
+                    all_summaries.append({
+                        'filename': filename,
+                        'created_at': date_str,
+                        'timestamp': timestamp
+                    })
+        all_summaries.sort(key=lambda x: x['timestamp'], reverse=True)
+    except Exception as e:
+        print(f"Error fetching summaries for class {class_code}: {e}")
+
+    # Get approval status from DB
+    summary_db_list = class_obj.get('summaries', [])
+    summary_approval = {s['filename']: s for s in summary_db_list}
+    # Filter for students
+    if user['role'] == 'student':
+        summaries = [s for s in all_summaries if summary_approval.get(s['filename'], {}).get('approved')]
     else:
-        current_user.enrolled_classes.append(class_obj)
-        db.session.commit()
-        flash('Successfully enrolled in class', 'success')
-        
-    return redirect(url_for('dashboard'))
+        # For teachers, show all and add approval status
+        for s in all_summaries:
+            s['approved'] = summary_approval.get(s['filename'], {}).get('approved', False)
+        summaries = all_summaries
 
+    # Fetch students with usernames
+    student_objs = []
+    for student_id in class_obj.get('students', []):
+        student = mongo.db.users.find_one({'_id': student_id})
+        if student:
+            student_objs.append({'id': str(student['_id']), 'username': student['username']})
+
+    # Fetch pending student requests (if you want to implement approval system)
+    pending_requests = class_obj.get('pending_requests', [])
+    print('DEBUG: class_obj["pending_requests"] =', pending_requests)
+    pending_objs = []
+    for student_id in pending_requests:
+        student = mongo.db.users.find_one({'_id': student_id})
+        if student:
+            pending_objs.append({'id': str(student['_id']), 'username': student['username']})
+    print('DEBUG: pending_objs =', pending_objs)
+
+    # Pass correct counts
+    summary_count = len(summaries)
+    student_count = len(student_objs)
+
+    return render_template('view_class.html', 
+                         class_obj=class_obj,
+                         user_role=user['role'],
+                         is_admin=user.get('is_admin', False),
+                         username=user['username'],
+                         user_id=str(user['_id']),
+                         users=list(mongo.db.users.find()),
+                         summaries=summaries,
+                         students=student_objs,
+                         pending_requests=pending_objs,
+                         summary_count=summary_count,
+                         student_count=student_count)
+
+@app.route('/classes/<class_id>/enroll', methods=['POST'])
+def enroll_in_class(class_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
+    if user['role'] != 'student':
+        return redirect(url_for('dashboard'))
+    class_obj = mongo.db.classes.find_one({"_id": ObjectId(class_id)})
+    if not class_obj:
+        return redirect(url_for('dashboard'))
+    if user['_id'] in class_obj.get('students', []):
+        return redirect(url_for('dashboard'))
+    mongo.db.classes.update_one({"_id": class_obj['_id']}, {"$push": {"students": user['_id']}})
+    mongo.db.users.update_one({"_id": user['_id']}, {"$push": {"enrolled_classes": class_obj['_id']}})
+    return redirect(url_for('dashboard'))
+    
 @app.route('/join_class', methods=['GET', 'POST'])
-@login_required
 def join_class():
-    if current_user.role != 'student':
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
+    if user['role'] != 'student':
         return redirect(url_for('dashboard'))
     if request.method == 'POST':
         class_code = request.form.get('class_code', '').strip().upper()
-        class_obj = Class.query.filter_by(class_code=class_code).first()
+        class_obj = mongo.db.classes.find_one({"class_code": class_code})
         if not class_obj:
             return render_template('join_class.html', error='Invalid class code')
-        if class_obj in current_user.enrolled_classes:
+        if user['_id'] in class_obj.get('students', []):
             return render_template('join_class.html', error='You are already enrolled in this class')
-        current_user.enrolled_classes.append(class_obj)
-        db.session.commit()
-        flash('Successfully joined class!', 'success')
-        return redirect(url_for('dashboard'))
+        if user['_id'] in class_obj.get('pending_requests', []):
+            return render_template('join_class.html', error='You have already requested to join this class')
+        # Add to pending_requests
+        mongo.db.classes.update_one({"_id": class_obj['_id']}, {"$addToSet": {"pending_requests": user['_id']}})
+        return render_template('join_class.html', error='Join request sent! Waiting for teacher approval.')
     return render_template('join_class.html')
 
-INVITE_CODE = os.getenv('INVITE_CODE')
-STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
-if STRIPE_SECRET_KEY:
-    stripe.api_key = STRIPE_SECRET_KEY
-
-@app.route('/pay', methods=['POST'])
-@login_required
-def pay():
-    invite_code = request.form.get('invite_code', '').strip()
-    if invite_code and invite_code == INVITE_CODE:
-        current_user.subscribed = True
-        db.session.commit()
-        flash('Invite code accepted! You now have unlimited access.', 'success')
-        return redirect(url_for('dashboard'))
-    elif STRIPE_SECRET_KEY:
-        # Stripe payment flow: create a Checkout session
-        import stripe
-        session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
-            line_items=[{
-                'price_data': {
-                    'currency': 'usd',
-                    'product_data': {
-                        'name': 'ThetaSummary Unlimited Plan',
-                    },
-                    'unit_amount': 2000,
-                },
-                'quantity': 1,
-            }],
-            mode='payment',
-            success_url=url_for('dashboard', _external=True) + '?paid=1',
-            cancel_url=url_for('pricing', _external=True),
-            metadata={'user_id': current_user.id}
-        )
-        return redirect(session.url)
-    else:
-        flash('Invalid invite code. Please try again or pay with card.', 'error')
-        return redirect(url_for('pricing'))
-
-@app.route('/stripe_webhook', methods=['POST'])
-def stripe_webhook():
-    payload = request.data
-    sig_header = request.headers.get('stripe-signature')
-    endpoint_secret = os.getenv('STRIPE_WEBHOOK_SECRET')
-    event = None
-    try:
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, endpoint_secret
-        )
-    except ValueError as e:
-        return 'Invalid payload', 400
-    except SignatureVerificationError as e:
-        return 'Invalid signature', 400
-    if event['type'] == 'checkout.session.completed':
-        session_obj = event['data']['object']
-        user_id = session_obj['metadata'].get('user_id')
-        if user_id:
-            user = User.query.get(int(user_id))
-            if user:
-                user.subscribed = True
-                db.session.commit()
-    return '', 200
-
-@app.route('/admin/upload_recording', methods=['POST'])
-@login_required
-def admin_upload_recording():
-    if not current_user.is_admin and current_user.role != 'admin':
-        flash('Access denied.', 'error')
-        return redirect(url_for('admin_dashboard'))
-    password = request.form.get('admin_password', '')
-    if password != '071409':
-        flash('Incorrect admin password.', 'error')
-        return redirect(url_for('admin_dashboard'))
-    file = request.files.get('recording_file')
-    if not file or file.filename == '':
-        flash('No file selected.', 'error')
-        return redirect(url_for('admin_dashboard'))
-    admin_upload_dir = 'admin_uploads'
-    save_path = f"{admin_upload_dir}/{file.filename}"
-    s3_client.upload_fileobj(file, os.getenv('WASABI_BUCKET_NAME'), save_path)
-    flash('Recording uploaded successfully!', 'success')
-    return redirect(url_for('admin_dashboard'))
-
-@app.route('/admin/delete_user/<int:user_id>', methods=['POST'])
-@login_required
-def admin_delete_user(user_id):
-    if not current_user.is_admin and current_user.role != 'admin':
-        return redirect(url_for('dashboard'))
-    user = User.query.get_or_404(user_id)
-    if user.role == 'teacher':
-        # Delete all classes taught by this teacher
-        for c in Class.query.filter_by(teacher_id=user.id).all():
-            db.session.delete(c)
-    elif user.role == 'student':
-        # Remove student from all classes
-        user.enrolled_classes.clear()
-    db.session.delete(user)
-    db.session.commit()
-    flash('User deleted successfully.', 'success')
-    return redirect(url_for('admin_dashboard'))
-
-@app.route('/admin/delete_class/<int:class_id>', methods=['POST'])
-@login_required
-def admin_delete_class(class_id):
-    if not current_user.is_admin and current_user.role != 'admin':
-        return redirect(url_for('dashboard'))
-    class_obj = Class.query.get_or_404(class_id)
-    db.session.delete(class_obj)
-    db.session.commit()
-    flash('Class deleted successfully.', 'success')
-    return redirect(url_for('admin_dashboard'))
-
-@app.route('/classes/<int:class_id>/remove_student/<int:student_id>', methods=['POST'])
-@login_required
+@app.route('/classes/<class_id>/remove_student/<student_id>', methods=['POST'])
 def remove_student_from_class(class_id, student_id):
-    class_obj = Class.query.get_or_404(class_id)
-    if current_user.role != 'teacher' or class_obj.teacher_id != current_user.id:
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
+    class_obj = mongo.db.classes.find_one({"_id": ObjectId(class_id)})
+    if user['role'] != 'teacher' or class_obj['teacher_id'] != user['_id']:
         return redirect(url_for('dashboard'))
-    student = User.query.get_or_404(student_id)
-    if student in class_obj.students:
-        class_obj.students.remove(student)
-        db.session.commit()
-        flash('Student removed from class.', 'success')
+    mongo.db.classes.update_one({"_id": class_obj['_id']}, {"$pull": {"students": ObjectId(student_id)}})
+    mongo.db.users.update_one({"_id": ObjectId(student_id)}, {"$pull": {"enrolled_classes": class_obj['_id']}})
     return redirect(url_for('view_class', class_id=class_id))
 
-@app.route('/classes/<int:class_id>/delete', methods=['POST'])
-@login_required
+@app.route('/classes/<class_id>/delete', methods=['POST'])
 def teacher_delete_class(class_id):
-    class_obj = Class.query.get_or_404(class_id)
-    if current_user.role != 'teacher' or class_obj.teacher_id != current_user.id:
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
+    class_obj = mongo.db.classes.find_one({"_id": ObjectId(class_id)})
+    if user['role'] != 'teacher' or class_obj['teacher_id'] != user['_id']:
         return redirect(url_for('dashboard'))
-    db.session.delete(class_obj)
-    db.session.commit()
-    flash('Class deleted successfully.', 'success')
+    mongo.db.classes.delete_one({"_id": class_obj['_id']})
     return redirect(url_for('dashboard'))
+        
+@app.route('/admin/delete_user/<user_id>', methods=['POST'])
+def admin_delete_user(user_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
+    if not user or not user.get('is_admin'):
+        return redirect(url_for('dashboard'))
+    mongo.db.users.delete_one({"_id": ObjectId(user_id)})
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin/delete_class/<class_id>', methods=['POST'])
+def admin_delete_class(class_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
+    if not user or not user.get('is_admin'):
+        return redirect(url_for('dashboard'))
+    mongo.db.classes.delete_one({"_id": ObjectId(class_id)})
+    return redirect(url_for('admin_dashboard'))
 
 @app.route('/admin/create_school', methods=['GET', 'POST'])
-@login_required
-def create_school():
-    if not current_user.is_admin and current_user.role != 'admin':
+def create_school_route():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
+    if not user or not user.get('is_admin'):
         return redirect(url_for('dashboard'))
     if request.method == 'POST':
-        name = request.form.get('name', '').strip()
-        district = request.form.get('district', '').strip()
-        state = request.form.get('state', '').strip()
+        name = request.form.get('school_name', '').strip()
+        district = request.form.get('school_district', '').strip()
+        state = request.form.get('school_state', '').strip()
         if not name or not district or not state:
-            flash('All fields are required.', 'error')
-            return redirect(url_for('create_school'))
-        if School.query.filter_by(name=name).first():
-            flash('School already exists.', 'error')
-            return redirect(url_for('create_school'))
-        new_school = School(name=name, district=district, state=state)
-        db.session.add(new_school)
-        db.session.commit()
-        flash('School created successfully!', 'success')
+            return render_template('create_school.html', error='All fields are required.', schools=get_all_schools())
+        if mongo.db.schools.find_one({"name": name}):
+            return render_template('create_school.html', error='School already exists.', schools=get_all_schools())
+        mongo.db.schools.insert_one({"name": name, "district": district, "state": state})
         return redirect(url_for('admin_dashboard'))
-    return render_template('create_school.html', schools=School.query.all())
+    return render_template('create_school.html', schools=get_all_schools())
 
 def scan_wasabi_files(username, class_code=None):
     """Scan Wasabi S3 for summaries, recordings, and transcripts in the respective folders."""
@@ -1171,51 +1114,149 @@ def scan_wasabi_files(username, class_code=None):
             print(f"Error scanning user files: {e}")
     return files
 
-# Ensure database tables are created and default data is present on every cold start (Vercel)
-with app.app_context():
-    db.create_all()
-    # Create default school if none exist
-    if School.query.count() == 0:
-        default_school = School(name='Default High School', district='Default District', state='CA')
-        db.session.add(default_school)
-        db.session.commit()
-    # Create admin user if not present
-    admin = User.query.filter_by(username="admin").first()
-    if not admin:
-        admin = User(username="admin", is_admin=True, role="admin")
-        admin.set_password("duggy")
-        db.session.add(admin)
-        db.session.commit()
-    else:
-        if admin.role != "admin":
-            admin.role = "admin"
-            admin.is_admin = True
-            db.session.commit()
+def ensure_admin_and_school():
+    with app.app_context():
+        if mongo.db.schools.count_documents({}) == 0:
+            mongo.db.schools.insert_one({"name": "Default High School", "district": "Default District", "state": "CA"})
+        admin = mongo.db.users.find_one({"username": "admin"})
+        if not admin:
+            password_hash = generate_password_hash("duggy")
+            mongo.db.users.insert_one({
+                "username": "admin",
+                "password_hash": password_hash,
+                "role": "admin",
+                "is_admin": True,
+                "subscribed": False
+            })
+        else:
+            if admin.get("role") != "admin" or not admin.get("is_admin"):
+                mongo.db.users.update_one({"_id": admin["_id"]}, {"$set": {"role": "admin", "is_admin": True}})
+
+@app.route('/classes/<class_id>/approve_student/<student_id>', methods=['POST'])
+def approve_student(class_id, student_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
+    class_obj = mongo.db.classes.find_one({"_id": ObjectId(class_id)})
+    if not class_obj or user['role'] != 'teacher' or class_obj['teacher_id'] != user['_id']:
+        return redirect(url_for('dashboard'))
+    # Remove from pending_requests and add to students
+    mongo.db.classes.update_one(
+        {"_id": ObjectId(class_id)},
+        {"$pull": {"pending_requests": ObjectId(student_id)}, "$addToSet": {"students": ObjectId(student_id)}}
+    )
+    mongo.db.users.update_one({"_id": ObjectId(student_id)}, {"$addToSet": {"enrolled_classes": ObjectId(class_id)}})
+    return redirect(url_for('view_class', class_id=class_id))
+
+@app.route('/admin/approve_teacher/<teacher_id>', methods=['POST'])
+def approve_teacher(teacher_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
+    if not user or not user.get('is_admin'):
+        return redirect(url_for('dashboard'))
+    teacher = mongo.db.pending_teachers.find_one({"_id": ObjectId(teacher_id)})
+    if not teacher:
+        return redirect(url_for('admin_dashboard'))
+    # Move teacher to users collection
+    mongo.db.users.insert_one(teacher)
+    mongo.db.pending_teachers.delete_one({"_id": ObjectId(teacher_id)})
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin/deny_teacher/<teacher_id>', methods=['POST'])
+def deny_teacher(teacher_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
+    if not user or not user.get('is_admin'):
+        return redirect(url_for('dashboard'))
+    mongo.db.pending_teachers.delete_one({"_id": ObjectId(teacher_id)})
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/buy', methods=['GET', 'POST'])
+def buy():
+    error = None
+    if request.method == 'POST':
+        # Placeholder for future logic
+        pass
+    return render_template('buy.html', error=error)
+
+@app.route('/classes/<class_id>/approve_summary/<filename>', methods=['POST'])
+def approve_summary(class_id, filename):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
+    class_obj = mongo.db.classes.find_one({"_id": ObjectId(class_id)})
+    if not class_obj or user['role'] != 'teacher' or class_obj['teacher_id'] != user['_id']:
+        return redirect(url_for('dashboard'))
+    mongo.db.classes.update_one(
+        {"_id": ObjectId(class_id), "summaries.filename": filename},
+        {"$set": {"summaries.$.approved": True}}
+    )
+    return redirect(url_for('view_class', class_id=class_id))
+
+@app.route('/classes/<class_id>/deny_summary/<filename>', methods=['POST'])
+def deny_summary(class_id, filename):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
+    class_obj = mongo.db.classes.find_one({"_id": ObjectId(class_id)})
+    if not class_obj or user['role'] != 'teacher' or class_obj['teacher_id'] != user['_id']:
+        return redirect(url_for('dashboard'))
+    # Remove summary entry from DB
+    mongo.db.classes.update_one(
+        {"_id": ObjectId(class_id)},
+        {"$pull": {"summaries": {"filename": filename}}}
+    )
+    # Optionally, delete the file from Wasabi
+    class_code = class_obj.get('class_code')
+    teacher = mongo.db.users.find_one({"_id": class_obj['teacher_id']})
+    if teacher:
+        class_dir = f"{teacher['username']}/classes/{class_code}"
+        summary_path = f"{class_dir}/{filename}"
+        try:
+            s3_client.delete_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=summary_path)
+        except Exception as e:
+            print(f"Error deleting summary file from Wasabi: {e}")
+    return redirect(url_for('view_class', class_id=class_id))
+
+@app.route('/view_summary_raw/<filename>')
+def view_summary_raw(filename):
+    if 'user_id' not in session:
+        return '', 401
+    user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
+    # Try to find the summary in all possible class dirs
+    classes = mongo.db.classes.find({"teacher_id": user['_id']})
+    for class_obj in classes:
+        class_code = class_obj.get('class_code')
+        class_dir = f"{user['username']}/classes/{class_code}"
+        summary_path = f"{class_dir}/{filename}"
+        try:
+            response = s3_client.get_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=summary_path)
+            return response['Body'].read().decode('utf-8')
+        except Exception:
+            continue
+    return '', 404
+
+@app.route('/edit_summary/<filename>', methods=['POST'])
+def edit_summary(filename):
+    if 'user_id' not in session:
+        return '', 401
+    user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
+    content = request.json.get('content')
+    # Try to find the summary in all possible class dirs
+    classes = mongo.db.classes.find({"teacher_id": user['_id']})
+    for class_obj in classes:
+        class_code = class_obj.get('class_code')
+        class_dir = f"{user['username']}/classes/{class_code}"
+        summary_path = f"{class_dir}/{filename}"
+        try:
+            s3_client.put_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=summary_path, Body=content)
+            return '', 200
+        except Exception:
+            continue
+    return '', 404
 
 if __name__ == '__main__':
-    with app.app_context():
-        # Create tables
-        try:
-            db.create_all()
-            print("Database tables created!")
-            
-            # Create admin user and initialize prompts
-            create_admin_user()
-            initialize_prompts()
-            
-            # Create test classes if they don't exist (for development)
-            if Class.query.count() == 0:
-                test_teacher = User.query.filter_by(username='admin').first()
-                if test_teacher:
-                    test_class = Class(
-                        name='Test Class',
-                        description='A test class for development purposes',
-                        teacher_id=test_teacher.id,
-                        class_code=''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
-                    )
-                    db.session.add(test_class)
-                    db.session.commit()
-                    print("Test class created!")
-        except Exception as e:
-            print(f"Error initializing database: {e}")
+    ensure_admin_and_school()
     app.run(debug=True) 

@@ -170,7 +170,7 @@
                         <select id="school_id" name="school_id" {% if role == 'teacher' %}required{% endif %}>
                             <option value="">Select a school</option>
                             {% for school in schools %}
-                            <option value="{{ school.id }}" {% if school.id|string == school_id|string %}selected{% endif %}>{{ school.name }} ({{ school.district }}, {{ school.state }})</option>
+                            <option value="{{ school._id }}" {% if school._id|string == school_id|string %}selected{% endif %}>{{ school.name }} ({{ school.district }}, {{ school.state }})</option>
                             {% endfor %}
                         </select>
                     </div>

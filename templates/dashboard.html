@@ -502,7 +502,7 @@
                     Join Class
                 </a>
                 {% endif %}
-                {% if current_user.is_admin %}
+                {% if is_admin %}
                 <a href="{{ url_for('admin_dashboard') }}" class="menu-item">
                     <span class="menu-item-icon">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
@@ -516,7 +516,7 @@
             </div>
             
             <div class="sidebar-footer">
-                <div class="sidebar-footer-text">Logged in as {{ current_user.username }}</div>
+                <div class="sidebar-footer-text">Logged in as {{ username }}</div>
                 <a href="/logout" class="logout-btn">
                     <span class="logout-icon">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
@@ -540,13 +540,20 @@
                 <h1 class="page-title">Dashboard</h1>
                 <div class="user-menu">
                     <button class="user-button">
-                        <div class="user-avatar">{{ current_user.username[0].upper() }}</div>
-                        <span>{{ current_user.username }}</span>
+                        <div class="user-avatar">{{ username[0].upper() }}</div>
+                        <span>{{ username }}</span>
                     </button>
                 </div>
             </header>
             
-            <!-- Your Classes Section (moved up) -->
+            <!-- Welcome Section moved above classes -->
+            {% if user_role == 'teacher' %}
+            <section class="welcome-section">
+                <h2 class="welcome-title">Welcome back, {{ username }}!</h2>
+                <p class="welcome-subtitle">Here's an overview of your activity on ThetaSummary.</p>
+            </section>
+            {% endif %}
+            <!-- Your Classes Section (moved down) -->
             <section class="your-classes-section">
                 <h3 class="section-title">Your Classes</h3>
                 <div class="classes-grid">
@@ -559,7 +566,7 @@
                             </svg>
                         </div>
                         <span class="class-name">{{ class.name }}</span>
-                        <span class="class-teacher">Teacher: {{ class.teacher.username }}</span>
+                        <span class="class-teacher">Teacher: {% for user in users %}{% if user._id == class.teacher_id or user._id|string == class.teacher_id|string %}{{ user.username }}{% endif %}{% endfor %}</span>
                         <span class="class-description">{{ class.description or 'No description provided' }}</span>
                         {% if user_role == 'teacher' %}
                         <div class="class-code-section">
@@ -569,9 +576,9 @@
                         {% endif %}
                         <div class="class-stats">
                             <span class="stat">{{ class.students|length }} Students</span>
-                            <span class="stat">{{ class.summaries|length }} Summaries</span>
+                            <span class="stat">{{ class.summary_count }} Summaries</span>
                         </div>
-                        <a href="{{ url_for('view_class', class_id=class.id) }}" class="btn btn-outline">View Class</a>
+                        <a href="{{ url_for('view_class', class_id=class._id) }}" class="btn btn-outline">View Class</a>
                     </div>
                     {% endfor %}
                     {% if classes|length == 0 %}
@@ -586,10 +593,6 @@
             </section>
 
             {% if user_role == 'teacher' %}
-            <section class="welcome-section">
-                <h2 class="welcome-title">Welcome back, {{ current_user.username }}!</h2>
-                <p class="welcome-subtitle">Here's a summary of your activity on ThetaSummary.</p>
-            </section>
 
             <!-- Stats Cards Section -->
             <div class="stats-grid">
@@ -600,7 +603,7 @@
                             <path d="M3 5.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5z"/>
                         </svg>
                     </div>
-                    <span class="stat-value">{{ summaries }}</span>
+                    <span class="stat-value">{{ classes | sum(attribute='summary_count') }}</span>
                     <span class="stat-label">Total Summaries</span>
                 </div>
                 <div class="stat-card">
@@ -609,7 +612,7 @@
                             <path d="M5 3.5h6A1.5 1.5 0 0 1 12.5 5v6a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 11V5A1.5 1.5 0 0 1 5 3.5z"/>
                         </svg>
                     </div>
-                    <span class="stat-value">{{ summaries }}</span>
+                    <span class="stat-value">{{ classes | sum(attribute='recording_count') }}</span>
                     <span class="stat-label">Recordings</span>
                 </div>
                 <div class="stat-card">
@@ -618,7 +621,7 @@
                             <path d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0zM9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1zM11 8a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
                         </svg>
                     </div>
-                    <span class="stat-value">{{ summaries * 2 }}</span>
+                    <span class="stat-value">{{ classes | sum(attribute='summary_count') + classes | sum(attribute='recording_count') + classes | sum(attribute='transcript_count') }}</span>
                     <span class="stat-label">Total Files</span>
                 </div>
             </div>

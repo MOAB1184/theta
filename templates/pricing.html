@@ -108,7 +108,7 @@
         }
         
         .signup-button {
-            background: linear-gradient(45deg, #7928CA, #FF0080);
+            background: #4f8cff;
             color: white;
         }
         
@@ -198,10 +198,7 @@
         .pricing-title {
             font-size: 3rem;
             font-weight: 800;
-            background: linear-gradient(45deg, #7928CA, #FF0080);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
+            color: #4f8cff;
             margin-bottom: 20px;
         }
         
@@ -238,19 +235,14 @@
         }
         
         .pricing-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 5px;
-            background: linear-gradient(45deg, #7928CA, #FF0080);
+            content: none;
         }
         
         .pricing-card h2 {
             color: #4f8cff;
             font-size: 2rem;
             margin-bottom: 12px;
+            text-align: center;
         }
         
         .pricing-card .price {
@@ -288,7 +280,7 @@
         }
         
         .btn-primary {
-            background: linear-gradient(45deg, #7928CA, #FF0080);
+            background: #4f8cff;
             color: #fff;
         }
         
@@ -297,7 +289,7 @@
         }
         
         .btn-outline {
-            color: #7bb6ff;
+            color: #4f8cff;
             border: 1.5px solid #4f8cff;
             background: none;
         }
@@ -341,14 +333,12 @@
                 <span class="logo-text">ThetaSummary</span>
             </a>
             <nav class="nav-links">
-                {% if current_user.is_authenticated %}
+                {% if is_authenticated %}
                 <a href="{{ url_for('dashboard') }}">Back to Dashboard</a>
-                {% else %}
-                <a href="{{ url_for('index') }}">Home</a>
                 {% endif %}
             </nav>
             <div class="auth-buttons">
-                {% if not current_user.is_authenticated %}
+                {% if not is_authenticated %}
                 <a href="{{ url_for('login') }}" class="auth-button login-button">Login</a>
                 <a href="{{ url_for('register') }}" class="auth-button signup-button">Sign Up</a>
                 {% endif %}
@@ -360,13 +350,11 @@
     <div class="mobile-menu">
         <button class="mobile-menu-close">×</button>
         <nav class="mobile-menu-links">
-            {% if current_user.is_authenticated %}
+            {% if is_authenticated %}
             <a href="{{ url_for('dashboard') }}">Back to Dashboard</a>
-            {% else %}
-            <a href="{{ url_for('index') }}">Home</a>
             {% endif %}
         </nav>
-        {% if not current_user.is_authenticated %}
+        {% if not is_authenticated %}
         <div class="mobile-auth-buttons">
             <a href="{{ url_for('login') }}" class="mobile-auth-button login-button">Login</a>
             <a href="{{ url_for('register') }}" class="mobile-auth-button signup-button">Sign Up</a>
@@ -390,30 +378,7 @@
                     <li>All features included</li>
                     <li>Cancel anytime</li>
                 </ul>
-                <button class="btn btn-primary" id="get-started-btn">Get Started</button>
-                <div id="payment-modal" style="display:none; margin-top:20px; background:#222; padding:20px; border-radius:8px;">
-                    <form id="payment-form" method="POST" action="/pay">
-                        <label for="invite_code">Have an invite code?</label>
-                        <input type="text" id="invite_code" name="invite_code" placeholder="Enter invite code" style="margin-bottom:10px; width:100%; padding:8px; border-radius:4px; border:1px solid #444; background:#181818; color:#fff;">
-                        <button type="submit" class="btn btn-primary" style="width:100%; margin-bottom:10px;">Submit Code</button>
-                    </form>
-                    <form id="stripe-form" method="POST" action="/pay">
-                        <input type="hidden" name="invite_code" value="">
-                        <button type="submit" class="btn btn-primary" style="width:100%;">Pay $20 with Card</button>
-                    </form>
-                    <div id="payment-message" style="color:#c084fc; margin-top:10px;"></div>
-                </div>
-                <script>
-                document.getElementById('get-started-btn').onclick = function() {
-                    document.getElementById('payment-modal').style.display = 'block';
-                };
-                document.getElementById('payment-form').onsubmit = function(e) {
-                    // Let backend handle code validation
-                };
-                document.getElementById('stripe-form').onsubmit = function(e) {
-                    // Let backend handle payment
-                };
-                </script>
+                <button class="btn btn-outline" id="buy-now-btn" onclick="window.location.href='/buy'">Buy Now</button>
             </div>
             <div class="pricing-card">
                 <h2>Custom Pricing</h2>
