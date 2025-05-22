@@ -452,7 +452,7 @@
                                 <span><span class="stat-icon">👥</span>{{ student_count }} Students</span>
                             {% endif %}
                             <span><span class="stat-icon">📄</span>{{ summary_count }} Summaries</span>
-                        </div>
+                </div>
                         {% if user_role == 'teacher' %}
                         <a href="/recordings?class_id={{ class_obj._id }}" class="btn btn-primary" style="background:#2563eb;color:#fff;padding:10px 22px;border-radius:6px;font-size:1rem;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:background 0.2s;margin-top:10px;">🎤 Record Audio</a>
                         {% endif %}
@@ -555,9 +555,9 @@
             const sidebarOverlay = document.querySelector('.sidebar-overlay');
             if (menuToggle && closeMenu && sidebar && mainContent && sidebarOverlay) {
                 menuToggle.addEventListener('click', function() {
-                    sidebar.classList.toggle('active');
-                    mainContent.classList.toggle('sidebar-active');
-                    sidebarOverlay.classList.toggle('active');
+                sidebar.classList.toggle('active');
+                mainContent.classList.toggle('sidebar-active');
+                sidebarOverlay.classList.toggle('active');
                 });
                 closeMenu.addEventListener('click', function() {
                     sidebar.classList.remove('active');

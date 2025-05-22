@@ -13,3 +13,8 @@ requests
 Flask-Session
 flask-pymongo
 pymongo
+fastapi
+uvicorn
+celery
+redis
+python-multipart

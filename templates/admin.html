@@ -261,6 +261,14 @@
 
             <h2 class="section-title">User Management</h2>
             <p>View all registered users and their roles.</p>
+            <div style="margin-bottom:18px;">
+                <label for="user-role-filter" style="font-weight:500;color:#fff;margin-right:8px;">Show:</label>
+                <select id="user-role-filter" style="padding:6px 12px;border-radius:4px;background:#222;color:#fff;border:1px solid #444;">
+                    <option value="all">All</option>
+                    <option value="teacher">Teachers</option>
+                    <option value="student">Students</option>
+                </select>
+            </div>
             <div class="user-list-container">
                 <table class="user-table">
                     <thead>
@@ -274,7 +282,7 @@
                     </thead>
                     <tbody>
                         {% for user_account in users %}
-                        <tr>
+                        <tr data-role="{{ user_account.role }}">
                             <td>{{ user_account.id }}</td>
                             <td>{{ user_account.username }}</td>
                             <td>{{ user_account.role|capitalize }}</td>
@@ -307,7 +315,7 @@
                         {% for teacher in pending_teachers %}
                         <tr>
                             <td>{{ teacher.username }}</td>
-                            <td>{% if teacher.school_id %}{{ teacher.school_id }}{% else %}N/A{% endif %}</td>
+                            <td>{% if teacher.school_name %}{{ teacher.school_name }}{% else %}N/A{% endif %}</td>
                             <td>
                                 <form method="POST" action="{{ url_for('approve_teacher', teacher_id=teacher._id) }}" style="display:inline;">
                                     <button type="submit" class="btn btn-success btn-sm" style="background:#4caf50;color:#fff;border:none;padding:6px 14px;border-radius:5px;cursor:pointer;">Approve</button>
@@ -328,5 +336,22 @@
             <a href="{{ url_for('dashboard') }}" class="btn btn-outline" style="margin-top: 20px;">Back to Dashboard</a>
         </div>
     </main>
+    <script>
+    // User table filter
+    const userRoleFilter = document.getElementById('user-role-filter');
+    if (userRoleFilter) {
+        userRoleFilter.addEventListener('change', function() {
+            const value = this.value;
+            document.querySelectorAll('.user-table tbody tr').forEach(row => {
+                const role = row.getAttribute('data-role');
+                if (value === 'all' || role === value) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    }
+    </script>
 </body>
 </html> 

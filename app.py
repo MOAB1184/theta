@@ -263,34 +263,34 @@ def register():
             school_id = request.form.get('school_id') if role == 'teacher' else None
 
             if not role or role not in ['student', 'teacher']:
-                return render_template('register.html', error='Invalid role selected', username=username, schools=schools)
+                        return render_template('register.html', error='Invalid role selected', username=username, schools=schools)
 
             if role == 'teacher' and not school_id:
-                return render_template('register.html', error='Please select a school.', username=username, role=role, schools=schools)
+                        return render_template('register.html', error='Please select a school.', username=username, role=role, schools=schools)
 
             existing_user = get_user_by_username(username)
             if existing_user:
-                return render_template('register.html', error='Username already exists', role=role, username=username, schools=schools)
-            
+                        return render_template('register.html', error='Username already exists', role=role, username=username, schools=schools)
+                    
             password_hash = generate_password_hash(password)
             if role == 'teacher':
-                # Add to pending_teachers for admin approval
-                teacher = {
-                    "username": username,
-                    "password_hash": password_hash,
-                    "role": role,
-                    "is_admin": False,
-                    "school_id": ObjectId(school_id) if school_id else None,
-                    "subscribed": False
-                }
-                mongo.db.pending_teachers.insert_one(teacher)
-                return render_template('register.html', error='Teacher account request sent! Waiting for admin approval.', schools=schools)
+                        # Add to pending_teachers for admin approval
+                        teacher = {
+                            "username": username,
+                            "password_hash": password_hash,
+                            "role": role,
+                            "is_admin": False,
+                            "school_id": ObjectId(school_id) if school_id else None,
+                            "subscribed": False
+                        }
+                        mongo.db.pending_teachers.insert_one(teacher)
+                        return render_template('register.html', error='Teacher account request sent! Waiting for admin approval.', schools=schools)
             else:
-                create_user(username, password_hash, role, is_admin=False, school_id=school_id)
-                user = get_user_by_username(username)
-                session['user_id'] = str(user['_id'])
-                session['username'] = user['username']
-                session['role'] = user['role']
+                        create_user(username, password_hash, role, is_admin=False, school_id=school_id)
+                        user = get_user_by_username(username)
+                        session['user_id'] = str(user['_id'])
+                        session['username'] = user['username']
+                        session['role'] = user['role']
             return redirect(url_for('dashboard'))
         except Exception as e:
             import traceback
@@ -600,22 +600,27 @@ def summarize():
         transcript = request.json.get('transcript')
         timestamp = request.json.get('timestamp')
         class_id = request.json.get('class_id')
-        
         if not transcript or not timestamp:
             return jsonify({'status': 'error', 'message': "Missing transcript or timestamp"}), 400
-        
         if not DEEPSEEK_API_KEY:
             return jsonify({'status': 'error', 'message': "Deepseek API key not configured. Please set the DEEPSEEK_API_KEY environment variable."}), 500
-        
-        # Use LATEX_PROMPT if latex is needed, otherwise BASE_PROMPT
-        use_latex = False  # Set this based on your logic or config if needed
-        summarization_prompt_template = LATEX_PROMPT if use_latex else BASE_PROMPT
-        
+        # Fetch the global prompt from the database
+        try:
+            prompt_obj = Prompt.query.filter_by(prompt_type='global').first()
+            if prompt_obj:
+                use_latex = prompt_obj.use_latex
+                summarization_prompt_template = prompt_obj.prompt_text
+            else:
+                use_latex = False
+                summarization_prompt_template = LATEX_PROMPT if use_latex else BASE_PROMPT
+        except Exception as e:
+            print(f"Error fetching global prompt: {e}")
+            use_latex = False
+            summarization_prompt_template = LATEX_PROMPT if use_latex else BASE_PROMPT
         if not summarization_prompt_template.strip().endswith("Transcript:"):
             full_summarization_prompt = summarization_prompt_template + "\n\nTranscript:\n" + transcript
         else:
             full_summarization_prompt = summarization_prompt_template + transcript
-
         print("Using Deepseek for summarization...")
         try:
             summary_resp = deepseek_client.chat.completions.create(
@@ -630,7 +635,6 @@ def summarize():
             if "authenticate" in str(e).lower() or "authorization" in str(e).lower():
                 return jsonify({'status': 'error', 'message': "Deepseek API key is invalid. Please check configuration."}), 500
             return jsonify({'status': 'error', 'message': f"Error with Deepseek API: {str(e)}"}), 500
-        
         # Save the summary
         summary_filename = f"summary_{timestamp}.txt"
         summary_path = None
@@ -656,16 +660,13 @@ def summarize():
             # Save to user's personal directory
             user_dir = f"{session['username']}"
             summary_path = f"{user_dir}/{summary_filename}"
-            
             s3_client.put_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=summary_path, Body=summary)
-        
         return jsonify({
             'status': 'success',
             'summary': summary,
             'summary_filename': summary_filename,
             'subject': subject
         })
-        
     except Exception as e:
         print(f"Error in summarize endpoint: {str(e)}")
         return jsonify({
@@ -825,7 +826,12 @@ def admin_dashboard():
         return redirect(url_for('dashboard'))
     users = list(mongo.db.users.find())
     schools = list(mongo.db.schools.find())
+    school_map = {str(s['_id']): s['name'] for s in schools}
     pending_teachers = list(mongo.db.pending_teachers.find())
+    # Attach school name to each pending teacher
+    for teacher in pending_teachers:
+        school_id = str(teacher.get('school_id')) if teacher.get('school_id') else None
+        teacher['school_name'] = school_map.get(school_id, 'N/A')
     return render_template('admin.html', users=users, schools=schools, pending_teachers=pending_teachers)
 
 @app.route('/admin/prompts/edit', methods=['GET', 'POST'])
@@ -910,7 +916,7 @@ def view_class(class_id):
         return redirect(url_for('dashboard'))
     elif user['role'] == 'student' and user['_id'] not in class_obj.get('students', []):
         return redirect(url_for('dashboard'))
-
+        
     # Always use teacher's username for summary S3 path
     teacher = mongo.db.users.find_one({"_id": class_obj['teacher_id']})
     class_code = class_obj.get('class_code')
