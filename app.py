@@ -52,6 +52,26 @@ app.config['UPLOAD_FOLDER'] = os.getenv('WASABI_BUCKET_NAME')
 # Initialize SQLAlchemy
 db = SQLAlchemy(app)
 
+# Global prompt management
+PROMPT_FILE = os.path.join(BASE_DATA_DIR, 'global_prompt.txt')
+
+def get_global_prompt():
+    try:
+        if os.path.exists(PROMPT_FILE):
+            with open(PROMPT_FILE, 'r', encoding='utf-8') as f:
+                return f.read()
+    except Exception as e:
+        print(f"Error reading prompt file: {e}")
+    return BASE_PROMPT
+
+def save_global_prompt(prompt_text):
+    try:
+        os.makedirs(os.path.dirname(PROMPT_FILE), exist_ok=True)
+        with open(PROMPT_FILE, 'w', encoding='utf-8') as f:
+            f.write(prompt_text)
+    except Exception as e:
+        print(f"Error saving prompt file: {e}")
+
 # Configure Deepseek
 DEEPSEEK_MODEL = "deepseek-reasoner"
 DEEPSEEK_URL = "https://api.deepseek.com/v1"
@@ -263,40 +283,39 @@ def register():
             school_id = request.form.get('school_id') if role == 'teacher' else None
 
             if not role or role not in ['student', 'teacher']:
-                        return render_template('register.html', error='Invalid role selected', username=username, schools=schools)
+                return render_template('register.html', error='Invalid role selected', username=username, schools=schools)
 
             if role == 'teacher' and not school_id:
-                        return render_template('register.html', error='Please select a school.', username=username, role=role, schools=schools)
+                return render_template('register.html', error='Please select a school.', username=username, role=role, schools=schools)
 
             existing_user = get_user_by_username(username)
             if existing_user:
-                        return render_template('register.html', error='Username already exists', role=role, username=username, schools=schools)
-                    
+                return render_template('register.html', error='Username already exists', role=role, username=username, schools=schools)
+
             password_hash = generate_password_hash(password)
             if role == 'teacher':
-                        # Add to pending_teachers for admin approval
-                        teacher = {
-                            "username": username,
-                            "password_hash": password_hash,
-                            "role": role,
-                            "is_admin": False,
-                            "school_id": ObjectId(school_id) if school_id else None,
-                            "subscribed": False
-                        }
-                        mongo.db.pending_teachers.insert_one(teacher)
-                        return render_template('register.html', error='Teacher account request sent! Waiting for admin approval.', schools=schools)
+                # Add to pending_teachers for admin approval
+                teacher = {
+                    "username": username,
+                    "password_hash": password_hash,
+                    "role": role,
+                    "is_admin": False,
+                    "school_id": ObjectId(school_id) if school_id else None,
+                    "subscribed": False
+                }
+                mongo.db.pending_teachers.insert_one(teacher)
+                return render_template('register.html', error='Teacher account request sent! Waiting for admin approval.', schools=schools)
             else:
-                        create_user(username, password_hash, role, is_admin=False, school_id=school_id)
-                        user = get_user_by_username(username)
-                        session['user_id'] = str(user['_id'])
-                        session['username'] = user['username']
-                        session['role'] = user['role']
+                create_user(username, password_hash, role, is_admin=False, school_id=school_id)
+                user = get_user_by_username(username)
+                session['user_id'] = str(user['_id'])
+                session['username'] = user['username']
+                session['role'] = user['role']
             return redirect(url_for('dashboard'))
         except Exception as e:
             import traceback
             error_message = f"REGISTER ERROR: {e}<br><pre>{traceback.format_exc()}</pre>"
             return render_template('register.html', error=error_message, username=request.form.get('username'), role=request.form.get('role'), schools=schools)
-    
     return render_template('register.html', role='student', schools=schools)
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -604,23 +623,14 @@ def summarize():
             return jsonify({'status': 'error', 'message': "Missing transcript or timestamp"}), 400
         if not DEEPSEEK_API_KEY:
             return jsonify({'status': 'error', 'message': "Deepseek API key not configured. Please set the DEEPSEEK_API_KEY environment variable."}), 500
-        # Fetch the global prompt from the database
-        try:
-            prompt_obj = Prompt.query.filter_by(prompt_type='global').first()
-            if prompt_obj:
-                use_latex = prompt_obj.use_latex
-                summarization_prompt_template = prompt_obj.prompt_text
-            else:
-                use_latex = False
-                summarization_prompt_template = LATEX_PROMPT if use_latex else BASE_PROMPT
-        except Exception as e:
-            print(f"Error fetching global prompt: {e}")
-            use_latex = False
-            summarization_prompt_template = LATEX_PROMPT if use_latex else BASE_PROMPT
+
+        # Get the global prompt
+        summarization_prompt_template = get_global_prompt()
         if not summarization_prompt_template.strip().endswith("Transcript:"):
             full_summarization_prompt = summarization_prompt_template + "\n\nTranscript:\n" + transcript
         else:
             full_summarization_prompt = summarization_prompt_template + transcript
+
         print("Using Deepseek for summarization...")
         try:
             summary_resp = deepseek_client.chat.completions.create(
@@ -635,6 +645,7 @@ def summarize():
             if "authenticate" in str(e).lower() or "authorization" in str(e).lower():
                 return jsonify({'status': 'error', 'message': "Deepseek API key is invalid. Please check configuration."}), 500
             return jsonify({'status': 'error', 'message': f"Error with Deepseek API: {str(e)}"}), 500
+
         # Save the summary
         summary_filename = f"summary_{timestamp}.txt"
         summary_path = None
@@ -832,7 +843,8 @@ def admin_dashboard():
     for teacher in pending_teachers:
         school_id = str(teacher.get('school_id')) if teacher.get('school_id') else None
         teacher['school_name'] = school_map.get(school_id, 'N/A')
-    return render_template('admin.html', users=users, schools=schools, pending_teachers=pending_teachers)
+    global_prompt = get_global_prompt()
+    return render_template('admin.html', users=users, schools=schools, pending_teachers=pending_teachers, global_prompt=global_prompt)
 
 @app.route('/admin/prompts/edit', methods=['GET', 'POST'])
 def edit_global_prompt():
@@ -843,33 +855,26 @@ def edit_global_prompt():
     if not user:
         return redirect(url_for('logout'))
     
-    prompt = Prompt.query.filter_by(prompt_type='global').first()
-    
-    if not prompt:
-        flash("Global prompt not found. Please restart the application.", "error")
-        return redirect(url_for('admin_dashboard'))
+    current_prompt = get_global_prompt()
     
     if request.method == 'POST':
         # Get form data
-        use_latex = request.form.get('use_latex') == 'on'
         prompt_text = request.form.get('prompt_text', '')
         
         # Check if reset to default was requested
         reset_to_default = request.form.get('reset_to_default') == 'true'
         
         if reset_to_default:
-            prompt_text = LATEX_PROMPT if use_latex else BASE_PROMPT
+            prompt_text = BASE_PROMPT
         
-        # Update the prompt
-        prompt.use_latex = use_latex
-        prompt.prompt_text = prompt_text
-        db.session.commit()
+        # Save the prompt
+        save_global_prompt(prompt_text)
         
         flash("Global prompt updated successfully!", "success")
         return redirect(url_for('admin_dashboard'))
     
     return render_template('edit_prompt.html', 
-                         prompt=prompt, 
+                         prompt={'prompt_text': current_prompt}, 
                          prompt_title="Global Summarization Prompt",
                          username=user['username'])
 
@@ -1007,7 +1012,7 @@ def enroll_in_class(class_id):
     mongo.db.classes.update_one({"_id": class_obj['_id']}, {"$push": {"students": user['_id']}})
     mongo.db.users.update_one({"_id": user['_id']}, {"$push": {"enrolled_classes": class_obj['_id']}})
     return redirect(url_for('dashboard'))
-    
+
 @app.route('/join_class', methods=['GET', 'POST'])
 def join_class():
     if 'user_id' not in session:
@@ -1051,7 +1056,7 @@ def teacher_delete_class(class_id):
         return redirect(url_for('dashboard'))
     mongo.db.classes.delete_one({"_id": class_obj['_id']})
     return redirect(url_for('dashboard'))
-        
+
 @app.route('/admin/delete_user/<user_id>', methods=['POST'])
 def admin_delete_user(user_id):
     if 'user_id' not in session:
