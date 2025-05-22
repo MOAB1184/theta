@@ -11,7 +11,7 @@
         body { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #121212; color: #e0e0e0; line-height: 1.6; min-height: 100vh; }
         .app-container { display: flex; min-height: 100vh; }
         
-        /* Sidebar Styles */
+        /* Sidebar Styles (Unchanged) */
         .sidebar {
             width: 250px;
             background-color: #1a1a1a;
@@ -24,9 +24,7 @@
             z-index: 100;
             transform: translateX(-250px);
         }
-        .sidebar.active {
-            transform: translateX(0);
-        }
+        .sidebar.active { transform: translateX(0); }
         .sidebar-header {
             padding: 20px;
             border-bottom: 1px solid #333;
@@ -47,9 +45,7 @@
             cursor: pointer;
             font-size: 1.5rem;
         }
-        .sidebar-menu {
-            padding: 20px 0;
-        }
+        .sidebar-menu { padding: 20px 0; }
         .sidebar-menu-title {
             padding: 0 20px;
             margin-bottom: 10px;
@@ -66,9 +62,7 @@
             color: #e0e0e0;
             transition: all 0.2s ease;
         }
-        .menu-item:hover, .menu-item.active {
-            background-color: #242424;
-        }
+        .menu-item:hover, .menu-item.active { background-color: #242424; }
         .menu-item-icon {
             margin-right: 10px;
             width: 20px;
@@ -96,14 +90,10 @@
             border-radius: 4px;
             transition: all 0.2s ease;
         }
-        .logout-btn:hover {
-            background-color: #333;
-        }
-        .logout-icon {
-            margin-right: 8px;
-        }
+        .logout-btn:hover { background-color: #333; }
+        .logout-icon { margin-right: 8px; }
         
-        /* Sidebar Overlay for Mobile */
+        /* Sidebar Overlay (Unchanged) */
         .sidebar-overlay {
             position: fixed;
             top: 0;
@@ -114,11 +104,9 @@
             z-index: 99;
             display: none;
         }
-        .sidebar-overlay.active {
-            display: block;
-        }
+        .sidebar-overlay.active { display: block; }
         
-        /* Main Content Styles */
+        /* Main Content Styles (Unchanged) */
         .main-content {
             flex: 1;
             padding: 20px;
@@ -131,7 +119,7 @@
             width: calc(100% - 250px);
         }
         
-        /* Header Styles */
+        /* Header Styles (Unchanged) */
         .header {
             display: flex;
             justify-content: space-between;
@@ -154,9 +142,7 @@
             font-size: 1.8rem;
             font-weight: bold;
         }
-        .user-menu {
-            position: relative;
-        }
+        .user-menu { position: relative; }
         .user-button {
             background: none;
             border: none;
@@ -177,55 +163,39 @@
             font-weight: bold;
         }
         
-        /* Class Details Styles */
-        .class-details-section {
+        /* Top Section (Class Info and Student Management) */
+        .top-section {
             display: flex;
-            flex-wrap: wrap;
             gap: 32px;
-            margin-bottom: 40px;
+            flex-wrap: wrap;
+            margin-bottom: 32px;
         }
-        .class-info-card {
-            background: #1a1a1a;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.18);
+        .dashboard-card {
+            background: #101522;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px #0002;
             padding: 28px 24px 20px 24px;
+            flex: 1 1 calc(50% - 16px); /* Each card takes ~50% width minus gap */
             min-width: 320px;
-            max-width: 420px;
-            flex: 1 1 320px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-bottom: 24px;
+            max-width: 600px;
         }
-        .class-title {
+        .card-title {
+            font-size: 1.3rem;
             color: #4f8cff;
-            font-size: 1.5rem;
-            font-weight: bold;
-            margin-bottom: 6px;
-        }
-        .class-teacher {
-            color: #a0a0a0;
-            font-size: 1rem;
-            margin-bottom: 6px;
-        }
-        .class-description {
-            color: #e0e0e0;
-            font-size: 1.05rem;
+            font-weight: 600;
             margin-bottom: 10px;
         }
         .class-stats {
             display: flex;
             gap: 18px;
-            font-size: 0.98rem;
+            font-size: 1.05rem;
             color: #a0a0a0;
-            margin-bottom: 10px;
+            margin-bottom: 18px;
             align-items: center;
         }
-        .class-stats .stat-icon {
-            margin-right: 6px;
-        }
+        .class-stats .stat-icon { margin-right: 6px; }
         .btn.btn-primary {
-            background: #4f8cff;
+            background: #2563eb;
             color: #fff;
             padding: 10px 22px;
             border-radius: 6px;
@@ -236,18 +206,15 @@
             gap: 8px;
             transition: background 0.2s;
         }
-        .btn.btn-primary:hover {
-            background: #2563eb;
-        }
+        .btn.btn-primary:hover { background: #1e4db7; }
         
         /* Summaries Section */
         .summaries-section {
-            background: #1a1a1a;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.18);
+            background: #101522;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px #0002;
             padding: 28px 24px 20px 24px;
-            margin-top: 0;
-            flex: 2 1 400px;
+            width: 100%;
             min-width: 320px;
         }
         .summaries-section h2 {
@@ -261,7 +228,7 @@
             gap: 18px;
         }
         .summary-card {
-            background: #242424;
+            background: #181e2a;
             border-radius: 8px;
             padding: 18px 16px;
             display: flex;
@@ -287,23 +254,22 @@
             display: flex;
             gap: 12px;
             margin-top: 8px;
+            align-items: center;
         }
         .btn.btn-outline {
+            color: #2563eb;
+            border: 1px solid #2563eb;
             background: none;
-            border: none;
-            color: #7bb6ff;
-            font-weight: 500;
+            padding: 6px 18px;
+            border-radius: 4px;
             font-size: 1rem;
-            box-shadow: none;
-            padding: 0;
-            text-align: left;
-            transition: color 0.2s, text-decoration 0.2s;
             text-decoration: none;
         }
         .btn.btn-outline:hover {
             color: #a7d3ff;
-            text-decoration: underline;
+            border-color: #a7d3ff;
             background: none;
+            text-decoration: none;
         }
         .empty-state {
             color: #a0a0a0;
@@ -314,30 +280,22 @@
         
         /* Responsive Styles */
         @media (min-width: 768px) {
-            .sidebar {
-                transform: translateX(0);
-            }
+            .sidebar { transform: translateX(0); }
             .main-content {
                 margin-left: 250px;
                 width: calc(100% - 250px);
             }
-            .menu-toggle {
-                display: none;
-            }
-            .close-menu {
-                display: none;
-            }
+            .menu-toggle { display: none; }
+            .close-menu { display: none; }
         }
         @media (max-width: 900px) {
-            .main-content {
-                padding: 20px 10px 10px 10px;
-            }
-            .class-details-section {
+            .main-content { padding: 20px 10px 10px 10px; }
+            .top-section {
                 flex-direction: column;
                 gap: 24px;
             }
-            .class-info-card, .summaries-section {
-                min-width: 0;
+            .dashboard-card {
+                flex: 1 1 100%; /* Stack cards vertically */
                 max-width: 100%;
             }
         }
@@ -349,20 +307,9 @@
             }
         }
         
-        .class-code-section {
-            margin-top: 10px;
-            margin-bottom: 10px;
-        }
-        .class-code-label {
-            color: #a0a0a0;
-            font-size: 1rem;
-            margin-right: 6px;
-        }
-        .class-code {
-            color: #a0a0a0;
-            font-size: 1rem;
-            font-family: monospace;
-        }
+        .class-code-section { margin: 10px 0; }
+        .class-code-label { color: #a0a0a0; font-size: 1rem; margin-right: 6px; }
+        .class-code { color: #a0a0a0; font-size: 1rem; font-family: monospace; }
     </style>
 </head>
 <body>
@@ -374,7 +321,6 @@
                 <a href="/dashboard" class="sidebar-logo">ThetaSummary</a>
                 <button class="close-menu">×</button>
             </div>
-            
             <div class="sidebar-menu">
                 <div class="sidebar-menu-title">Menu</div>
                 <a href="{{ url_for('dashboard') }}" class="menu-item">
@@ -420,7 +366,6 @@
                 </a>
                 {% endif %}
             </div>
-            
             <div class="sidebar-footer">
                 <div class="sidebar-footer-text">Logged in as {{ username }}</div>
                 <a href="{{ url_for('logout') }}" class="logout-btn">
@@ -440,71 +385,30 @@
                 <header class="header" style="border-bottom:none;padding:32px 0 24px 0;margin-bottom:0;background:none;">
                     <h1 class="page-title" style="font-size:2.2rem;font-weight:800;color:#4f8cff;margin:0;text-align:center;">{{ class_obj.name }}</h1>
                 </header>
-                <div class="dashboard-cards" style="display:flex;gap:32px;flex-wrap:wrap;align-items:flex-start;">
+                
+                <!-- Top Section: Class Info and Student Management -->
+                <div class="top-section">
                     <!-- Class Info Card -->
-                    <div class="dashboard-card" style="background:#101522;border-radius:10px;box-shadow:0 2px 10px #0002;padding:28px 24px 20px 24px;min-width:320px;max-width:400px;flex:1 1 320px;">
-                        <div class="card-title" style="font-size:1.3rem;color:#4f8cff;font-weight:600;margin-bottom:10px;">Class Information</div>
+                    <div class="dashboard-card">
+                        <div class="card-title">Class Information</div>
                         <div style="margin-bottom:10px;"><span style="color:#a0a0a0;">Teacher:</span> <span style="color:#fff;">{% for user in users %}{% if user._id == class_obj.teacher_id or user._id|string == class_obj.teacher_id|string %}{{ user.username }}{% endif %}{% endfor %}</span></div>
                         <div style="margin-bottom:10px;"><span style="color:#a0a0a0;">Description:</span> <span style="color:#fff;">{{ class_obj.description or 'No description provided' }}</span></div>
-                        <div style="margin-bottom:10px;"><span style="color:#a0a0a0;">Class Code:</span> <span style="color:#fff;font-family:monospace;">{{ class_obj.class_code }}</span></div>
-                        <div class="class-stats" style="display:flex;gap:18px;font-size:1.05rem;color:#a0a0a0;margin-bottom:18px;align-items:center;">
+                        <div class="class-code-section"><span class="class-code-label">Class Code:</span><span class="class-code">{{ class_obj.class_code }}</span></div>
+                        <div class="class-stats">
                             {% if user_role != 'student' %}
                                 <span><span class="stat-icon">👥</span>{{ student_count }} Students</span>
                             {% endif %}
                             <span><span class="stat-icon">📄</span>{{ summary_count }} Summaries</span>
-                </div>
-                        {% if user_role == 'teacher' %}
-                        <a href="/recordings?class_id={{ class_obj._id }}" class="btn btn-primary" style="background:#2563eb;color:#fff;padding:10px 22px;border-radius:6px;font-size:1rem;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:background 0.2s;margin-top:10px;">🎤 Record Audio</a>
-                        {% endif %}
-                    </div>
-                    <!-- Summaries Card -->
-                    <div class="dashboard-card" style="background:#101522;border-radius:10px;box-shadow:0 2px 10px #0002;padding:28px 24px 20px 24px;flex:2 1 400px;min-width:320px;">
-                        <div class="card-title" style="font-size:1.3rem;color:#4f8cff;font-weight:600;margin-bottom:10px;">Class Summaries</div>
-                    {% if summaries %}
-                        <div class="summaries-grid" style="display:grid;grid-template-columns:1fr;gap:18px;">
-                        {% for summary in summaries %}
-                            <div class="summary-card" style="background:#181e2a;border-radius:8px;padding:18px 16px;display:flex;flex-direction:column;gap:8px;">
-                                <div class="summary-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                                    <div style="display:flex;align-items:center;gap:10px;">
-                                        <h3 style="font-size:1.05rem;color:#4f8cff;margin:0;">{{ summary.filename }}</h3>
-                                        {% if user_role == 'teacher' %}
-                                            {% if not summary.approved %}
-                                                <span style="color:#ffb300;font-size:0.95rem;">Pending Approval</span>
-                                            {% else %}
-                                                <span style="color:#4caf50;font-size:0.95rem;">Approved</span>
-                                            {% endif %}
-                                        {% endif %}
-                                    </div>
-                                    <span class="summary-date" style="color:#a0a0a0;font-size:0.95rem;">{{ summary.created_at }}</span>
-                                </div>
-                                <div class="summary-actions" style="display:flex;gap:12px;margin-top:8px;align-items:center;">
-                                    <a href="{{ url_for('view_summary', filename=summary.filename) }}" class="btn btn-outline" style="color:#2563eb;border:1px solid #2563eb;background:none;padding:6px 18px;border-radius:4px;font-size:1rem;text-decoration:none;">View Summary</a>
-                                    <a href="{{ url_for('download_file', filename=summary.filename) }}" class="btn btn-outline" style="color:#2563eb;border:1px solid #2563eb;background:none;padding:6px 18px;border-radius:4px;font-size:1rem;text-decoration:none;">Download</a>
-                                    {% if user_role == 'teacher' and not summary.approved %}
-                                        <a href="#" class="btn btn-outline edit-summary-btn" data-filename="{{ summary.filename }}" style="color:#2563eb;border:1px solid #2563eb;background:none;padding:6px 18px;border-radius:4px;font-size:1rem;text-decoration:none;">Edit</a>
-                                        <form method="POST" action="{{ url_for('approve_summary', class_id=class_obj._id, filename=summary.filename) }}" style="display:inline;">
-                                            <button type="submit" class="btn btn-outline btn-sm approve-summary-btn" style="color:#4caf50;border:1px solid #4caf50;background:none;padding:4px 12px;border-radius:4px;font-size:0.95rem;cursor:pointer;">Approve</button>
-                                        </form>
-                                        <form method="POST" action="{{ url_for('deny_summary', class_id=class_obj._id, filename=summary.filename) }}" style="display:inline;margin-left:6px;">
-                                            <button type="submit" class="btn btn-outline btn-sm deny-summary-btn" style="color:#ff4f4f;border:1px solid #ff4f4f;background:none;padding:4px 12px;border-radius:4px;font-size:0.95rem;cursor:pointer;" onclick="return confirm('Deny and delete this summary?');">Deny</button>
-                                        </form>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            {% endfor %}
-                            </div>
-                        {% else %}
-                        <div class="empty-state" style="color:#a0a0a0;font-size:1.1rem;padding:30px 0;text-align:center;">
-                            <p>No summaries have been created for this class yet.</p>
                         </div>
+                        {% if user_role == 'teacher' %}
+                        <a href="/recordings?class_id={{ class_obj._id }}" class="btn btn-primary">🎤 Record Audio</a>
                         {% endif %}
                     </div>
-                </div>
-                {% if user_role == 'teacher' and (class_obj.teacher_id == user_id or class_obj.teacher_id|string == user_id|string) %}
-                <div class="dashboard-cards" style="display:flex;gap:32px;flex-wrap:wrap;align-items:flex-start;margin-top:32px;">
-                    <!-- Student Management Card -->
-                    <div class="dashboard-card" style="background:#101522;border-radius:10px;box-shadow:0 2px 10px #0002;padding:28px 24px 20px 24px;min-width:320px;max-width:400px;flex:1 1 320px;">
-                        <div class="card-title" style="font-size:1.2rem;color:#4f8cff;font-weight:600;margin-bottom:10px;">Student Management</div>
+                    
+                    <!-- Student Management Card (Only for Teachers) -->
+                    {% if user_role == 'teacher' and (class_obj.teacher_id == user_id or class_obj.teacher_id|string == user_id|string) %}
+                    <div class="dashboard-card">
+                        <div class="card-title">Student Management</div>
                         <h3 style="margin:18px 0 10px 0;font-size:1.1rem;color:#fff;">Enrolled Students</h3>
                         <ul style="list-style:none;padding:0;margin:0;">
                             {% for student in students %}
@@ -539,15 +443,58 @@
                             <button type="submit" class="btn btn-danger" style="background:#ff4f4f;color:#fff;border:none;padding:12px 24px;border-radius:6px;font-size:1rem;cursor:pointer;width:100%;">Delete Class</button>
                         </form>
                     </div>
+                    {% endif %}
                 </div>
-                {% endif %}
+                
+                <!-- Class Summaries Section -->
+                <div class="summaries-section">
+                    <h2>Class Summaries</h2>
+                    {% if summaries %}
+                    <div class="summaries-grid">
+                        {% for summary in summaries %}
+                        <div class="summary-card">
+                            <div class="summary-header">
+                                <div style="display:flex;align-items:center;gap:10px;">
+                                    <h3>{{ summary.filename }}</h3>
+                                    {% if user_role == 'teacher' %}
+                                        {% if not summary.approved %}
+                                            <span style="color:#ffb300;font-size:0.95rem;">Pending Approval</span>
+                                        {% else %}
+                                            <span style="color:#4caf50;font-size:0.95rem;">Approved</span>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                                <span class="summary-date">{{ summary.created_at }}</span>
+                            </div>
+                            <div class="summary-actions">
+                                <a href="{{ url_for('view_summary', filename=summary.filename) }}" class="btn btn-outline">View Summary</a>
+                                <a href="{{ url_for('download_file', filename=summary.filename) }}" class="btn btn-outline">Download</a>
+                                {% if user_role == 'teacher' and not summary.approved %}
+                                <a href="#" class="btn btn-outline edit-summary-btn" data-filename="{{ summary.filename }}">Edit</a>
+                                <form method="POST" action="{{ url_for('approve_summary', class_id=class_obj._id, filename=summary.filename) }}" style="display:inline;">
+                                    <button type="submit" class="btn btn-outline btn-sm approve-summary-btn" style="color:#4caf50;border:1px solid #4caf50;">Approve</button>
+                                </form>
+                                <form method="POST" action="{{ url_for('deny_summary', class_id=class_obj._id, filename=summary.filename) }}" style="display:inline;margin-left:6px;">
+                                    <button type="submit" class="btn btn-outline btn-sm deny-summary-btn" style="color:#ff4f4f;border:1px solid #ff4f4f;" onclick="return confirm('Deny and delete this summary?');">Deny</button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <p>No summaries have been created for this class yet.</p>
+                    </div>
+                    {% endif %}
+                </div>
             </div>
         </main>
     </div>
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Sidebar functionality (only add listeners if elements exist)
+            // Sidebar functionality (unchanged)
             const menuToggle = document.querySelector('.menu-toggle');
             const closeMenu = document.querySelector('.close-menu');
             const sidebar = document.querySelector('.sidebar');
@@ -555,9 +502,9 @@
             const sidebarOverlay = document.querySelector('.sidebar-overlay');
             if (menuToggle && closeMenu && sidebar && mainContent && sidebarOverlay) {
                 menuToggle.addEventListener('click', function() {
-                sidebar.classList.toggle('active');
-                mainContent.classList.toggle('sidebar-active');
-                sidebarOverlay.classList.toggle('active');
+                    sidebar.classList.toggle('active');
+                    mainContent.classList.toggle('sidebar-active');
+                    sidebarOverlay.classList.toggle('active');
                 });
                 closeMenu.addEventListener('click', function() {
                     sidebar.classList.remove('active');
@@ -570,7 +517,7 @@
                     sidebarOverlay.classList.remove('active');
                 });
             }
-            // Approve/Deny/Edit summary via AJAX (check for elements before attaching)
+            // Approve/Deny/Edit summary via AJAX (unchanged)
             document.querySelectorAll('.approve-summary-btn').forEach(btn => {
                 btn.addEventListener('click', function(e) {
                     e.preventDefault();
@@ -579,7 +526,6 @@
                         fetch(form.action, { method: 'POST' })
                             .then(res => {
                                 if (res.ok) {
-                                    // Update UI: hide approve/deny/edit, show Approved badge
                                     const card = btn.closest('.summary-card');
                                     if (card) {
                                         card.querySelectorAll('.approve-summary-btn, .deny-summary-btn, .edit-summary-btn').forEach(el => el.style.display = 'none');
@@ -599,7 +545,6 @@
                         fetch(form.action, { method: 'POST' })
                             .then(res => {
                                 if (res.ok) {
-                                    // Remove the summary card from the UI
                                     const card = btn.closest('.summary-card');
                                     if (card) card.remove();
                                 }
@@ -647,12 +592,13 @@
             }
         });
     </script>
-    <!-- Edit Summary Modal -->
+    
+    <!-- Edit Summary Modal (Unchanged) -->
     <div id="edit-summary-modal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.95);z-index:9999;align-items:center;justify-content:center;overflow:auto;">
         <div style="background:#181e2a;padding:0;max-width:100vw;width:100vw;height:100vh;display:flex;flex-direction:column;">
             <div style="display:flex;align-items:center;justify-content:space-between;padding:24px 32px 0 32px;">
                 <h2 style="color:#4f8cff;margin-bottom:0;">Edit Summary</h2>
-                <button id="close-edit-summary-modal" style="background:none;border:none;color:#fff;font-size:2rem;cursor:pointer;">&times;</button>
+                <button id="close-edit-summary-modal" style="background:none;border:none;color:#fff;font-size:2rem;cursor:pointer;">×</button>
             </div>
             <textarea id="edit-summary-textarea" style="flex:1 1 auto;width:100%;background:#23272b;color:#fff;border:none;border-radius:0;padding:32px 32px 0 32px;font-size:1.1rem;resize:none;min-height:0;max-height:100vh;"></textarea>
             <div style="padding:24px 32px 32px 32px;display:flex;justify-content:flex-end;gap:16px;">
