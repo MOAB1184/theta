@@ -582,12 +582,9 @@
                         <a href="{{ url_for('view_class', class_id=class._id) }}" class="btn btn-outline">View Class</a>
                     </div>
                     {% endfor %}
-                    {% if classes|length == 0 %}
-                    <div class="class-card empty-state">
-                        <span class="stat-label">You have no classes yet.</span>
-                        {% if user_role == 'student' %}
-                        <a href="{{ url_for('join_class') }}" class="btn btn-primary" style="margin-top: 15px;">Join a Class</a>
-                        {% endif %}
+                    {% if not classes or classes|length == 0 %}
+                    <div style="padding: 32px 0; text-align: center; color: #888; font-size: 1.2rem;">
+                        No classes yet
                     </div>
                     {% endif %}
                 </div>
