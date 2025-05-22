@@ -52,25 +52,20 @@ app.config['UPLOAD_FOLDER'] = os.getenv('WASABI_BUCKET_NAME')
 # Initialize SQLAlchemy
 db = SQLAlchemy(app)
 
-# Global prompt management
-PROMPT_FILE = os.path.join(BASE_DATA_DIR, 'global_prompt.txt')
+# Global prompt management using MongoDB
 
 def get_global_prompt():
-    try:
-        if os.path.exists(PROMPT_FILE):
-            with open(PROMPT_FILE, 'r', encoding='utf-8') as f:
-                return f.read()
-    except Exception as e:
-        print(f"Error reading prompt file: {e}")
+    doc = mongo.db.settings.find_one({'_id': 'global_prompt'})
+    if doc and 'prompt_text' in doc:
+        return doc['prompt_text']
     return BASE_PROMPT
 
 def save_global_prompt(prompt_text):
-    try:
-        os.makedirs(os.path.dirname(PROMPT_FILE), exist_ok=True)
-        with open(PROMPT_FILE, 'w', encoding='utf-8') as f:
-            f.write(prompt_text)
-    except Exception as e:
-        print(f"Error saving prompt file: {e}")
+    mongo.db.settings.update_one(
+        {'_id': 'global_prompt'},
+        {'$set': {'prompt_text': prompt_text}},
+        upsert=True
+    )
 
 # Configure Deepseek
 DEEPSEEK_MODEL = "deepseek-reasoner"
@@ -624,7 +619,7 @@ def summarize():
         if not DEEPSEEK_API_KEY:
             return jsonify({'status': 'error', 'message': "Deepseek API key not configured. Please set the DEEPSEEK_API_KEY environment variable."}), 500
 
-        # Get the global prompt
+        # Get the global prompt from MongoDB
         summarization_prompt_template = get_global_prompt()
         if not summarization_prompt_template.strip().endswith("Transcript:"):
             full_summarization_prompt = summarization_prompt_template + "\n\nTranscript:\n" + transcript
