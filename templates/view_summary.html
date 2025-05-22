@@ -11,8 +11,6 @@
     <!-- KaTeX JS -->
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js" integrity="sha384-cMkvdD8LoxVzGF/RPUKAcvmm49FQ0oxwDF3BGKtDXcEc+T1b2N+teh/OJfpU0jr6" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #121212; color: #e0e0e0; line-height: 1.6; min-height: 100vh; }
@@ -227,17 +225,37 @@
             color: #e0e0e0;
             line-height: 1.8;
         }
+        .summary-content h1 {
+            font-size: 1.8rem;
+            color: #ffffff;
+            margin: 20px 0 10px;
+        }
         .summary-content h2 {
             font-size: 1.4rem;
             color: #ffffff;
             margin: 20px 0 10px;
         }
+        .summary-content h3 {
+            font-size: 1.2rem;
+            color: #e0e0e0;
+            margin: 15px 0 8px;
+        }
         .summary-content strong {
             font-weight: 700;
             color: #ffffff;
         }
+        .summary-content em {
+            font-style: italic;
+            color: #e0e0e0;
+        }
         .summary-content p {
             margin-bottom: 15px;
+        }
+        .summary-content ul, .summary-content ol {
+            margin: 10px 0 10px 20px;
+        }
+        .summary-content li {
+            margin-bottom: 8px;
         }
         .error-message {
             background: #ff4f4f;
@@ -317,42 +335,16 @@
             padding: 10px 0;
         }
         .latex-content .katex-display > .katex {
-            display: inline-block;
+            display: block;
             text-align: center;
             max-width: 100%;
         }
-        .latex-content .katex-display > .katex > .katex-html {
-            display: block;
-            position: relative;
-            overflow-x: auto;
-            overflow-y: hidden;
-            text-align: center;
-        }
-        .latex-content .katex-display > .katex > .katex-html > .tag {
-            position: absolute;
-            right: 0;
-        }
-        .latex-error {
+        .latex-content .katex-error {
             color: #ff4f4f;
             font-family: monospace;
             background: #2a1a1a;
             padding: 2px 4px;
             border-radius: 3px;
-        }
-        
-        /* Text Formatting Styles */
-        .summary-content strong {
-            font-weight: 700;
-            color: #ffffff;
-        }
-        .summary-content em {
-            font-style: italic;
-            color: #e0e0e0;
-        }
-        .summary-content h2 {
-            font-size: 1.4rem;
-            color: #ffffff;
-            margin: 20px 0 10px;
         }
     </style>
 </head>
@@ -474,148 +466,63 @@
                     // Show error message
                     function showError(message) {
                         const errorMessage = document.getElementById('error-message');
-                        errorMessage.textContent = message;
-                        errorMessage.classList.remove('hidden');
-                        setTimeout(() => {
-                            errorMessage.classList.add('hidden');
-                        }, 10000);
+                        if (errorMessage) {
+                            errorMessage.textContent = message;
+                            errorMessage.classList.remove('hidden');
+                            setTimeout(() => {
+                                errorMessage.classList.add('hidden');
+                            }, 10000);
+                        }
                     }
 
-                    // Process raw LaTeX content
-                    function processLatexContent(rawContent) {
-                        let htmlContent = '';
-                        let currentPos = 0;
+                    // Process Markdown and LaTeX content
+                    function processContent(rawContent) {
+                        // Step 1: Escape LaTeX math to prevent Markdown parsing
+                        const inlineMathRegex = /\\\(.*?\\\)/gs;
+                        const displayMathRegex = /\\\[.*?\\\]/gs;
+                        const mathPlaceholders = [];
+                        let placeholderIndex = 0;
 
-                        // Regex patterns for LaTeX elements
-                        const inlineMathRegex = /\\\(.*?\\\)/gs; // Matches \(...\)
-                        const displayMathRegex = /\\\[.*?\\\]/gs; // Matches \[...\]
-                        const envRegex = /\\begin\{(.*?)\}(.*?)\\end\{\1\}/gs; // Matches \begin{env}...\end{env}
-                        const sectionRegex = /\\section\{(.*?)\}/g; // Matches \section{...}
-                        const itemRegex = /\\item\s+(.+?)(?=(?:\\item|\\end|$))/gs; // Matches \item ...
-                        const documentclassRegex = /\\documentclass.*?\\begin\{document\}/gs; // Matches preamble
-                        const usePackageRegex = /\\usepackage.*?}/gs; // Matches \usepackage
-                        const whitespaceRegex = /^\s*$(?:\r\n?|\n)/gm; // Matches empty lines
-
-                        // Split content into tokens (math, environments, sections, items, text)
-                        const tokens = [];
-                        const regexes = [
-                            { regex: inlineMathRegex, type: 'inlineMath' },
-                            { regex: displayMathRegex, type: 'displayMath' },
-                            { regex: envRegex, type: 'environment' },
-                            { regex: sectionRegex, type: 'section' },
-                            { regex: itemRegex, type: 'item' },
-                            { regex: documentclassRegex, type: 'preamble' },
-                            { regex: usePackageRegex, type: 'preamble' }
-                        ];
-
-                        // Collect all matches
-                        rawContent.replace(whitespaceRegex, ''); // Remove empty lines
-                        while (currentPos < rawContent.length) {
-                            let nextMatch = { index: rawContent.length, type: 'text', content: '' };
-                            
-                            // Find the earliest match
-                            for (const { regex, type } of regexes) {
-                                regex.lastIndex = currentPos;
-                                const match = regex.exec(rawContent);
-                                if (match && match.index < nextMatch.index) {
-                                    nextMatch = { index: match.index, type, content: match[0], fullMatch: match };
-                                }
-                            }
-
-                            // Add text before the match
-                            if (nextMatch.index > currentPos) {
-                                tokens.push({
-                                    type: 'text',
-                                    content: rawContent.slice(currentPos, nextMatch.index)
-                                });
-                            }
-
-                            // Add the matched LaTeX element
-                            if (nextMatch.type !== 'text') {
-                                tokens.push({
-                                    type: nextMatch.type,
-                                    content: nextMatch.content,
-                                    fullMatch: nextMatch.fullMatch
-                                });
-                            }
-
-                            currentPos = nextMatch.index + nextMatch.content.length;
+                        // Store LaTeX math and replace with placeholders
+                        function escapeMath(content, regex, prefix) {
+                            return content.replace(regex, (match) => {
+                                const placeholder = `MATH_PLACEHOLDER_${prefix}_${placeholderIndex++}`;
+                                mathPlaceholders.push({ placeholder, content: match });
+                                return placeholder;
+                            });
                         }
 
-                        // Process tokens
-                        let inList = false;
-                        tokens.forEach(token => {
+                        let processedContent = rawContent;
+                        processedContent = escapeMath(processedContent, inlineMathRegex, 'INLINE');
+                        processedContent = escapeMath(processedContent, displayMathRegex, 'DISPLAY');
+
+                        // Step 2: Parse Markdown with marked.js
+                        marked.setOptions({
+                            gfm: true,
+                            breaks: true,
+                            pedantic: false,
+                            sanitizer: null
+                        });
+                        let htmlContent = marked.parse(processedContent);
+
+                        // Step 3: Restore and render LaTeX math with KaTeX
+                        mathPlaceholders.forEach(({ placeholder, content }) => {
                             try {
-                                if (token.type === 'inlineMath') {
-                                    // Render inline math: \(...\)
-                                    const tex = token.content.slice(2, -2).trim();
-                                    const rendered = katex.renderToString(tex, {
-                                        throwOnError: false,
-                                        strict: false,
-                                        trust: true
-                                    });
-                                    htmlContent += `<span class="katex">${rendered}</span>`;
-                                } else if (token.type === 'displayMath') {
-                                    // Render display math: \[...\]
-                                    const tex = token.content.slice(2, -2).trim();
-                                    const rendered = katex.renderToString(tex, {
-                                        throwOnError: false,
-                                        displayMode: true,
-                                        strict: false,
-                                        trust: true
-                                    });
-                                    htmlContent += `<div class="katex-display">${rendered}</div>`;
-                                } else if (token.type === 'environment') {
-                                    // Render LaTeX environments like \begin{align*}...\end{align*}
-                                    const envContent = token.fullMatch[2].trim();
-                                    const rendered = katex.renderToString(envContent, {
-                                        throwOnError: false,
-                                        displayMode: true,
-                                        strict: false,
-                                        trust: true
-                                    });
-                                    htmlContent += `<div class="katex-display">${rendered}</div>`;
-                                } else if (token.type === 'section') {
-                                    // Convert \section{...} to <h2>
-                                    const title = token.fullMatch[1].replace(/\\.*?{|}/g, '').trim();
-                                    htmlContent += `<h2>${title}</h2>`;
-                                } else if (token.type === 'item') {
-                                    // Convert \item ... to <li>
-                                    if (!inList) {
-                                        htmlContent += '<ul>';
-                                        inList = true;
-                                    }
-                                    const itemContent = token.fullMatch[1].trim();
-                                    htmlContent += `<li>${itemContent}</li>`;
-                                } else if (token.type === 'preamble') {
-                                    // Skip preamble (e.g., \documentclass, \usepackage)
-                                    return;
-                                } else if (token.type === 'text') {
-                                    // Process plain text, preserving structure
-                                    let text = token.content.trim();
-                                    if (text) {
-                                        // Close list if text follows items
-                                        if (inList && !text.startsWith('\\item')) {
-                                            htmlContent += '</ul>';
-                                            inList = false;
-                                        }
-                                        // Split text into paragraphs
-                                        text = text.replace(/\n\n+/g, '</p><p>').replace(/^\n+|\n+$/g, '');
-                                        if (!text.startsWith('<p>')) text = `<p>${text}`;
-                                        if (!text.endsWith('</p>')) text += '</p>';
-                                        htmlContent += text;
-                                    }
-                                }
+                                const isDisplay = placeholder.includes('_DISPLAY_');
+                                const tex = content.slice(isDisplay ? 2 : 2, -2).trim();
+                                const rendered = katex.renderToString(tex, {
+                                    throwOnError: false,
+                                    displayMode: isDisplay,
+                                    strict: false,
+                                    trust: true
+                                });
+                                const replacement = isDisplay ? `<div class="katex-display">${rendered}</div>` : `<span class="katex">${rendered}</span>`;
+                                htmlContent = htmlContent.replace(placeholder, replacement);
                             } catch (err) {
-                                console.error(`Error rendering ${token.type}:`, err);
-                                htmlContent += `<span class="latex-error">${token.content}</span>`;
+                                console.error(`Error rendering LaTeX: ${content}`, err);
+                                htmlContent = htmlContent.replace(placeholder, `<span class="katex-error">${content}</span>`);
                             }
                         });
-
-                        // Close any open list
-                        if (inList) {
-                            htmlContent += '</ul>';
-                        }
 
                         return htmlContent;
                     }
@@ -625,9 +532,9 @@
                         try {
                             const rawContent = JSON.parse(document.getElementById('summary-raw-content').textContent);
                             const summaryContent = document.getElementById('summary-content');
-                            summaryContent.innerHTML = processLatexContent(rawContent);
+                            summaryContent.innerHTML = processContent(rawContent);
                         } catch (err) {
-                            console.error('Error processing LaTeX content:', err);
+                            console.error('Error processing content:', err);
                             showError('Failed to render summary content. Check the console for details.');
                         }
                     });
@@ -666,6 +573,7 @@
                     e.preventDefault();
                     const filename = '{{ filename }}';
                     loading.classList.remove('hidden');
+                    errorMessage.classList.add('hidden');
                     
                     try {
                         const response = await fetch('/api/check_file', {
@@ -678,12 +586,14 @@
                         const data = await response.json();
                         
                         if (data.status === 'success' && data.exists) {
+                            // If file exists, proceed with download
                             window.location.href = downloadBtn.href;
                         } else {
-                            showError('Summary file not found or access denied.');
+                            showError('Summary file not found or access denied. Please try refreshing the page.');
                         }
                     } catch (err) {
-                        showError('Error checking file availability: ' + err.message);
+                        console.error('Error checking file:', err);
+                        showError('Error checking file availability. Please try again.');
                     } finally {
                         loading.classList.add('hidden');
                     }

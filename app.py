@@ -19,6 +19,7 @@ import boto3
 from botocore.exceptions import ClientError
 from flask_pymongo import PyMongo
 from bson.objectid import ObjectId
+from io import BytesIO
 
 # Try to load environment variables from .env file
 try:
@@ -85,7 +86,7 @@ if GEMINI_API_KEY:
 
 # Base Prompt that handles subject detection and formatting
 BASE_PROMPT = """
-Please analyze this transcript and determine the subject. Then, summarize it according to the appropriate template below:
+Please summarize this class transcript according to the appropriate template below:
 
 FOR MATHEMATICS:
 Please summarize this class transcript in the following manner:
@@ -278,34 +279,34 @@ def register():
             school_id = request.form.get('school_id') if role == 'teacher' else None
 
             if not role or role not in ['student', 'teacher']:
-                                                    return render_template('register.html', error='Invalid role selected', username=username, schools=schools)
+                                                        return render_template('register.html', error='Invalid role selected', username=username, schools=schools)
 
             if role == 'teacher' and not school_id:
-                                                    return render_template('register.html', error='Please select a school.', username=username, role=role, schools=schools)
+                                                        return render_template('register.html', error='Please select a school.', username=username, role=role, schools=schools)
 
             existing_user = get_user_by_username(username)
             if existing_user:
-                                                    return render_template('register.html', error='Username already exists', role=role, username=username, schools=schools)
+                                                        return render_template('register.html', error='Username already exists', role=role, username=username, schools=schools)
 
             password_hash = generate_password_hash(password)
             if role == 'teacher':
-                                                    # Add to pending_teachers for admin approval
-                                                    teacher = {
-                                                        "username": username,
-                                                        "password_hash": password_hash,
-                                                        "role": role,
-                                                        "is_admin": False,
-                                                        "school_id": ObjectId(school_id) if school_id else None,
-                                                        "subscribed": False
-                                                    }
-                                                    mongo.db.pending_teachers.insert_one(teacher)
-                                                    return render_template('register.html', error='Teacher account request sent! Waiting for admin approval.', schools=schools)
+                                                        # Add to pending_teachers for admin approval
+                                                        teacher = {
+                                                            "username": username,
+                                                            "password_hash": password_hash,
+                                                            "role": role,
+                                                            "is_admin": False,
+                                                            "school_id": ObjectId(school_id) if school_id else None,
+                                                            "subscribed": False
+                                                        }
+                                                        mongo.db.pending_teachers.insert_one(teacher)
+                                                        return render_template('register.html', error='Teacher account request sent! Waiting for admin approval.', schools=schools)
             else:
-                                                    create_user(username, password_hash, role, is_admin=False, school_id=school_id)
-                                                    user = get_user_by_username(username)
-                                                    session['user_id'] = str(user['_id'])
-                                                    session['username'] = user['username']
-                                                    session['role'] = user['role']
+                                                        create_user(username, password_hash, role, is_admin=False, school_id=school_id)
+                                                        user = get_user_by_username(username)
+                                                        session['user_id'] = str(user['_id'])
+                                                        session['username'] = user['username']
+                                                        session['role'] = user['role']
             return redirect(url_for('dashboard'))
         except Exception as e:
             import traceback
@@ -618,7 +619,6 @@ def summarize():
                 stream=False
             )
             summary = summary_resp.choices[0].message.content
-            subject = detect_subject(summary)
         except Exception as e:
             print(f"Deepseek API error: {e}")
             if "authenticate" in str(e).lower() or "authorization" in str(e).lower():
@@ -633,6 +633,7 @@ def summarize():
             teacher = mongo.db.users.find_one({"_id": class_obj['teacher_id']})
             class_dir = f"{teacher['username']}/classes/{class_obj['class_code']}"
             summary_path = f"{class_dir}/{summary_filename}"
+            print(f"Trying to save summary to S3 at: {summary_path}")
             s3_client.put_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=summary_path, Body=summary)
             mongo.db.classes.update_one(
                 {"_id": ObjectId(class_id)},
@@ -645,12 +646,12 @@ def summarize():
         else:
             user_dir = f"{session['username']}"
             summary_path = f"{user_dir}/{summary_filename}"
+            print(f"Trying to save summary to S3 at: {summary_path}")
             s3_client.put_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=summary_path, Body=summary)
         return jsonify({
             'status': 'success',
             'summary': summary,
-            'summary_filename': summary_filename,
-            'subject': subject
+            'summary_filename': summary_filename
         })
     except Exception as e:
         print(f"Error in summarize endpoint: {str(e)}")
@@ -659,55 +660,54 @@ def summarize():
             'message': f"Error processing: {str(e)}"
         }), 500
 
-def detect_subject(summary_text):
-    """Detect the likely subject based on summary content"""
-    # Simple keyword-based subject detection
-    subject_keywords = {
-        "Mathematics": ["equation", "formula", "theorem", "math", "calculus", "algebra", "geometry", "solve for", "equals", "variable", "function", "graph", "polynomial"],
-        "Science": ["experiment", "lab", "hypothesis", "theory", "biology", "physics", "chemistry", "reaction", "molecule", "atom", "cell", "enzyme", "ecosystem"],
-        "Social Studies": ["history", "geography", "economics", "government", "civilization", "politics", "society", "culture", "war", "revolution", "president", "country", "nation"],
-        "Literature": ["novel", "poetry", "author", "character", "theme", "literary", "shakespeare", "poem", "fiction", "narrative", "symbolism", "metaphor"]
-    }
-    
-    # Count keyword occurrences for each subject
-    subject_scores = {subject: 0 for subject in subject_keywords}
-    for subject, keywords in subject_keywords.items():
-        for keyword in keywords:
-            # Case insensitive search
-            pattern = re.compile(r'\b' + re.escape(keyword) + r'\b', re.IGNORECASE)
-            matches = pattern.findall(summary_text)
-            subject_scores[subject] += len(matches)
-    
-    # Return the subject with the highest score, or "General" if no keywords match
-    max_subject = max(subject_scores.items(), key=lambda x: x[1])
-    if max_subject[1] > 0:
-        return max_subject[0]
-    else:
-        return "General"
-
 @app.route('/api/check_file', methods=['POST'])
 def check_file():
     try:
         filename = request.json.get('filename')
         if not filename or not filename.startswith('summary_'):
             return jsonify({'status': 'error', 'message': 'Invalid filename'}), 400
+
+        print(f"Checking file: {filename}")
+        
+        # First try user's own summaries
         user_summaries_dir = f"{session['username']}/{session['role']}/summaries"
         user_file_path = f"{user_summaries_dir}/{filename}"
+        print(f"Trying user path: {user_file_path}")
         try:
             s3_client.head_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=user_file_path)
+            print(f"Found file at user path: {user_file_path}")
             return jsonify({'status': 'success', 'exists': True, 'path': 'user'})
-        except ClientError:
-            pass
-        classes = mongo.db.classes.find({"teacher_id": session['user_id']})
+        except ClientError as e:
+            print(f"Not found at user path: {e}")
+
+        # Then check all classes the user is a teacher or student in
+        user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
+        class_query = {"$or": [
+            {"teacher_id": user['_id']},
+            {"students": user['_id']}
+        ]}
+        classes = mongo.db.classes.find(class_query)
+        
         for class_obj in classes:
-            class_summaries_dir = f"class_summaries/{class_obj['_id']}"
-            class_file_path = f"{class_summaries_dir}/{filename}"
+            teacher = mongo.db.users.find_one({"_id": class_obj['teacher_id']})
+            if not teacher:
+                continue
+                
+            class_dir = f"{teacher['username']}/classes/{class_obj['class_code']}"
+            class_file_path = f"{class_dir}/{filename}"
+            print(f"Trying class path: {class_file_path}")
+            
             try:
                 s3_client.head_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=class_file_path)
-                return jsonify({'status': 'success', 'exists': True, 'path': 'class', 'class_id': class_obj['_id']})
-            except ClientError:
-                pass
+                print(f"Found file at class path: {class_file_path}")
+                return jsonify({'status': 'success', 'exists': True, 'path': 'class', 'class_id': str(class_obj['_id'])})
+            except ClientError as e:
+                print(f"Not found at class path: {e}")
+                continue
+
+        print(f"File not found in any location: {filename}")
         return jsonify({'status': 'success', 'exists': False}), 200
+        
     except Exception as e:
         print(f"Error in check_file endpoint: {str(e)}")
         return jsonify({'status': 'error', 'message': f"Error checking file: {str(e)}"}), 500
@@ -717,16 +717,19 @@ def view_summary(filename):
     if not filename.startswith('summary_'):
         return "Invalid file type for this view.", 400
 
+    print(f"Attempting to view summary: {filename}")
     user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
     if not user:
         return redirect(url_for('logout'))
 
-    # Check user-specific summaries (legacy, if any)
+    # First try user's own summaries
     user_summaries_dir = f"{session['username']}/{session['role']}/summaries"
     user_file_path = f"{user_summaries_dir}/{filename}"
+    print(f"Trying user path: {user_file_path}")
     try:
         response = s3_client.get_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=user_file_path)
         content = response['Body'].read().decode('utf-8')
+        print(f"Found file at user path: {user_file_path}")
         return render_template('view_summary.html', 
                              content=content, 
                              filename=filename,
@@ -735,24 +738,29 @@ def view_summary(filename):
                              user_role=user['role'],
                              classes=list(mongo.db.classes.find({'teacher_id': user['_id']})) if user['role'] == 'teacher' else [],
                              class_id=None)
-    except ClientError:
-        pass
+    except ClientError as e:
+        print(f"Not found at user path: {e}")
 
-    # Check all classes the user is a teacher or student in
+    # Then check all classes the user is a teacher or student in
     class_query = {"$or": [
         {"teacher_id": user['_id']},
         {"students": user['_id']}
     ]}
     classes = mongo.db.classes.find(class_query)
+    
     for class_obj in classes:
         teacher = mongo.db.users.find_one({"_id": class_obj['teacher_id']})
         if not teacher:
             continue
+            
         class_dir = f"{teacher['username']}/classes/{class_obj['class_code']}"
         class_file_path = f"{class_dir}/{filename}"
+        print(f"Trying class path: {class_file_path}")
+        
         try:
             response = s3_client.get_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=class_file_path)
             content = response['Body'].read().decode('utf-8')
+            print(f"Found file at class path: {class_file_path}")
             return render_template('view_summary.html', 
                                  content=content, 
                                  filename=filename,
@@ -761,14 +769,20 @@ def view_summary(filename):
                                  user_role=user['role'],
                                  classes=list(mongo.db.classes.find({'teacher_id': user['_id']})) if user['role'] == 'teacher' else [],
                                  class_id=str(class_obj['_id']))
-        except ClientError:
-            pass
+        except ClientError as e:
+            print(f"Not found at class path: {e}")
+            continue
+            
+    print(f"File not found in any location: {filename}")
     return "File not found or access denied.", 404
 
 @app.route('/download/<filename>')
 def download_file(filename):
     # Sanitize filename
     filename = os.path.basename(filename)
+    print(f"Attempting to download file: {filename}")
+    
+    # First try user's own files
     user_role_dir = f"{session['username']}/{session['role']}"
     file_path = None
     if filename.startswith('summary_'):
@@ -777,29 +791,43 @@ def download_file(filename):
         file_path = f"{user_role_dir}/transcripts/{filename}"
     elif filename.startswith('recording_'):
         file_path = f"{user_role_dir}/recordings/{filename}"
+        
+    print(f"Trying user path: {file_path}")
     try:
         response = s3_client.get_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=file_path)
-        return send_file(response['Body'], as_attachment=True, download_name=filename)
-    except ClientError:
-        pass
-    # Check all classes the user is a teacher or student in
+        file_data = response['Body'].read()
+        print(f"Found file at user path: {file_path}")
+        return send_file(BytesIO(file_data), as_attachment=True, download_name=filename)
+    except ClientError as e:
+        print(f"Not found at user path: {e}")
+    
+    # Then check all classes the user is a teacher or student in
     user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
     class_query = {"$or": [
         {"teacher_id": user['_id']},
         {"students": user['_id']}
     ]}
     classes = mongo.db.classes.find(class_query)
+    
     for class_obj in classes:
         teacher = mongo.db.users.find_one({"_id": class_obj['teacher_id']})
         if not teacher:
             continue
+            
         class_dir = f"{teacher['username']}/classes/{class_obj['class_code']}"
         class_file_path = f"{class_dir}/{filename}"
+        print(f"Trying class path: {class_file_path}")
+        
         try:
             response = s3_client.get_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=class_file_path)
-            return send_file(response['Body'], as_attachment=True, download_name=filename)
-        except ClientError:
-            pass
+            file_data = response['Body'].read()
+            print(f"Found file at class path: {class_file_path}")
+            return send_file(BytesIO(file_data), as_attachment=True, download_name=filename)
+        except ClientError as e:
+            print(f"Not found at class path: {e}")
+            continue
+            
+    print(f"File not found in any location: {filename}")
     return "File not found or access denied.", 404
 
 # Admin routes
