@@ -544,7 +544,7 @@ def transcribe():
             return jsonify({'status': 'error', 'message': f"Invalid audio data: {str(e)}"}), 400
         transcription_prompt = "Please transcribe this audio."
         try:
-            gemini_model = genai.GenerativeModel('gemini-1.5-flash')
+            gemini_model = genai.GenerativeModel('models/gemini-2.0-flash-lite')
             audio_part = {
                 'mime_type': mime_type,
                 'data': audio_bytes
@@ -556,7 +556,7 @@ def transcribe():
             if "API key not valid" in str(e) or "API_KEY_INVALID" in str(e):
                 return jsonify({'status': 'error', 'message': "Gemini API key is invalid. Please check configuration."}), 500
             if "model not found" in str(e).lower() or "model unavailable" in str(e).lower():
-                return jsonify({'status': 'error', 'message': "Gemini 1.5 Flash model unavailable. Please check model availability or try gemini-1.5-flash-8b."}), 500
+                return jsonify({'status': 'error', 'message': "Gemini 2.0 Flash Lite model unavailable. Please check model availability or try gemini-2.0-flash-lite."}), 500
             if hasattr(e, 'response') and hasattr(e.response, 'prompt_feedback'):
                 if e.response.prompt_feedback.block_reason:
                     reason = e.response.prompt_feedback.block_reason
