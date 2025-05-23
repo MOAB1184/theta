@@ -51,7 +51,7 @@ def process_job(job_id):
         # 1. Transcribe with Gemini
         with open(input_path, 'rb') as f:
             audio_bytes = f.read()
-        gemini_model = genai.GenerativeModel('models/gemini-2.0-flash-lite')
+        gemini_model = genai.GenerativeModel('models/gemini-1.5-flash')
         audio_part = {
             'mime_type': 'audio/wav',  # You may want to detect or store the real mime type
             'data': audio_bytes
