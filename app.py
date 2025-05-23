@@ -20,13 +20,21 @@ from botocore.exceptions import ClientError
 from flask_pymongo import PyMongo
 from bson.objectid import ObjectId
 from io import BytesIO
+from queue_manager import summarization_queue
+import uuid
+import logging
+import traceback
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 # Try to load environment variables from .env file
 try:
     load_dotenv()
-    print("Successfully loaded .env file")
+    logger.info("Successfully loaded .env file")
 except Exception as e:
-    print(f"Error loading .env file: {e}. Using environment variables if available.")
+    logger.error(f"Error loading .env file: {e}. Using environment variables if available.")
 
 # Define base data directory for all storage
 BASE_DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), 'local_data'))
@@ -39,8 +47,6 @@ app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(days=7)  # Session
 app.config['SESSION_PERMANENT'] = True
 
 # Use absolute path for SQLite database in /tmp for Vercel compatibility
-# DB_DIR = os.path.join(BASE_DATA_DIR, 'database')
-# os.makedirs(DB_DIR, exist_ok=True)
 db_path = '/tmp/users.db'
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
 
@@ -54,7 +60,6 @@ app.config['UPLOAD_FOLDER'] = os.getenv('WASABI_BUCKET_NAME')
 db = SQLAlchemy(app)
 
 # Global prompt management using MongoDB
-
 def get_global_prompt():
     doc = mongo.db.settings.find_one({'_id': 'global_prompt'})
     if doc and 'prompt_text' in doc:
@@ -83,6 +88,9 @@ deepseek_client = openai.OpenAI(
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
+    logger.info("Gemini API configured successfully")
+else:
+    logger.warning("GEMINI_API_KEY not set")
 
 # Base Prompt that handles subject detection and formatting
 BASE_PROMPT = """
@@ -234,12 +242,11 @@ app.config["MONGO_URI"] = os.getenv("MONGO_URI")
 app.config["MONGO_DBNAME"] = os.getenv("MONGO_DBNAME")
 mongo = PyMongo(app)
 
-print("MONGO_URI:", app.config["MONGO_URI"])
-print("mongo:", mongo)
-print("mongo.db:", mongo.db)
+logger.info("MONGO_URI: %s", app.config["MONGO_URI"])
+logger.info("MongoDB initialized: %s", mongo)
+logger.info("MongoDB database: %s", mongo.db)
 
 # Helper functions for user, class, and school management
-
 def get_user_by_username(username):
     return mongo.db.users.find_one({"username": username})
 
@@ -279,34 +286,34 @@ def register():
             school_id = request.form.get('school_id') if role == 'teacher' else None
 
             if not role or role not in ['student', 'teacher']:
-                                                        return render_template('register.html', error='Invalid role selected', username=username, schools=schools)
+                return render_template('register.html', error='Invalid role selected', username=username, schools=schools)
 
             if role == 'teacher' and not school_id:
-                                                        return render_template('register.html', error='Please select a school.', username=username, role=role, schools=schools)
+                return render_template('register.html', error='Please select a school.', username=username, role=role, schools=schools)
 
             existing_user = get_user_by_username(username)
             if existing_user:
-                                                        return render_template('register.html', error='Username already exists', role=role, username=username, schools=schools)
+                return render_template('register.html', error='Username already exists', role=role, username=username, schools=schools)
 
             password_hash = generate_password_hash(password)
             if role == 'teacher':
-                                                        # Add to pending_teachers for admin approval
-                                                        teacher = {
-                                                            "username": username,
-                                                            "password_hash": password_hash,
-                                                            "role": role,
-                                                            "is_admin": False,
-                                                            "school_id": ObjectId(school_id) if school_id else None,
-                                                            "subscribed": False
-                                                        }
-                                                        mongo.db.pending_teachers.insert_one(teacher)
-                                                        return render_template('register.html', error='Teacher account request sent! Waiting for admin approval.', schools=schools)
+                # Add to pending_teachers for admin approval
+                teacher = {
+                    "username": username,
+                    "password_hash": password_hash,
+                    "role": role,
+                    "is_admin": False,
+                    "school_id": ObjectId(school_id) if school_id else None,
+                    "subscribed": False
+                }
+                mongo.db.pending_teachers.insert_one(teacher)
+                return render_template('register.html', error='Teacher account request sent! Waiting for admin approval.', schools=schools)
             else:
-                                                        create_user(username, password_hash, role, is_admin=False, school_id=school_id)
-                                                        user = get_user_by_username(username)
-                                                        session['user_id'] = str(user['_id'])
-                                                        session['username'] = user['username']
-                                                        session['role'] = user['role']
+                create_user(username, password_hash, role, is_admin=False, school_id=school_id)
+                user = get_user_by_username(username)
+                session['user_id'] = str(user['_id'])
+                session['username'] = user['username']
+                session['role'] = user['role']
             return redirect(url_for('dashboard'))
         except Exception as e:
             import traceback
@@ -377,7 +384,7 @@ def dashboard():
                         elif key.startswith(f"{class_dir}/transcript_"):
                             transcript_count += 1
             except Exception as e:
-                print(f"Error counting files for class {class_code}: {e}")
+                logger.error(f"Error counting files for class {class_code}: {e}")
             class_obj['summary_count'] = summary_count
             class_obj['recording_count'] = recording_count
             class_obj['transcript_count'] = transcript_count
@@ -410,7 +417,7 @@ def dashboard():
                         elif key.startswith(f"{class_dir}/transcript_"):
                             transcript_count += 1
             except Exception as e:
-                print(f"Error counting files for class {class_code}: {e}")
+                logger.error(f"Error counting files for class {class_code}: {e}")
             class_obj['summary_count'] = summary_count
             class_obj['recording_count'] = recording_count
             class_obj['transcript_count'] = transcript_count
@@ -429,17 +436,16 @@ def recordings():
     user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
     if not user:
         return redirect(url_for('logout'))
-    
     # Get user's classes
     if user['role'] == 'teacher':
         classes = list(mongo.db.classes.find({"teacher_id": user['_id']}))
     else:
         enrolled_class_ids = user.get('enrolled_classes', [])
         classes = list(mongo.db.classes.find({"_id": {"$in": enrolled_class_ids}})) if enrolled_class_ids else []
-    
     return render_template('recordings.html', 
                          classes=classes,
-                         username=user['username'])
+                         username=user['username'],
+                         user_role=user['role'])
 
 @app.route('/summaries')
 def summaries():
@@ -466,14 +472,14 @@ def summaries():
                         if len(preview_content) >= 200:
                             preview += '...'
                 except Exception as e:
-                    print(f"Error reading preview for {filename}: {e}")
+                    logger.error(f"Error reading preview for {filename}: {e}")
                 
                 date_str = 'Unknown date'
                 try:
                     date_obj = datetime.datetime.fromtimestamp(int(timestamp_str))
                     date_str = date_obj.strftime('%Y-%m-%d %H:%M')
                 except ValueError:
-                    print(f"Could not parse timestamp: {timestamp_str} for file {filename}")
+                    logger.error(f"Could not parse timestamp: {timestamp_str} for file {filename}")
                 
                 summary_files_data.append({
                     'filename': filename,
@@ -504,14 +510,14 @@ def summaries():
                             if len(preview_content) >= 200:
                                 preview += '...'
                     except Exception as e:
-                        print(f"Error reading preview for {filename}: {e}")
+                        logger.error(f"Error reading preview for {filename}: {e}")
                     
                     date_str = 'Unknown date'
                     try:
                         date_obj = datetime.datetime.fromtimestamp(int(timestamp_str))
                         date_str = date_obj.strftime('%Y-%m-%d %H:%M')
                     except ValueError:
-                        print(f"Could not parse timestamp: {timestamp_str} for file {filename}")
+                        logger.error(f"Could not parse timestamp: {timestamp_str} for file {filename}")
                     
                     summary_files_data.append({
                         'filename': filename,
@@ -527,52 +533,75 @@ def summaries():
 
 @app.route('/api/transcribe', methods=['POST'])
 def transcribe():
+    logger.info("Starting transcription process")
     try:
         audio_base64 = request.json.get('audio_base64')
         mime_type = request.json.get('mime_type')
         class_id = request.json.get('class_id')
+        logger.info("Received request with mime_type: %s, class_id: %s", mime_type, class_id)
 
         if not audio_base64 or not mime_type:
+            logger.error("Missing audio data or mime_type")
             return jsonify({'status': 'error', 'message': "Missing audio data or mime_type."}), 400
         if not GEMINI_API_KEY:
+            logger.error("Gemini API key not configured")
             return jsonify({'status': 'error', 'message': "Gemini API key not configured. Please set the GEMINI_API_KEY environment variable."}), 500
-        print("Decoding audio and using Gemini for transcription...")
+
+        logger.info("Decoding base64 audio data")
         try:
             audio_bytes = base64.b64decode(audio_base64)
+            logger.info("Audio decoded successfully, size: %d bytes", len(audio_bytes))
         except Exception as e:
-            print(f"Error decoding base64 audio: {e}")
+            logger.error("Error decoding base64 audio: %s", str(e))
             return jsonify({'status': 'error', 'message': f"Invalid audio data: {str(e)}"}), 400
+
         transcription_prompt = "Please transcribe this audio."
+        gemini_model_name = 'gemini-2.0-flash-lite'
+        logger.info("Initializing Gemini model: %s", gemini_model_name)
         try:
-            gemini_model = genai.GenerativeModel('gemini-1.5-flash')
+            gemini_model = genai.GenerativeModel(gemini_model_name)
+            logger.info("Gemini model initialized successfully")
             audio_part = {
                 'mime_type': mime_type,
                 'data': audio_bytes
             }
+            logger.info("Sending transcription request to Gemini API")
             gemini_response = gemini_model.generate_content([audio_part, transcription_prompt])
             transcript = gemini_response.text
+            logger.info("Transcription successful, transcript length: %d characters", len(transcript))
         except Exception as e:
-            print(f"Gemini API error: {e}")
+            logger.error("Gemini API error: %s\n%s", str(e), traceback.format_exc())
             if "API key not valid" in str(e) or "API_KEY_INVALID" in str(e):
+                logger.error("Invalid Gemini API key")
                 return jsonify({'status': 'error', 'message': "Gemini API key is invalid. Please check configuration."}), 500
             if "model not found" in str(e).lower() or "model unavailable" in str(e).lower():
-                return jsonify({'status': 'error', 'message': "Gemini 1.5 Flash model unavailable. Please check model availability or try gemini-1.5-flash-8b."}), 500
+                logger.error("Gemini 2.0 Flash Lite model unavailable")
+                return jsonify({'status': 'error', 'message': "Gemini 2.0 Flash Lite model unavailable. Please check model availability in Google Cloud Console."}), 500
             if hasattr(e, 'response') and hasattr(e.response, 'prompt_feedback'):
                 if e.response.prompt_feedback.block_reason:
                     reason = e.response.prompt_feedback.block_reason
+                    logger.error("Transcription blocked due to content policy: %s", reason)
                     return jsonify({'status': 'error', 'message': f"Transcription failed due to content policy: {reason}."}), 400
+            logger.error("Unexpected Gemini API error")
             return jsonify({'status': 'error', 'message': f"Error with Gemini API: {str(e)}"}), 500
+
         # Create directories and save transcript
         timestamp = str(int(time.time()))
         recording_filename = f"recording_{timestamp}.txt"
         transcript_filename = f"transcript_{timestamp}.txt"
+        logger.info("Generated filenames: recording=%s, transcript=%s", recording_filename, transcript_filename)
+
         if class_id:
+            logger.info("Validating class_id: %s", class_id)
             class_obj = mongo.db.classes.find_one({"_id": ObjectId(class_id)})
             if not class_obj:
+                logger.error("Class not found for class_id: %s", class_id)
                 return jsonify({'status': 'error', 'message': 'Class not found'}), 404
             if session['role'] == 'teacher' and class_obj['teacher_id'] != ObjectId(session['user_id']):
+                logger.error("Unauthorized teacher access to class_id: %s", class_id)
                 return jsonify({'status': 'error', 'message': 'Unauthorized access to class'}), 403
             elif session['role'] == 'student' and ObjectId(session['user_id']) not in class_obj.get('students', []):
+                logger.error("Unauthorized student access to class_id: %s", class_id)
                 return jsonify({'status': 'error', 'message': 'Unauthorized access to class'}), 403
             class_dir = f"{session['username']}/classes/{class_obj['class_code']}"
             recording_path = f"{class_dir}/{recording_filename}"
@@ -581,8 +610,16 @@ def transcribe():
             user_dir = f"{session['username']}"
             recording_path = f"{user_dir}/{recording_filename}"
             transcript_path = f"{user_dir}/{transcript_filename}"
-        s3_client.put_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=recording_path, Body=audio_base64)
-        s3_client.put_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=transcript_path, Body=transcript)
+        logger.info("Saving files to Wasabi S3: recording_path=%s, transcript_path=%s", recording_path, transcript_path)
+        try:
+            s3_client.put_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=recording_path, Body=audio_base64)
+            s3_client.put_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=transcript_path, Body=transcript)
+            logger.info("Files saved to Wasabi S3 successfully")
+        except Exception as e:
+            logger.error("Error saving files to Wasabi S3: %s", str(e))
+            return jsonify({'status': 'error', 'message': f"Error saving files to storage: {str(e)}"}), 500
+
+        logger.info("Transcription completed successfully")
         return jsonify({
             'status': 'success',
             'transcript': transcript,
@@ -590,7 +627,7 @@ def transcribe():
             'timestamp': timestamp
         })
     except Exception as e:
-        print(f"Error in transcribe endpoint: {str(e)}")
+        logger.error("Unexpected error in transcribe endpoint: %s\n%s", str(e), traceback.format_exc())
         return jsonify({
             'status': 'error',
             'message': f"Error processing: {str(e)}"
@@ -599,66 +636,60 @@ def transcribe():
 @app.route('/api/summarize', methods=['POST'])
 def summarize():
     try:
-        transcript = request.json.get('transcript')
-        timestamp = request.json.get('timestamp')
-        class_id = request.json.get('class_id')
-        if not transcript or not timestamp:
-            return jsonify({'status': 'error', 'message': "Missing transcript or timestamp"}), 400
-        if not DEEPSEEK_API_KEY:
-            return jsonify({'status': 'error', 'message': "Deepseek API key not configured. Please set the DEEPSEEK_API_KEY environment variable."}), 500
-        summarization_prompt_template = get_global_prompt()
-        if not summarization_prompt_template.strip().endswith("Transcript:"):
-            full_summarization_prompt = summarization_prompt_template + "\n\nTranscript:\n" + transcript
-        else:
-            full_summarization_prompt = summarization_prompt_template + transcript
-        print("Using Deepseek for summarization...")
-        try:
-            summary_resp = deepseek_client.chat.completions.create(
-                model=DEEPSEEK_MODEL,
-                messages=[{"role": "user", "content": full_summarization_prompt}],
-                stream=False
-            )
-            summary = summary_resp.choices[0].message.content
-        except Exception as e:
-            print(f"Deepseek API error: {e}")
-            if "authenticate" in str(e).lower() or "authorization" in str(e).lower():
-                return jsonify({'status': 'error', 'message': "Deepseek API key is invalid. Please check configuration."}), 500
-            return jsonify({'status': 'error', 'message': f"Error with Deepseek API: {str(e)}"}), 500
-        summary_filename = f"summary_{timestamp}.txt"
-        summary_path = None
-        if class_id:
-            class_obj = mongo.db.classes.find_one({"_id": ObjectId(class_id)})
-            if not class_obj:
-                return jsonify({'status': 'error', 'message': 'Class not found'}), 404
-            teacher = mongo.db.users.find_one({"_id": class_obj['teacher_id']})
-            class_dir = f"{teacher['username']}/classes/{class_obj['class_code']}"
-            summary_path = f"{class_dir}/{summary_filename}"
-            print(f"Trying to save summary to S3 at: {summary_path}")
-            s3_client.put_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=summary_path, Body=summary)
-            mongo.db.classes.update_one(
-                {"_id": ObjectId(class_id)},
-                {"$addToSet": {"summaries": {
-                    "filename": summary_filename,
-                    "created_at": datetime.datetime.utcnow(),
-                    "approved": False
-                }}}
-            )
-        else:
-            user_dir = f"{session['username']}"
-            summary_path = f"{user_dir}/{summary_filename}"
-            print(f"Trying to save summary to S3 at: {summary_path}")
-            s3_client.put_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=summary_path, Body=summary)
+        data = request.get_json()
+        transcript = data.get('transcript')
+        timestamp = data.get('timestamp')
+        class_id = data.get('class_id')
+        
+        if not transcript or not timestamp or not class_id:
+            return jsonify({'status': 'error', 'message': 'Missing required fields'}), 400
+
+        # Generate a unique task ID
+        task_id = str(uuid.uuid4())
+        
+        # Add the summarization task to the queue
+        summarization_queue.add_task(
+            task_id,
+            generate_summary,
+            transcript,
+            timestamp,
+            class_id
+        )
+        
         return jsonify({
             'status': 'success',
-            'summary': summary,
-            'summary_filename': summary_filename
+            'message': 'Summarization task queued',
+            'task_id': task_id
         })
+
     except Exception as e:
-        print(f"Error in summarize endpoint: {str(e)}")
-        return jsonify({
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+@app.route('/api/summarize/status/<task_id>', methods=['GET'])
+def summarize_status(task_id):
+    try:
+        result = summarization_queue.get_result(task_id)
+        if not result:
+            return jsonify({'status': 'error', 'message': 'Task not found'}), 404
+            
+        if result['status'] == 'completed':
+            return jsonify({
+            'status': 'success',
+                'result': result['result']
+        })
+        elif result['status'] == 'failed':
+            return jsonify({
             'status': 'error',
-            'message': f"Error processing: {str(e)}"
+                'message': result['error']
         }), 500
+        else:
+            return jsonify({
+                'status': 'pending',
+                'message': 'Task is still processing'
+            })
+            
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
 
 @app.route('/api/check_file', methods=['POST'])
 def check_file():
@@ -666,19 +697,19 @@ def check_file():
         filename = request.json.get('filename')
         if not filename or not filename.startswith('summary_'):
             return jsonify({'status': 'error', 'message': 'Invalid filename'}), 400
-
-        print(f"Checking file: {filename}")
+        
+        logger.info(f"Checking file: {filename}")
         
         # First try user's own summaries
         user_summaries_dir = f"{session['username']}/{session['role']}/summaries"
         user_file_path = f"{user_summaries_dir}/{filename}"
-        print(f"Trying user path: {user_file_path}")
+        logger.info(f"Trying user path: {user_file_path}")
         try:
             s3_client.head_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=user_file_path)
-            print(f"Found file at user path: {user_file_path}")
+            logger.info(f"Found file at user path: {user_file_path}")
             return jsonify({'status': 'success', 'exists': True, 'path': 'user'})
         except ClientError as e:
-            print(f"Not found at user path: {e}")
+            logger.info(f"Not found at user path: {e}")
 
         # Then check all classes the user is a teacher or student in
         user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
@@ -695,21 +726,21 @@ def check_file():
                 
             class_dir = f"{teacher['username']}/classes/{class_obj['class_code']}"
             class_file_path = f"{class_dir}/{filename}"
-            print(f"Trying class path: {class_file_path}")
+            logger.info(f"Trying class path: {class_file_path}")
             
             try:
                 s3_client.head_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=class_file_path)
-                print(f"Found file at class path: {class_file_path}")
+                logger.info(f"Found file at class path: {class_file_path}")
                 return jsonify({'status': 'success', 'exists': True, 'path': 'class', 'class_id': str(class_obj['_id'])})
             except ClientError as e:
-                print(f"Not found at class path: {e}")
+                logger.info(f"Not found at class path: {e}")
                 continue
 
-        print(f"File not found in any location: {filename}")
+        logger.info(f"File not found in any location: {filename}")
         return jsonify({'status': 'success', 'exists': False}), 200
         
     except Exception as e:
-        print(f"Error in check_file endpoint: {str(e)}")
+        logger.error(f"Error in check_file endpoint: {str(e)}")
         return jsonify({'status': 'error', 'message': f"Error checking file: {str(e)}"}), 500
 
 @app.route('/view_summary/<filename>')
@@ -717,7 +748,7 @@ def view_summary(filename):
     if not filename.startswith('summary_'):
         return "Invalid file type for this view.", 400
 
-    print(f"Attempting to view summary: {filename}")
+    logger.info(f"Attempting to view summary: {filename}")
     user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
     if not user:
         return redirect(url_for('logout'))
@@ -725,11 +756,11 @@ def view_summary(filename):
     # First try user's own summaries
     user_summaries_dir = f"{session['username']}/{session['role']}/summaries"
     user_file_path = f"{user_summaries_dir}/{filename}"
-    print(f"Trying user path: {user_file_path}")
+    logger.info(f"Trying user path: {user_file_path}")
     try:
         response = s3_client.get_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=user_file_path)
         content = response['Body'].read().decode('utf-8')
-        print(f"Found file at user path: {user_file_path}")
+        logger.info(f"Found file at user path: {user_file_path}")
         return render_template('view_summary.html', 
                              content=content, 
                              filename=filename,
@@ -739,7 +770,7 @@ def view_summary(filename):
                              classes=list(mongo.db.classes.find({'teacher_id': user['_id']})) if user['role'] == 'teacher' else [],
                              class_id=None)
     except ClientError as e:
-        print(f"Not found at user path: {e}")
+        logger.info(f"Not found at user path: {e}")
 
     # Then check all classes the user is a teacher or student in
     class_query = {"$or": [
@@ -755,12 +786,12 @@ def view_summary(filename):
             
         class_dir = f"{teacher['username']}/classes/{class_obj['class_code']}"
         class_file_path = f"{class_dir}/{filename}"
-        print(f"Trying class path: {class_file_path}")
+        logger.info(f"Trying class path: {class_file_path}")
         
         try:
             response = s3_client.get_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=class_file_path)
             content = response['Body'].read().decode('utf-8')
-            print(f"Found file at class path: {class_file_path}")
+            logger.info(f"Found file at class path: {class_file_path}")
             return render_template('view_summary.html', 
                                  content=content, 
                                  filename=filename,
@@ -770,17 +801,17 @@ def view_summary(filename):
                                  classes=list(mongo.db.classes.find({'teacher_id': user['_id']})) if user['role'] == 'teacher' else [],
                                  class_id=str(class_obj['_id']))
         except ClientError as e:
-            print(f"Not found at class path: {e}")
+            logger.info(f"Not found at class path: {e}")
             continue
             
-    print(f"File not found in any location: {filename}")
+    logger.info(f"File not found in any location: {filename}")
     return "File not found or access denied.", 404
 
 @app.route('/download/<filename>')
 def download_file(filename):
     # Sanitize filename
     filename = os.path.basename(filename)
-    print(f"Attempting to download file: {filename}")
+    logger.info(f"Attempting to download file: {filename}")
     
     # First try user's own files
     user_role_dir = f"{session['username']}/{session['role']}"
@@ -792,14 +823,14 @@ def download_file(filename):
     elif filename.startswith('recording_'):
         file_path = f"{user_role_dir}/recordings/{filename}"
         
-    print(f"Trying user path: {file_path}")
+    logger.info(f"Trying user path: {file_path}")
     try:
         response = s3_client.get_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=file_path)
         file_data = response['Body'].read()
-        print(f"Found file at user path: {file_path}")
+        logger.info(f"Found file at user path: {file_path}")
         return send_file(BytesIO(file_data), as_attachment=True, download_name=filename)
     except ClientError as e:
-        print(f"Not found at user path: {e}")
+        logger.info(f"Not found at user path: {e}")
     
     # Then check all classes the user is a teacher or student in
     user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
@@ -816,18 +847,18 @@ def download_file(filename):
             
         class_dir = f"{teacher['username']}/classes/{class_obj['class_code']}"
         class_file_path = f"{class_dir}/{filename}"
-        print(f"Trying class path: {class_file_path}")
+        logger.info(f"Trying class path: {class_file_path}")
         
         try:
             response = s3_client.get_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=class_file_path)
             file_data = response['Body'].read()
-            print(f"Found file at class path: {class_file_path}")
+            logger.info(f"Found file at class path: {class_file_path}")
             return send_file(BytesIO(file_data), as_attachment=True, download_name=filename)
         except ClientError as e:
-            print(f"Not found at class path: {e}")
+            logger.info(f"Not found at class path: {e}")
             continue
             
-    print(f"File not found in any location: {filename}")
+    logger.info(f"File not found in any location: {filename}")
     return "File not found or access denied.", 404
 
 # Admin routes
@@ -951,7 +982,7 @@ def view_class(class_id):
                     })
         all_summaries.sort(key=lambda x: x['timestamp'], reverse=True)
     except Exception as e:
-        print(f"Error fetching summaries for class {class_code}: {e}")
+        logger.error(f"Error fetching summaries for class {class_code}: {e}")
     # Get approval status from DB
     summary_db_list = class_obj.get('summaries', [])
     summary_approval = {s['filename']: s for s in summary_db_list}
@@ -971,13 +1002,13 @@ def view_class(class_id):
             student_objs.append({'id': str(student['_id']), 'username': student['username']})
     # Fetch pending student requests (if you want to implement approval system)
     pending_requests = class_obj.get('pending_requests', [])
-    print('DEBUG: class_obj["pending_requests"] =', pending_requests)
+    logger.info('DEBUG: class_obj["pending_requests"] = %s', pending_requests)
     pending_objs = []
     for student_id in pending_requests:
         student = mongo.db.users.find_one({'_id': student_id})
         if student:
             pending_objs.append({'id': str(student['_id']), 'username': student['username']})
-    print('DEBUG: pending_objs =', pending_objs)
+    logger.info('DEBUG: pending_objs = %s', pending_objs)
     # Pass correct counts
     summary_count = len(summaries)
     student_count = len(student_objs)
@@ -1112,7 +1143,7 @@ def scan_wasabi_files(username, class_code=None):
                     if key.endswith('.txt'):
                         files.append(key)
         except ClientError as e:
-            print(f"Error scanning class files: {e}")
+            logger.error(f"Error scanning class files: {e}")
     else:
         # Scan user-specific files
         user_dir = f"{username}"
@@ -1124,7 +1155,7 @@ def scan_wasabi_files(username, class_code=None):
                     if key.endswith('.txt'):
                         files.append(key)
         except ClientError as e:
-            print(f"Error scanning user files: {e}")
+            logger.error(f"Error scanning user files: {e}")
     return files
 
 def ensure_admin_and_school():
@@ -1230,7 +1261,7 @@ def deny_summary(class_id, filename):
         try:
             s3_client.delete_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=summary_path)
         except Exception as e:
-            print(f"Error deleting summary file from Wasabi: {e}")
+            logger.error(f"Error deleting summary file from Wasabi: {e}")
     return redirect(url_for('view_class', class_id=class_id))
 
 @app.route('/view_summary_raw/<filename>')
@@ -1282,6 +1313,59 @@ def handle_exception(e):
         }), 500
     # Otherwise, use default error handling
     return str(e), 500
+
+def generate_summary(transcript, timestamp, class_id):
+    """Generate a summary using Deepseek API. This function is called by the queue workers."""
+    if not DEEPSEEK_API_KEY:
+        raise Exception("Deepseek API key not configured")
+        
+    summarization_prompt_template = get_global_prompt()
+    if not summarization_prompt_template.strip().endswith("Transcript:"):
+        full_summarization_prompt = summarization_prompt_template + "\n\nTranscript:\n" + transcript
+    else:
+        full_summarization_prompt = summarization_prompt_template + transcript
+        
+    logger.info("Using Deepseek for summarization...")
+    try:
+        summary_resp = deepseek_client.chat.completions.create(
+            model=DEEPSEEK_MODEL,
+            messages=[{"role": "user", "content": full_summarization_prompt}],
+            stream=False
+        )
+        summary = summary_resp.choices[0].message.content
+    except Exception as e:
+        logger.error(f"Deepseek API error: {e}")
+        if "authenticate" in str(e).lower() or "authorization" in str(e).lower():
+            raise Exception("Deepseek API key is invalid")
+        raise Exception(f"Error with Deepseek API: {str(e)}")
+        
+    summary_filename = f"summary_{timestamp}.txt"
+    summary_path = None
+    
+    class_obj = mongo.db.classes.find_one({"_id": ObjectId(class_id)})
+    if not class_obj:
+        raise Exception('Class not found')
+        
+    teacher = mongo.db.users.find_one({"_id": class_obj['teacher_id']})
+    class_dir = f"{teacher['username']}/classes/{class_obj['class_code']}"
+    summary_path = f"{class_dir}/{summary_filename}"
+    
+    logger.info(f"Trying to save summary to S3 at: {summary_path}")
+    s3_client.put_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=summary_path, Body=summary)
+    
+    mongo.db.classes.update_one(
+        {"_id": ObjectId(class_id)},
+        {"$addToSet": {"summaries": {
+            "filename": summary_filename,
+            "created_at": datetime.datetime.utcnow(),
+            "approved": False
+        }}}
+    )
+    
+    return {
+        'summary': summary,
+        'summary_filename': summary_filename
+    }
 
 if __name__ == '__main__':
     ensure_admin_and_school()

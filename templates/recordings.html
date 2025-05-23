@@ -467,7 +467,8 @@
                     {{ class.name }}
                 </a>
                 {% endfor %}
-                {% elif user_role == 'student' %}
+                {% endif %}
+                {% if user_role == 'student' %}
                 <!-- List all classes for student -->
                 {% for class in classes %}
                 <a href="{{ url_for('view_class', class_id=class._id) }}" class="menu-item">
@@ -782,15 +783,10 @@
                                 const transcribeData = await transcribeResponse.json();
 
                                 if (transcribeData.status === 'success') {
-                                    transcriptContent.textContent = transcribeData.transcript;
-                                    downloadTranscript.href = `/download/${transcribeData.transcript_filename}`;
-                                    downloadTranscript.download = transcribeData.transcript_filename;
-                                    downloadTranscript.classList.remove('hidden');
-                                    downloadTranscript.removeAttribute('disabled');
                                     loadingSection.classList.remove('hidden');
-                                    resultsSection.classList.remove('hidden');
-                                    statusDot.className = 'status-dot complete';
-                                    statusText.textContent = 'Transcript complete. Generating summary...';
+                                    resultsSection.classList.add('hidden');
+                                    statusDot.className = 'status-dot processing';
+                                    statusText.textContent = 'Transcribing recording...';
 
                                     try {
                                         const summarizeResponse = await fetch('/api/summarize', {
@@ -813,24 +809,55 @@
                                             throw new Error('Server did not return JSON: ' + text);
                                         }
                                         if (summarizeData.status === 'success') {
-                                            document.getElementById('summary-content').innerHTML = formatSummary(summarizeData.summary);
-                                            downloadSummary.href = `/download/${summarizeData.summary_filename}`;
-                                            downloadSummary.download = summarizeData.summary_filename;
-                                            document.getElementById('summary-section').classList.remove('hidden');
-                                            loadingSection.classList.add('hidden');
-                                            statusDot.className = 'status-dot complete';
-                                            statusText.textContent = 'Summary generation complete';
-                                            // Render LaTeX in summary
-                                            if (window.renderMathInElement) {
-                                                renderMathInElement(document.getElementById('summary-content'), {
-                                                    delimiters: [
-                                                        {left: "$$", right: "$$", display: true},
-                                                        {left: "$", right: "$", display: false},
-                                                        {left: "\\(", right: "\\)", display: false},
-                                                        {left: "\\[", right: "\\]", display: true}
-                                                    ]
-                                                });
-                                            }
+                                            // Start polling for summarization status
+                                            const taskId = summarizeData.task_id;
+                                            statusText.textContent = 'Summarizing transcript...';
+                                            
+                                            const pollInterval = setInterval(async () => {
+                                                try {
+                                                    const statusResponse = await fetch(`/api/summarize/status/${taskId}`);
+                                                    const statusData = await statusResponse.json();
+                                                    
+                                                    if (statusData.status === 'success') {
+                                                        clearInterval(pollInterval);
+                                                        document.getElementById('summary-content').innerHTML = formatSummary(statusData.result.summary);
+                                                        downloadSummary.href = `/download/${statusData.result.summary_filename}`;
+                                                        downloadSummary.download = statusData.result.summary_filename;
+                                                        document.getElementById('summary-section').classList.remove('hidden');
+                                                        loadingSection.classList.add('hidden');
+                                                        statusDot.className = 'status-dot complete';
+                                                        statusText.textContent = 'Summary generation complete';
+                                                        // Render LaTeX in summary
+                                                        if (window.renderMathInElement) {
+                                                            renderMathInElement(document.getElementById('summary-content'), {
+                                                                delimiters: [
+                                                                    {left: "$$", right: "$$", display: true},
+                                                                    {left: "$", right: "$", display: false},
+                                                                    {left: "\\(", right: "\\)", display: false},
+                                                                    {left: "\\[", right: "\\]", display: true}
+                                                                ]
+                                                            });
+                                                        }
+                                                    } else if (statusData.status === 'failed') {
+                                                        clearInterval(pollInterval);
+                                                        loadingSection.classList.add('hidden');
+                                                        showError(statusData.message || 'Unknown error occurred during summarization');
+                                                        statusDot.className = 'status-dot idle';
+                                                        statusText.textContent = 'Error generating summary';
+                                                    } else if (statusData.status === 'processing') {
+                                                        // Show progress
+                                                        const progress = statusData.progress || 0;
+                                                        statusText.textContent = `Summarizing transcript... ${progress}%`;
+                                                        statusDot.className = 'status-dot processing';
+                                                    }
+                                                } catch (err) {
+                                                    clearInterval(pollInterval);
+                                                    loadingSection.classList.add('hidden');
+                                                    showError("Error checking summarization status: " + err.message);
+                                                    statusDot.className = 'status-dot idle';
+                                                    statusText.textContent = 'Error checking summary status';
+                                                }
+                                            }, 2000); // Poll every 2 seconds
                                         } else {
                                             loadingSection.classList.add('hidden');
                                             showError(summarizeData.message || 'Unknown error occurred during summarization');
