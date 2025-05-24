@@ -428,6 +428,29 @@
         #summary-content .katex {
             text-align: left !important;
         }
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            color: #333;
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+        .back-btn:hover {
+            background-color: #e0e0e0;
+        }
+        .back-btn svg {
+            width: 16px;
+            height: 16px;
+        }
     </style>
     <!-- KaTeX CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css" crossorigin="anonymous">
@@ -555,24 +578,10 @@
             </div>
 
             <div id="results-section" class="results-section hidden">
-                <div class="result-card">
+                <div id="summary-section" class="result-card hidden">
                     <div class="card-header">
-                        <h2 class="card-title">Transcript</h2>
-                        <a id="download-transcript" class="download-btn" href="#" download>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
-                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
-                            </svg>
-                            Download
-                        </a>
-                    </div>
-                    <div id="transcript-content" class="card-content"></div>
-                </div>
-                
-                <div id="summary-section" class="hidden">
-                    <div class="result-card">
-                        <div class="card-header">
-                            <h2 class="card-title">Summary</h2>
+                        <h2 class="card-title">Summary</h2>
+                        <div class="header-actions">
                             <a id="download-summary" class="download-btn" href="#" download>
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                                     <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
@@ -580,9 +589,15 @@
                                 </svg>
                                 Download
                             </a>
+                            <a href="/classes/{{ class_id }}" class="back-btn">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                    <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+                                </svg>
+                                Back to Class
+                            </a>
                         </div>
-                        <div id="summary-content" class="card-content"></div>
                     </div>
+                    <div id="summary-content" class="card-content"></div>
                 </div>
             </div>
         </main>
@@ -776,7 +791,8 @@
                                     },
                                     body: JSON.stringify({
                                         audio_base64: base64Audio,
-                                        mime_type: audioBlob.type
+                                        mime_type: audioBlob.type,
+                                        class_id: classId
                                     }),
                                 });
 
@@ -824,6 +840,7 @@
                                                         downloadSummary.href = `/download/${statusData.result.summary_filename}`;
                                                         downloadSummary.download = statusData.result.summary_filename;
                                                         document.getElementById('summary-section').classList.remove('hidden');
+                                                        resultsSection.classList.remove('hidden');
                                                         loadingSection.classList.add('hidden');
                                                         statusDot.className = 'status-dot complete';
                                                         statusText.textContent = 'Summary generation complete';
