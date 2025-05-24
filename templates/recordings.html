@@ -813,16 +813,13 @@
                                             const taskId = summarizeData.task_id;
                                             statusText.textContent = 'Summarizing transcript...';
                                             
-                                            // Store polling intervals by task_id
-                                            const summaryPollers = {};
-                                            summaryPollers[taskId] = setInterval(async () => {
+                                            const pollInterval = setInterval(async () => {
                                                 try {
                                                     const statusResponse = await fetch(`/api/summarize/status/${taskId}`);
                                                     const statusData = await statusResponse.json();
                                                     
                                                     if (statusData.status === 'success') {
-                                                        clearInterval(summaryPollers[taskId]);
-                                                        delete summaryPollers[taskId];
+                                                        clearInterval(pollInterval);
                                                         document.getElementById('summary-content').innerHTML = formatSummary(statusData.result.summary);
                                                         downloadSummary.href = `/download/${statusData.result.summary_filename}`;
                                                         downloadSummary.download = statusData.result.summary_filename;
@@ -842,8 +839,7 @@
                                                             });
                                                         }
                                                     } else if (statusData.status === 'failed') {
-                                                        clearInterval(summaryPollers[taskId]);
-                                                        delete summaryPollers[taskId];
+                                                        clearInterval(pollInterval);
                                                         loadingSection.classList.add('hidden');
                                                         showError(statusData.message || 'Unknown error occurred during summarization');
                                                         statusDot.className = 'status-dot idle';
@@ -855,8 +851,7 @@
                                                         statusDot.className = 'status-dot processing';
                                                     }
                                                 } catch (err) {
-                                                    clearInterval(summaryPollers[taskId]);
-                                                    delete summaryPollers[taskId];
+                                                    clearInterval(pollInterval);
                                                     loadingSection.classList.add('hidden');
                                                     showError("Error checking summarization status: " + err.message);
                                                     statusDot.className = 'status-dot idle';
