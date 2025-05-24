@@ -544,58 +544,62 @@ thread_pool = ThreadPoolExecutor(max_workers=10)
 def summarize():
     try:
         data = request.get_json()
-        transcript = data.get('transcript')
-        timestamp = data.get('timestamp')
+        if not data or 'transcript' not in data:
+            return jsonify({'status': 'error', 'message': 'No transcript provided'}), 400
+
+        transcript = data['transcript']
+        timestamp = data.get('timestamp', datetime.now().strftime('%Y%m%d_%H%M%S'))
         class_id = data.get('class_id')
-        if not transcript or not timestamp or not class_id:
-            logger.error("Missing required fields for summarization")
-            return jsonify({'status': 'error', 'message': 'Missing required fields'}), 400
+
+        if not class_id:
+            return jsonify({'status': 'error', 'message': 'No class ID provided'}), 400
 
         # Generate a unique task ID
-        task_id = str(uuid.uuid4())
-        logger.info(f"Adding summarization task with task_id: {task_id}")
+        task_id = f"{int(time.time())}-{uuid.uuid4()}"
 
-        # Submit the summarization task to the thread pool
-        future = thread_pool.submit(generate_summary, transcript, timestamp, class_id)
-        logger.info(f"Summarization task {task_id} submitted to thread pool")
+        # Submit the summarization task
+        future = summarization_queue.executor.submit(
+            generate_summary,
+            transcript,
+            timestamp,
+            class_id
+        )
 
-        # Store the future in the queue manager
+        # Add the task to the queue
         summarization_queue.add_task(task_id, future)
-        logger.info(f"Summarization task {task_id} added to queue")
 
         return jsonify({
             'status': 'success',
-            'message': 'Summarization task queued',
-            'task_id': task_id
+            'task_id': task_id,
+            'message': 'Summarization task started'
         })
+
     except Exception as e:
-        logger.error(f"Error in summarize endpoint: {e}")
+        logger.error(f"Error in summarize endpoint: {str(e)}")
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 @app.route('/api/summarize/status/<task_id>', methods=['GET'])
-def summarize_status(task_id):
+def get_summarization_status(task_id):
     try:
         result = summarization_queue.get_result(task_id)
-        if not result:
+        if result is None:
             return jsonify({'status': 'error', 'message': 'Task not found'}), 404
-            
+        
         if result['status'] == 'completed':
             return jsonify({
-            'status': 'success',
+                'status': 'success',
                 'result': result['result']
-        })
+            })
         elif result['status'] == 'failed':
             return jsonify({
-            'status': 'error',
-                'message': result['error']
-        }), 500
-        else:
-            return jsonify({
-                'status': 'pending',
-                'message': 'Task is still processing'
+                'status': 'failed',
+                'message': result.get('error', 'Unknown error occurred')
             })
-            
+        else:
+            return jsonify({'status': 'processing'})
+
     except Exception as e:
+        logger.error(f"Error checking summarization status: {str(e)}")
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 @app.route('/api/check_file', methods=['POST'])

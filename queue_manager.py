@@ -10,57 +10,68 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class SummarizationQueue:
-    def __init__(self):
-        self.queue = Queue()
+    def __init__(self, max_workers=10):
+        self.tasks = {}
         self.results = {}
-        self.lock = Lock()
-        self.thread_pool = ThreadPoolExecutor(max_workers=10)
-        self.cleanup_thread = Thread(target=self._cleanup_old_results, daemon=True)
-        self.cleanup_thread.start()
-        logger.info("SummarizationQueue initialized with 10 workers")
+        self.lock = threading.Lock()
+        self.executor = ThreadPoolExecutor(max_workers=max_workers)
+        logger.info(f"Initialized SummarizationQueue with {max_workers} workers")
 
     def add_task(self, task_id, future):
+        """Add a task to the queue and set up callback to store result."""
         with self.lock:
-            self.results[task_id] = {
-                'status': 'processing',
-                'future': future,
-                'timestamp': time.time()
-            }
-            logger.info(f"Task {task_id} added to queue with future {future}")
+            logger.info(f"Adding task {task_id} to queue")
+            self.tasks[task_id] = future
+            
+            def store_result(future):
+                try:
+                    result = future.result()
+                    with self.lock:
+                        logger.info(f"Task {task_id} completed successfully")
+                        self.results[task_id] = {
+                            'status': 'completed',
+                            'result': result
+                        }
+                except Exception as e:
+                    logger.error(f"Task {task_id} failed: {str(e)}")
+                    with self.lock:
+                        self.results[task_id] = {
+                            'status': 'failed',
+                            'error': str(e)
+                        }
+                finally:
+                    with self.lock:
+                        if task_id in self.tasks:
+                            del self.tasks[task_id]
+
+            future.add_done_callback(store_result)
 
     def get_result(self, task_id):
+        """Get the result of a task."""
         with self.lock:
-            if task_id not in self.results:
+            if task_id in self.results:
+                logger.info(f"Found result for task {task_id}")
+                return self.results[task_id]
+            elif task_id in self.tasks:
+                logger.info(f"Task {task_id} still processing")
+                return {'status': 'processing'}
+            else:
                 logger.warning(f"Task {task_id} not found in results")
                 return None
-            result = self.results[task_id]
-            if result['status'] == 'processing':
-                if result['future'].done():
-                    try:
-                        result['result'] = result['future'].result()
-                        result['status'] = 'completed'
-                        logger.info(f"Task {task_id} completed with result: {result['result']}")
-                    except Exception as e:
-                        result['status'] = 'failed'
-                        result['error'] = str(e)
-                        logger.error(f"Task {task_id} failed with error: {e}")
-            return result
 
-    def _cleanup_old_results(self):
-        while True:
-            time.sleep(3600)  # Cleanup every hour
-            with self.lock:
-                current_time = time.time()
-                for task_id, result in list(self.results.items()):
-                    if current_time - result['timestamp'] > 3600:  # Remove results older than 1 hour
-                        del self.results[task_id]
-                        logger.info(f"Cleaned up old task {task_id}")
+    def cleanup(self):
+        """Clean up completed tasks."""
+        with self.lock:
+            current_time = time.time()
+            # Keep results for 1 hour
+            self.results = {k: v for k, v in self.results.items() 
+                          if current_time - float(k.split('-')[0]) < 3600}
 
     def shutdown(self):
         """Shutdown the queue and workers"""
-        for _ in range(self.thread_pool._max_workers):
-            self.queue.put((None, None))  # Poison pill
-        self.thread_pool.shutdown(wait=True)
+        for _ in range(self.executor._max_workers):
+            self.executor.submit(lambda: None)  # Poison pill
+        self.executor.shutdown(wait=True)
 
 # Global queue instance
-summarization_queue = SummarizationQueue() 
+summarization_queue = SummarizationQueue(max_workers=10) 
