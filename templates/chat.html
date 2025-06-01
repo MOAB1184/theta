@@ -6,8 +6,7 @@
     <title>Theta - Your AI Tutor</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <!-- KaTeX CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0KOVcNqostGnKMUAOUTPUTSHADERmPkTCJ5tmsUQOIMqNesticIMVQPtXWDFC5c8HNMODELOARVIEWERPATIENCEkTprojMKtcglobalDARKNESSshadowFACTORYwoodsMANbattleFIELDexplorerSURFACEassistanceOUTSIDEmoneyPOWDERcontrastESCAPINGobligationSTILLwaterTRYINGquicklyJACKETleaveAPPLEOPERATIONfinishSTONEconstructionREGULARexpressionWORDscreenPHONElanguageBOXsubscribeKNOWLEDGEsolutionTARGETmarketingCONDITIONpurposeEXPERIENCEconcernATTENTIONsoftwareLOCKmotivationCHURCHchallengeMULTIPLEenergySPEAKERperceptionCOMPETITIONpropertyMETHODplatformUNIONinterpretationVIEWenvironmentSECRETARYpaperPRESENCEextensionCDprocedureSUCCESScontributionDEFINITIONassociationTECHNOLOGYdistributionOFFICEreflectionCATEGORYcombinationPOEMheightDIFFERENCEorganizationDEALcombinationHEALTHstrategyARTICLEpoliticsPOWERdiscussionRECORDINGsectorPLAYERaudienceVARIETYdirectorSERIESselectionDEBTpercentageRESOURCEchurchCLASSROOMsituationTOOLexaminationMOVIEexplanationACTIVITYmediaCONNECTIONtownTHOUGHTcomparisonDEPARTUREtemperatureVERSIONcheekEMPLOYEErestaurantLOSSabilitySYSTEManalystGATEcommunityLOCATIONresponseAREAtheoryOPERATIONoutcomeTRADITIONdiscussionMUSICrelationship"
- crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0KOVcNqostGnKMUAOUTPUTSHADERmPkTCJ5tmsUQOIMqNesticIMVQPtXWDFC5c8HNMODELOARVIEWERPATIENCEkTprojMKtcglobalDARKNESSshadowFACTORYwoodsMANbattleFIELDexplorerSURFACEassistanceOUTSIDEmoneyPOWDERcontrastESCAPINGobligationSTILLwaterTRYINGquicklyJACKETleaveAPPLEOPERATIONfinishSTONEconstructionREGULARexpressionWORDscreenPHONElanguageBOXsubscribeKNOWLEDGEsolutionTARGETmarketingCONDITIONpurposeEXPERIENCEconcernATTENTIONsoftwareLOCKmotivationCHURCHchallengeMULTIPLEenergySPEAKERperceptionCOMPETITIONpropertyMETHODplatformUNIONinterpretationVIEWenvironmentSECRETARYpaperPRESENCEextensionCDprocedureSUCCESScontributionDEFINITIONassociationTECHNOLOGYdistributionOFFICEreflectionCATEGORYcombinationPOEMheightDIFFERENCEorganizationDEALcombinationHEALTHstrategyARTICLEpoliticsPOWERdiscussionRECORDINGsectorPLAYERaudienceVARIETYdirectorSERIESselectionDEBTpercentageRESOURCEchurchCLASSROOMsituationTOOLexaminationMOVIEexplanationACTIVITYmediaCONNECTIONtownTHOUGHTcomparisonDEPARTUREtemperatureVERSIONcheekEMPLOYEErestaurantLOSSabilitySYSTEManalystGATEcommunityLOCATIONresponseAREAtheoryOPERATIONoutcomeTRADITIONdiscussionMUSICrelationship" crossorigin="anonymous">
     <!-- Font Awesome for better icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -15,294 +14,333 @@
         body {
             font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
             margin: 0;
-    background-color: #18191c; /* Very dark desaturated blue/grey */
-    color: #c1c2c5; /* Light grey for general text */
+            background-color: #18191c;
+            color: #c1c2c5;
             display: flex;
             justify-content: center;
-            align-items: center;
-    min-height: 100vh;
-    overflow: hidden;
-}
+            align-items: flex-start; /* Changed to allow scrolling */
+            min-height: 100vh;
+            overflow-y: auto; /* Enable vertical scrolling */
+        }
 
-* {
-    box-sizing: border-box;
-}
+        * {
+            box-sizing: border-box;
+        }
 
-/* App Container - Switches between initial and active chat states */
-#app-container {
+        /* App Container - Switches between initial and active chat states */
+        #app-container {
             width: 100%;
-    max-width: 800px; /* Max width for initial centered content */
+            max-width: 800px;
             display: flex;
-    flex-direction: column;
+            flex-direction: column;
             align-items: center;
-    justify-content: center; /* Center content vertically in initial state */
-    transition: all 0.3s ease-out; /* Smooth transition between states */
-            display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    min-height: 100vh;
-    height: 100vh;
-}
+            justify-content: center;
+            transition: all 0.3s ease-out;
+            min-height: 100vh;
+            height: auto; /* Allow height to grow with content */
+        }
 
-/* Main Content Area (Greeting, Input, Chips) */
-#main-content {
-    width: 100%;
+        /* Main Content Area (Greeting, Input, Chips) */
+        #main-content {
+            width: 100%;
             display: flex;
-    flex-direction: column;
+            flex-direction: column;
             align-items: center;
-    padding: 20px; /* Add some padding for initial state */
-}
+            padding: 20px;
+        }
 
-/* Greeting Area - Visible in initial state */
+        /* Greeting Area - Visible in initial state */
         .greeting-area {
             text-align: center;
-    margin-bottom: 30px;
-}
+            margin-bottom: 30px;
+        }
 
-.greeting-asterisk {
-    /* Removed for Grok-like style, can be added back if desired */
-    display: none; 
-}
+        .greeting-asterisk {
+            display: none;
+        }
 
         .greeting-text {
-    font-size: 1.9em; /* Slightly adjusted */
-    color: #e3e4e6; /* Brighter grey/off-white */
-    font-weight: 500; /* Slightly bolder for heading */
-}
+            font-size: 1.9em;
+            color: #e3e4e6;
+            font-weight: 500;
+        }
 
-/* Input Container & Textarea */
+        /* Input Container & Textarea */
         #input-container {
             width: 100%;
-    background-color: #212225; /* Darker input area background */
-    border: 1px solid #303134; /* Subtle border for input area */
+            background-color: #212225;
+            border: 1px solid #303134;
             border-radius: 12px;
-    padding: 10px 15px;
-    margin-bottom: 20px;
+            padding: 10px 15px;
+            margin-bottom: 20px;
             display: flex;
-    flex-direction: column; /* Stack textarea and controls */
+            flex-direction: column;
         }
 
         #user-input {
             width: 100%;
-    min-height: 50px; /* Default height, will auto-resize */
-    max-height: 200px; /* Max height before scrolling */
+            min-height: 50px;
+            max-height: 200px;
             background-color: transparent;
-    color: #d1d2d5; /* Light text for input */
+            color: #d1d2d5;
             border: none;
             outline: none;
             resize: none;
             font-size: 1em;
-    line-height: 1.5;
-    overflow-y: auto; /* Scroll within textarea if max-height exceeded */
-}
+            line-height: 1.5;
+            overflow-y: auto;
+        }
 
-#user-input::placeholder {
-    color: #7a7b7d; /* Softer grey for placeholder */
-}
+        #user-input::placeholder {
+            color: #7a7b7d;
+        }
 
-/* Input Controls */
+        /* Input pills (for showing attached summaries) */
+        .input-pill-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .input-pill {
+            background-color: #2a2d31;
+            color: #d1d2d5;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.9em;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .remove-pill {
+            background: none;
+            border: none;
+            color: #8e9297;
+            cursor: pointer;
+            font-size: 0.9em;
+            padding: 2px;
+        }
+
+        .remove-pill:hover {
+            color: #ff4f4f;
+        }
+
+        /* Input Controls */
         #input-controls {
             display: flex;
             justify-content: space-between;
             align-items: center;
-    padding-top: 8px;
-    margin-top: 5px;
-    /* border-top: 1px solid #4a4b57; /* Optional separator */
-}
+            padding-top: 8px;
+            margin-top: 5px;
+        }
 
-.left-controls, .right-controls {
-    display: flex;
-    align-items: center;
-}
+        .left-controls, .right-controls {
+            display: flex;
+            align-items: center;
+        }
 
         .control-button {
-    background-color: transparent;
-    border: none;
-    color: #8e9297; /* Medium grey for control icons */
-    border-radius: 6px;
-    padding: 6px;
-    margin: 0 4px;
-    cursor: pointer;
-    font-size: 1.1em;
-}
+            background-color: transparent;
+            border: none;
+            color: #8e9297;
+            border-radius: 6px;
+            padding: 6px;
+            margin: 0 4px;
+            cursor: pointer;
+            font-size: 1.1em;
+        }
 
-.control-button:hover {
-    background-color: #2f3136; /* Subtle hover for control buttons */
-}
+        .control-button:hover {
+            background-color: #2f3136;
+        }
 
-.model-name {
-    font-size: 0.85em;
-    color: #8e9297;
-    margin-right: 10px;
-    padding: 4px 8px;
-    background-color: #2a2d31; /* Dark background for model name */
-    border: 1px solid #3a3d42; /* Subtle border */
-    border-radius: 6px;
-}
+        .model-name {
+            font-size: 0.85em;
+            color: #8e9297;
+            margin-right: 10px;
+            padding: 4px 8px;
+            background-color: #2a2d31;
+            border: 1px solid #3a3d42;
+            border-radius: 6px;
+        }
 
         #send-button {
-    background-color: #007bff; /* Bright blue accent */
-    color: white;
-    border: none;
-    font-weight: 500; /* Medium weight */
-    font-size: 1.1em; /* Adjusted size */
-    padding: 7px 12px; /* Adjusted padding */
-    border-radius: 8px;
-    cursor: pointer;
-}
-#send-button:hover {
-    background-color: #0069d9; /* Darker blue on hover */
-}
+            background-color: #007bff;
+            color: white;
+            border: none;
+            font-weight: 500;
+            font-size: 1.1em;
+            padding: 7px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
 
-#theta-voice-button {
-    background-color: transparent; /* Match other control buttons initial state */
-    color: #8e9297;
-    border: 1px solid #3a3d42;
-    padding: 7px 10px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 0.9em; /* Slightly smaller to fit text */
-    margin-right: 8px; /* Space before send button */
-}
+        #send-button:hover {
+            background-color: #0069d9;
+        }
 
-#theta-voice-button:hover {
-    background-color: #2f3136;
-    border-color: #45494e;
-}
+        #theta-voice-button {
+            background-color: transparent;
+            color: #8e9297;
+            border: 1px solid #3a3d42;
+            padding: 7px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-right: 8px;
+        }
 
-/* Chat Box - Hidden in initial state */
+        #theta-voice-button:hover {
+            background-color: #2f3136;
+            border-color: #45494e;
+        }
+
+        /* Chat Box - Hidden in initial state */
         #chat-box {
-            display: flex;
+            display: none;
             flex-direction: column;
-    justify-content: flex-end;
-    align-items: stretch;
-    width: 100%;
-    max-width: 800px;
-    height: 60vh;
-    min-height: 300px;
-    background-color: transparent;
-    padding: 0 20px 32px 20px; /* Add bottom padding */
-    overflow-y: auto;
-    margin: 0 auto;
-    position: relative;
-    box-sizing: border-box;
-}
+            justify-content: flex-end;
+            align-items: stretch;
+            width: 100%;
+            max-width: 800px;
+            height: 60vh;
+            min-height: 300px;
+            background-color: transparent;
+            padding: 0 20px 32px 20px;
+            overflow-y: auto;
+            margin: 0 auto;
+            position: relative;
+            box-sizing: border-box;
+            word-break: break-word;
+        }
 
         .message {
-    margin-bottom: 12px;
-    padding: 10px 15px;
-    border-radius: 18px;
-    line-height: 1.4;
-            max-width: 70%;
-            word-wrap: break-word;
-    font-size: 0.95em;
-    display: inline-block;
-    position: relative;
+            margin-bottom: 12px;
+            padding: 14px 22px;
+            border-radius: 20px;
+            line-height: 1.5;
+            max-width: 75%;
+            min-width: 30%;
+            width: fit-content;
+            font-size: 1em;
+            display: block;
+            position: relative;
+            overflow-wrap: anywhere;
+            white-space: pre-wrap;
+            background: #232323;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.15);
         }
 
         .user-message {
             background-color: #007bff;
             color: white;
-            align-self: flex-end;
             margin-left: auto;
-    margin-right: 0;
+            margin-right: 0;
         }
 
-.bot-message {
+        .bot-message {
             background-color: #2a2d31;
             color: #d1d2d5;
-            align-self: flex-start;
             margin-right: auto;
-    margin-left: 0;
+            margin-left: 0;
             border: 1px solid #3a3d42;
         }
 
-/* --- Chat Active State --- */
+        /* --- Chat Active State --- */
         #app-container.chat-active {
             max-width: 100vw;
             height: 100vh;
-    justify-content: space-between; /* Pushes chat-box up, main-content (input) down */
-    padding: 0; /* Remove padding for full screen effect */
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            padding: 0;
         }
 
-#app-container.chat-active .greeting-area,
-#app-container.chat-active #suggestion-chips {
-    display: none; /* Hide greeting and chips in chat mode */
+        #app-container.chat-active .greeting-area,
+        #app-container.chat-active #suggestion-chips {
+            display: none;
         }
 
         #app-container.chat-active #main-content {
-    /* This becomes the bottom input bar */
-    order: 2; /* Ensure it's at the bottom */
+            order: 2;
             width: 100%;
-    padding: 10px 0; /* Vertical padding, no horizontal for full width bg */
-    background-color: #18191c; /* Match body background */
+            padding: 10px 0;
+            background-color: #18191c;
+            margin-top: auto;
             margin-bottom: 0;
-    flex-shrink: 0; /* Prevent shrinking */
-    box-shadow: 0 -1px 5px rgba(0,0,0,0.15); /* Slightly adjusted subtle shadow */
+            flex-shrink: 0;
+            box-shadow: 0 -1px 5px rgba(0,0,0,0.15);
         }
 
         #app-container.chat-active #input-container {
-    max-width: 800px; /* Center the input field within the full-width bar */
+            max-width: 800px;
             margin: 0 auto;
-    margin-bottom: 0; /* Remove bottom margin when in bar */
-    box-shadow: none; /* Remove individual shadow, main-content has it */
-    background-color: #212225; /* Consistent with initial input area bg */
-    border: 1px solid #303134; /* Consistent with initial input area border */
+            margin-bottom: 0;
+            box-shadow: none;
+            background-color: #212225;
+            border: 1px solid #303134;
         }
 
         #app-container.chat-active #chat-box {
-    display: flex; /* Show chat box */
-    order: 1; /* Ensure it's above main-content */
-    max-width: 800px; /* Center chat content */
-    margin: 0 auto; /* Center chat content */
-    padding-top: 20px; /* Space from top of viewport */
-}
+            display: flex;
+            order: 1;
+            max-width: 800px;
+            margin: 0 auto;
+            padding-top: 20px;
+            flex-grow: 1;
+            height: 60vh; /* Ensure chat box has a fixed height for scrolling */
+            min-height: 300px;
+            overflow-y: auto; /* Allow scrolling up */
+            flex-direction: column;
+        }
 
-/* Custom Scrollbar for WebKit Browsers (Consistent) */
-        #chat-box::-webkit-scrollbar, #user-input::-webkit-scrollbar {
+        /* Custom Scrollbar for WebKit Browsers */
+        #chat-box::-webkit-scrollbar, #user-input::-webkit-scrollbar, body::-webkit-scrollbar {
             width: 8px;
         }
 
-        #chat-box::-webkit-scrollbar-track, #user-input::-webkit-scrollbar-track {
+        #chat-box::-webkit-scrollbar-track, #user-input::-webkit-scrollbar-track, body::-webkit-scrollbar-track {
             background: rgba(0,0,0,0.1);
         }
 
-        #chat-box::-webkit-scrollbar-thumb, #user-input::-webkit-scrollbar-thumb {
-    background-color: #3a3d42; /* Darker scrollbar thumb */
+        #chat-box::-webkit-scrollbar-thumb, #user-input::-webkit-scrollbar-thumb, body::-webkit-scrollbar-thumb {
+            background-color: #3a3d42;
             border-radius: 4px;
         }
 
-        #chat-box::-webkit-scrollbar-thumb:hover, #user-input::-webkit-scrollbar-thumb:hover {
-    background-color: #45494e; /* Lighter scrollbar thumb on hover */
+        #chat-box::-webkit-scrollbar-thumb:hover, #user-input::-webkit-scrollbar-thumb:hover, body::-webkit-scrollbar-thumb:hover {
+            background-color: #45494e;
         }
 
-/* Hide old header if it was ever there */
-#chat-header { display: none; }
+        /* Hide old header if it was ever there */
+        #chat-header { display: none; }
 
-/* KaTeX specific styling adjustments if needed - often fine by default */
+        /* KaTeX specific styling adjustments */
         .katex {
-    font-size: 1.05em; /* Make KaTeX output slightly larger if needed */
-    color: inherit; /* Inherit color from parent (.bot-message) */
-}
+            font-size: 1.05em;
+            color: inherit;
+        }
 
-.bot-message .katex {
-    color: #d1d2d5; /* Ensure KaTeX in bot messages uses the bot message text color */
-}
+        .bot-message .katex {
+            color: #d1d2d5;
+        }
 
-/* Voice Mode UI */
+        /* Voice Mode UI */
         #voice-mode-ui {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
-    background-color: #171717; /* Deeper black background */
+            background-color: #171717;
             display: flex;
             flex-direction: column;
             align-items: center;
-    justify-content: center; /* Center everything vertically */
+            justify-content: center;
             z-index: 1000;
-    overflow: hidden; /* Prevent scrolling */
+            overflow: hidden;
         }
 
         #voice-mode-ui.hidden {
@@ -314,9 +352,9 @@
             top: 0;
             width: 100%;
             display: flex;
-    justify-content: center; /* Center title */
+            justify-content: center;
             padding: 20px;
-    z-index: 10; /* Above particles */
+            z-index: 10;
         }
 
         .voice-mode-title {
@@ -363,12 +401,12 @@
             position: absolute;
             bottom: 50px;
             display: flex;
-    gap: 50px; /* Wider space between buttons */
-    z-index: 10; /* Above particles */
+            gap: 50px;
+            z-index: 10;
         }
 
         .voice-control-button {
-    background-color: rgba(30, 30, 30, 0.8); /* Dark with slight transparency */
+            background-color: rgba(30, 30, 30, 0.8);
             border: none;
             color: #fff;
             width: 70px;
@@ -404,21 +442,202 @@
             background-color: rgba(60, 60, 60, 0.95);
         }
 
-/* You can create a pulsing effect for the mic button when active */
         .mic-active {
             animation: pulse 1.5s infinite;
         }
 
         @keyframes pulse {
-    0% {
-        box-shadow: 0 0 0 0 rgba(70, 199, 255, 0.4);
-    }
-    70% {
-        box-shadow: 0 0 0 10px rgba(70, 199, 255, 0);
-    }
-    100% {
-        box-shadow: 0 0 0 0 rgba(70, 199, 255, 0);
-    }
+            0% {
+                box-shadow: 0 0 0 0 rgba(70, 199, 255, 0.4);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(70, 199, 255, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(70, 199, 255, 0);
+            }
+        }
+
+        /* Summary Selection Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: relative;
+            background-color: #212225;
+            margin: 10% auto;
+            padding: 20px;
+            width: 80%;
+            max-width: 600px;
+            border-radius: 12px;
+            border: 1px solid #303134;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            color: #e3e4e6;
+            font-size: 1.2em;
+            margin: 0;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            color: #8e9297;
+            font-size: 1.5em;
+            cursor: pointer;
+        }
+
+        .summary-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .summary-item {
+            padding: 10px;
+            margin: 5px 0;
+            background-color: #2a2d31;
+            border: 1px solid #3a3d42;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .summary-item:hover {
+            background-color: #32353a;
+        }
+
+        .summary-title {
+            color: #d1d2d5;
+            margin: 0;
+            font-size: 1em;
+        }
+
+        .summary-date {
+            color: #8e9297;
+            font-size: 0.8em;
+            margin-top: 5px;
+        }
+
+        /* Attach Button */
+        .attach-button {
+            background-color: transparent;
+            border: none;
+            color: #8e9297;
+            padding: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.1em;
+            margin-right: 8px;
+        }
+
+        .attach-button:hover {
+            background-color: #2f3136;
+        }
+
+        /* Chat History */
+        .chat-history {
+            display: none;
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 250px;
+            height: 100vh;
+            background-color: #212225;
+            border-right: 1px solid #303134;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .chat-history.active {
+            display: block;
+        }
+
+        .history-item {
+            padding: 10px;
+            margin: 5px 0;
+            background-color: #2a2d31;
+            border: 1px solid #3a3d42;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .history-item:hover {
+            background-color: #32353a;
+        }
+
+        .history-title {
+            color: #d1d2d5;
+            font-size: 0.9em;
+            margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .history-date {
+            color: #8e9297;
+            font-size: 0.8em;
+            margin-top: 5px;
+        }
+
+        /* Adjust main content for chat history */
+        #app-container {
+            margin-left: 0;
+            transition: margin-left 0.3s ease;
+        }
+
+        #app-container.history-active {
+            margin-left: 250px;
+        }
+
+        /* Typing indicator (iPhone style) */
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            margin: 10px 0 0 0;
+            height: 28px;
+        }
+        .typing-indicator .bubble {
+            background: #2a2d31;
+            border-radius: 18px;
+            padding: 6px 16px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+        }
+        .typing-indicator .dot {
+            width: 7px;
+            height: 7px;
+            margin: 0 2px;
+            background: #bfc1c6;
+            border-radius: 50%;
+            opacity: 0.6;
+            animation: blink 1.4s infinite both;
+        }
+        .typing-indicator .dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .typing-indicator .dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        @keyframes blink {
+            0%, 80%, 100% { opacity: 0.6; }
+            40% { opacity: 1; }
         }
     </style>
 </head>
@@ -431,22 +650,27 @@
                 </div>
 
                 <div id="input-container">
+                <div id="attached-summaries" class="input-pill-container"></div>
                 <textarea id="user-input" placeholder="How can I help you today?"></textarea>
                     <div id="input-controls">
                         <div class="left-controls">
-                        <!-- Removed + and ✨ buttons -->
+                        <button class="attach-button" title="Attach Summary">
+                            <i class="fas fa-paperclip"></i>
+                        </button>
+                        <button class="attach-button" id="history-toggle" title="Chat History">
+                            <i class="fas fa-history"></i>
+                        </button>
                         </div>
                         <div class="right-controls">
-                        <button id="send-button">Send</button>
+                        <button id="send-button" title="Send message"><i class="fas fa-arrow-right"></i></button>
+                        </div>
                     </div>
                 </div>
             </div>
-                </div>
 
         <div id="chat-box"></div>
-            </div>
+                </div>
 
-    <!-- Voice Mode UI (hidden by default) -->
             <div id="voice-mode-ui" class="hidden">
                 <div class="voice-mode-header">
                     <div class="voice-mode-title">How can Theta help you today?</div>
@@ -465,6 +689,22 @@
                 </div>
             </div>
 
+    <div id="chat-history" class="chat-history">
+        <h3 style="color: #e3e4e6; margin-top: 0;">Chat History</h3>
+        <div id="history-list"></div>
+                </div>
+
+    <div id="summary-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Select Summary to Attach</h3>
+                <button class="close-modal">×</button>
+            </div>
+            <div class="summary-list" id="summary-list">
+    </div>
+        </div>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const appContainer = document.getElementById('app-container');
@@ -472,79 +712,341 @@
             const chatBox = document.getElementById('chat-box');
             const userInput = document.getElementById('user-input');
             const sendButton = document.getElementById('send-button');
+            const attachButton = document.querySelector('.attach-button');
+            const historyToggle = document.getElementById('history-toggle');
+            const chatHistory = document.getElementById('chat-history');
+            const summaryModal = document.getElementById('summary-modal');
+            const closeModal = document.querySelector('.close-modal');
+            const summaryList = document.getElementById('summary-list');
+            const historyList = document.getElementById('history-list');
 
-            // Auto-resize textarea
-            userInput.addEventListener('input', function() {
-                this.style.height = 'auto';
-                this.style.height = (this.scrollHeight) + 'px';
+            let currentChatId = null;
+            let attachedSummaries = new Set();
+
+            // Load chat history
+            function loadChatHistory() {
+                const history = JSON.parse(localStorage.getItem('chatHistory') || '[]');
+                historyList.innerHTML = '';
+                history
+                    .sort((a, b) => b.date - a.date)
+                    .forEach(chat => {
+                        const item = document.createElement('div');
+                        item.className = 'history-item';
+                        item.innerHTML = `
+                            <h4 class="history-title">${chat.title || 'Chat ' + new Date(chat.date).toLocaleString()}</h4>
+                            <div class="history-date">${new Date(chat.date).toLocaleString()}</div>
+                        `;
+                        item.onclick = () => loadChat(chat.id);
+                        historyList.appendChild(item);
+                    });
+            }
+
+            // Load specific chat
+            function loadChat(chatId) {
+                const history = JSON.parse(localStorage.getItem('chatHistory') || '[]');
+                const chat = history.find(c => c.id === chatId);
+                if (chat) {
+                    currentChatId = chatId;
+                    chatBox.innerHTML = '';
+                    chat.messages.forEach(msg => {
+                        addMessage(msg.text, msg.type, false);
+                    });
+                    attachedSummaries = new Set(chat.attachedSummaries || []);
+                    updateAttachedSummaries();
+                    appContainer.classList.add('chat-active');
+                    renderMathInChatBox();
+                }
+            }
+
+            // Save chat
+            function saveChat() {
+                const messages = Array.from(chatBox.children).map(msg => ({
+                    text: msg.textContent,
+                    type: msg.classList.contains('user-message') ? 'user' : 'bot'
+                }));
+
+                const history = JSON.parse(localStorage.getItem('chatHistory') || '[]');
+                const chatIndex = history.findIndex(c => c.id === currentChatId);
+
+                const chatData = {
+                    id: currentChatId || Date.now().toString(),
+                    date: Date.now(),
+                    title: messages[0]?.text?.substring(0, 50) || 'New Chat',
+                    messages,
+                    attachedSummaries: Array.from(attachedSummaries)
+                };
+
+                if (chatIndex >= 0) {
+                    history[chatIndex] = chatData;
+                        } else {
+                    history.push(chatData);
+                }
+
+                localStorage.setItem('chatHistory', JSON.stringify(history));
+                currentChatId = chatData.id;
+                loadChatHistory();
+            }
+
+            // Load summaries
+            async function loadSummaries() {
+                try {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const classId = urlParams.get('class_id');
+                    if (!classId) {
+                        summaryList.innerHTML = '<div style="color:#ff4f4f;">No class selected. Please access chat from a class page.</div>';
+                        return;
+                    }
+                    summaryList.innerHTML = '<div style="text-align:center;color:#666;">Loading summaries...</div>';
+                    let endpoint = '/api/summaries?class_id=' + classId;
+                    const response = await fetch(endpoint);
+                    const data = await response.json();
+                    if (data.status === 'success') {
+                        summaryList.innerHTML = '';
+                        data.summaries.forEach(summary => {
+                            const item = document.createElement('div');
+                            item.className = 'summary-item';
+                            item.innerHTML = `
+                                <h4 class="summary-title">${summary.title || summary.filename}</h4>
+                                <div class="summary-date">${summary.date}</div>
+                            `;
+                            item.onclick = () => attachSummary(summary.filename);
+                            summaryList.appendChild(item);
+                        });
+                    } else {
+                        summaryList.innerHTML = '<div style="color:#ff4f4f;">Error loading summaries</div>';
+                    }
+                } catch (error) {
+                    console.error('Error loading summaries:', error);
+                    summaryList.innerHTML = '<div style="color:#ff4f4f;">Error loading summaries</div>';
+                }
+            }
+
+            // Attach summary
+            function attachSummary(filename) {
+                if (!attachedSummaries.has(filename)) {
+                    attachedSummaries.add(filename);
+                    updateAttachedSummaries();
+                    saveChat();
+                }
+                summaryModal.style.display = 'none';
+            }
+
+            // Update attached summaries display above the input area
+            function updateAttachedSummaries() {
+                const attachedList = document.getElementById('attached-summaries');
+                attachedList.innerHTML = '';
+                if (attachedSummaries.size > 0) {
+                    attachedSummaries.forEach(filename => {
+                        const pill = document.createElement('div');
+                        pill.className = 'input-pill';
+                        pill.innerHTML = `
+                            ${filename}
+                            <button class="remove-pill" data-filename="${filename}">×</button>
+                        `;
+                        pill.querySelector('.remove-pill').onclick = (e) => {
+                            e.stopPropagation();
+                            attachedSummaries.delete(filename);
+                            updateAttachedSummaries();
+                            saveChat();
+                        };
+                        attachedList.appendChild(pill);
+                    });
+                }
+            }
+
+            // Ensure send button works and chat activates
+            sendButton.addEventListener('click', sendMessage);
+            userInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
             });
 
-            // Handle sending messages
+            // Format summary for LaTeX content and markdown-like syntax (copied from recordings.html)
+            function formatSummary(summary) {
+                // Split summary into LaTeX and non-LaTeX segments
+                const latexRegex = /(\$\$[\s\S]*?\$\$|\$[^$]+\$|\\\([\s\S]*?\\\)|\\\[[\s\S]*?\\\])/g;
+                let parts = [];
+                let lastIndex = 0;
+                let match;
+                while ((match = latexRegex.exec(summary)) !== null) {
+                    if (match.index > lastIndex) {
+                        parts.push({text: summary.slice(lastIndex, match.index), isLatex: false});
+                    }
+                    parts.push({text: match[0], isLatex: true});
+                    lastIndex = latexRegex.lastIndex;
+                }
+                if (lastIndex < summary.length) {
+                    parts.push({text: summary.slice(lastIndex), isLatex: false});
+                }
+                // Markdown-like formatting for non-LaTeX parts
+                function mdFormat(text) {
+                    // Replace lines with only --- or -- with a few spaces
+                    text = text.replace(/^\s*-{2,}\s*$/gm, '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;');
+                    text = text.replace(/^\s*--\s*$/gm, '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;');
+                    text = text.replace(/^### (.*)$/gm, '<h3>$1</h3>');
+                    text = text.replace(/^## (.*)$/gm, '<h2>$1</h2>');
+                    text = text.replace(/^# (.*)$/gm, '<h1>$1</h1>');
+                    text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+                    text = text.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+                    // LaTeX section/subsection
+                    text = text.replace(/\\section\{([^}]+)\}/g, '<h2>$1</h2>');
+                    text = text.replace(/\\subsection\{([^}]+)\}/g, '<h3>$1</h3>');
+                    // LaTeX environments
+                    text = text.replace(/\\begin\{document\}/g, '');
+                    text = text.replace(/\\end\{document\}/g, '');
+                    text = text.replace(/\\begin\{itemize\}/g, '<div class="itemize">');
+                    text = text.replace(/\\end\{itemize\}/g, '</div>');
+                    text = text.replace(/\\item/g, '<div class="item">');
+                    text = text.replace(/\\textbf\{([^}]+)\}/g, '<strong>$1</strong>');
+                    text = text.replace(/\\emph\{([^}]+)\}/g, '<em>$1</em>');
+                    text = text.replace(/\n\n/g, '<br><br>');
+                    return text;
+                }
+                return parts.map(part => part.isLatex ? part.text : mdFormat(part.text)).join('');
+            }
+
+            // Helper: Render KaTeX math in all chat messages
+            function renderMathInChatBox() {
+                                        if (window.renderMathInElement) {
+                    document.querySelectorAll('.bot-message').forEach(msg => {
+                        window.renderMathInElement(msg, {
+                                                delimiters: [
+                                                    {left: "$$", right: "$$", display: true},
+                                {left: "$", right: "$", display: false},
+                                {left: "\\(", right: "\\)", display: false},
+                                {left: "\\[", right: "\\]", display: true}
+                            ],
+                            throwOnError: false,
+                            errorColor: '#cc0000'
+                        });
+                    });
+                }
+            }
+
+            function addMessage(text, type, scroll = true, attached = []) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${type}-message`;
+                if (type === 'user' && attached.length > 0) {
+                    messageDiv.textContent = `${text} [with ${attached.join(', ')}]`;
+                } else if (type === 'bot') {
+                    messageDiv.innerHTML = formatSummary(text);
+                    } else {
+                    messageDiv.textContent = text;
+                }
+                chatBox.appendChild(messageDiv);
+                if (scroll) chatBox.scrollTop = chatBox.scrollHeight;
+                // Activate chat view if not already
+                if (!appContainer.classList.contains('chat-active')) {
+                    appContainer.classList.add('chat-active');
+                    chatBox.style.display = 'flex';
+                }
+                // Only render math for this message (for performance)
+                if (window.renderMathInElement && type === 'bot') {
+                    window.renderMathInElement(messageDiv, {
+                        delimiters: [
+                            {left: "$$", right: "$$", display: true},
+                            {left: "$", right: "$", display: false},
+                            {left: "\\(", right: "\\)", display: false},
+                            {left: "\\[", right: "\\]", display: true}
+                        ],
+                        throwOnError: false,
+                        errorColor: '#cc0000'
+                    });
+                }
+            }
+
+            // Event Listeners
+            attachButton.addEventListener('click', () => {
+                loadSummaries();
+                summaryModal.style.display = 'block';
+            });
+
+            closeModal.addEventListener('click', () => {
+                        summaryModal.style.display = 'none';
+            });
+
+            historyToggle.addEventListener('click', () => {
+                chatHistory.classList.toggle('active');
+                appContainer.classList.toggle('history-active');
+            });
+
+            // Typing indicator logic
+            function showTypingIndicator() {
+                let indicator = document.getElementById('typing-indicator');
+                if (!indicator) {
+                    indicator = document.createElement('div');
+                    indicator.className = 'typing-indicator';
+                    indicator.id = 'typing-indicator';
+                    indicator.innerHTML = '<div class="bubble"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>';
+                    chatBox.appendChild(indicator);
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                }
+            }
+
+            function hideTypingIndicator() {
+                const indicator = document.getElementById('typing-indicator');
+                if (indicator) indicator.remove();
+            }
+
+            // Modified sendMessage function
             async function sendMessage() {
                 const message = userInput.value.trim();
                 if (!message) return;
 
-                // Add user message to chat
-                addMessage(message, 'user');
+                // Show attached summaries in the user message
+                addMessage(message, 'user', true, Array.from(attachedSummaries));
                 userInput.value = '';
                 userInput.style.height = 'auto';
 
-                // Show chat interface if not already shown
-                if (chatBox.style.display !== 'flex') {
-                    mainContent.style.display = 'none';
-                    chatBox.style.display = 'flex';
-                }
+                // Ensure chat box and input are visible
+                appContainer.classList.add('chat-active');
+                chatBox.style.display = 'flex';
 
+                showTypingIndicator();
                 try {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const classId = urlParams.get('class_id');
                     const response = await fetch('/api/chat', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify({ message })
+                        body: JSON.stringify({ 
+                            message,
+                            attachedSummaries: Array.from(attachedSummaries),
+                            class_id: classId
+                        })
                     });
 
                     const data = await response.json();
+                    hideTypingIndicator();
                     if (data.status === 'success') {
                         addMessage(data.response, 'bot');
-                                    } else {
+                        saveChat();
+                    } else {
                         addMessage('Sorry, I encountered an error. Please try again.', 'bot');
                     }
                 } catch (error) {
+                    hideTypingIndicator();
                     console.error('Error:', error);
                     addMessage('Sorry, I encountered an error. Please try again.', 'bot');
                 }
             }
 
-            // Add message to chat
-            function addMessage(text, type) {
-                const messageDiv = document.createElement('div');
-                messageDiv.className = `message ${type}-message`;
-                messageDiv.textContent = text;
-                chatBox.appendChild(messageDiv);
-                chatBox.scrollTop = chatBox.scrollHeight;
-            }
+            // Load initial chat history
+            loadChatHistory();
 
-            // Event listeners
-            sendButton.addEventListener('click', sendMessage);
-            userInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                        sendMessage();
-                }
-            });
+            // Initial render of any existing messages
+            renderMathInChatBox();
         });
     </script>
-    <!-- KaTeX JS -->
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGqy கேரளжіSECURITYfactorGANESHAbirthdayDOWNLOADSleaveBIRTHPLACEpredictionBELIEVEviewSEXUALoutcomePROPOSALhunterCORNERpersonMETHODstopPERCENTAGEvillageADMISSIONexchangeCONTACTchoiceTRUTHshowcaseMOMENTdirectorRISKsectionCHARACTERnovelDEALdestinationBROADproblemINDUSTRYeditorQUICKLYvisitorVIEWERtranslationCONSTRUCTIONintervalCOLLECTIONflatDEPARTUREstrategyLANGUAGEregionSPEAKERdirectorTARGET"
- crossorigin="anonymous"></script>
-    <!-- KaTeX auto-render extension -->
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax5AS+fW الاحصائياتKOMPRESSORlosLAURENCEviolencePERCENTAGEconditionOPERATIONcombinationSMARTautomaticallyMACHINEorganizationMOTORcyclePLASTICadvantageVIEWactorVISUALcapitalTOURISTcommunicationSOCIETYvariationABILITYsecretaryTOOLmorningCOMPETITIONsignaturePRODUCTtransportationZONEsectorOPERATIONdifferencePERFORMANCEalternativeMESSAGEadvantageOFFICEimportanceDEALreflectionCONSTRUCTIONexaminationDEPARTUREpercentageVARIETYregion"
- crossorigin="anonymous"></script>
+    <!-- KaTeX JS and Auto-render -->
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGqyகேரளжіSECURITYfactorGANESHAbirthdayDOWNLOADSleaveBIRTHPLACEpredictionBELIEVEviewSEXUALoutcomePROPOSALhunterCORNERpersonMETHODstopPERCENTAGEvillageADMISSIONexchangeCONTACTchoiceTRUTHshowcaseMOMENTdirectorRISKsectionCHARACTERnovelDEALdestinationBROADproblemINDUSTRYeditorQUICKLYvisitorVIEWERtranslationCONSTRUCTIONintervalCOLLECTIONflatDEPARTUREstrategyLANGUAGEregionSPEAKERdirectorTARGET" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax5AS+fW الاحصائياتKOMPRESSORlosLAURENCEviolencePERCENTAGEconditionOPERATIONcombinationSMARTautomaticallyMACHINEorganizationMOTORcyclePLASTICadvantageVIEWactorVISUALcapitalTOURISTcommunicationSOCIETYvariationABILITYsecretaryTOOLmorningCOMPETITIONsignaturePRODUCTtransportationZONEsectorOPERATIONdifferencePERFORMANCEalternativeMESSAGEadvantageOFFICEimportanceDEALreflectionCONSTRUCTIONexaminationDEPARTUREpercentageVARIETYregion" crossorigin="anonymous"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            // This is a global configuration for KaTeX auto-render.
-            // It will be called by script.js on specific elements.
             window.renderMathInElementOptions = {
                 delimiters: [
                     {left: "$$", right: "$$", display: true},
@@ -552,9 +1054,8 @@
                     {left: "$", right: "$", display: false},
                     {left: "\\(", right: "\\)", display: false}
                 ],
-                throwOnError: false
+                throwOnError: false,
+                errorColor: '#cc0000' // Optional, can be removed to hide errors
             };
         });
     </script>
-</body>
-</html> 

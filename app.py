@@ -83,7 +83,7 @@ def save_global_prompt(prompt_text):
         {'_id': 'global_prompt'},
         {'$set': {'prompt_text': prompt_text}},
         upsert=True
-    )
+)
 
 # Configure Gemini
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
@@ -1648,6 +1648,55 @@ OPENROUTER_MODEL = "deepseek/deepseek-r1-distill-qwen-7b"
 OPENROUTER_SITE_URL = os.getenv('OPENROUTER_SITE_URL', 'https://thetasummary.com')
 OPENROUTER_SITE_TITLE = os.getenv('OPENROUTER_SITE_TITLE', 'ThetaSummary')
 
+@app.route('/api/summaries', methods=['GET'])
+def get_summaries():
+    if 'user_id' not in session:
+        return jsonify({'status': 'error', 'message': 'Not logged in'}), 401
+    user = mongo.db.users.find_one({'_id': ObjectId(session['user_id'])})
+    class_id = request.args.get('class_id')
+    if not class_id:
+        return jsonify({'status': 'error', 'message': 'Missing class_id'}), 400
+    class_obj = mongo.db.classes.find_one({'_id': ObjectId(class_id)})
+    if not class_obj:
+        return jsonify({'status': 'error', 'message': 'Class not found'}), 404
+    # Check if user is in class
+    if user['role'] == 'teacher' and class_obj['teacher_id'] != user['_id']:
+        return jsonify({'status': 'error', 'message': 'Access denied'}), 403
+    if user['role'] == 'student' and user['_id'] not in class_obj.get('students', []):
+        return jsonify({'status': 'error', 'message': 'Access denied'}), 403
+    teacher = mongo.db.users.find_one({'_id': class_obj['teacher_id']})
+    class_code = class_obj.get('class_code')
+    class_dir = f"{teacher['username']}/classes/{class_code}"
+    summaries = []
+    try:
+        response = s3_client.list_objects_v2(Bucket=os.getenv('WASABI_BUCKET_NAME'), Prefix=class_dir)
+        if 'Contents' in response:
+            for obj in response['Contents']:
+                key = obj['Key']
+                if key.startswith(f"{class_dir}/summary_"):
+                    filename = key.split('/')[-1]
+                    # Parse date from filename
+                    try:
+                        timestamp_str = filename.split('_')[1].split('.')[0]
+                        timestamp = int(timestamp_str)
+                        date_obj = datetime.datetime.fromtimestamp(timestamp)
+                        date_str = date_obj.strftime('%Y-%m-%d %I:%M %p')
+                    except Exception:
+                        date_str = 'Unknown date'
+                        timestamp = 0
+                    # Get preview (first 200 chars)
+                    try:
+                        file_obj = s3_client.get_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=key)
+                        preview = file_obj['Body'].read(200).decode('utf-8')
+                    except Exception:
+                        preview = '[Error loading summary]'
+                    summaries.append({'filename': filename, 'title': filename, 'date': date_str, 'timestamp': timestamp, 'preview': preview})
+        # Sort summaries by timestamp, latest first
+        summaries.sort(key=lambda x: x['timestamp'], reverse=True)
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+    return jsonify({'status': 'success', 'summaries': summaries})
+
 @app.route('/api/chat', methods=['POST'])
 def chat_api():
     if 'user_id' not in session:
@@ -1655,21 +1704,55 @@ def chat_api():
     try:
         data = request.get_json()
         message = data.get('message')
+        attached_summaries = data.get('attachedSummaries', [])
+        class_id = data.get('class_id') or request.args.get('class_id')
         if not message:
             return jsonify({'status': 'error', 'message': 'No message provided'}), 400
+        # Fetch summary content from Wasabi S3
+        summaries_content = []
+        if attached_summaries and class_id:
+            class_obj = mongo.db.classes.find_one({'_id': ObjectId(class_id)})
+            if class_obj:
+                teacher = mongo.db.users.find_one({'_id': class_obj['teacher_id']})
+                class_code = class_obj.get('class_code')
+                for filename in attached_summaries:
+                    key = f"{teacher['username']}/classes/{class_code}/{filename}"
+                    try:
+                        file_obj = s3_client.get_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=key)
+                        content = file_obj['Body'].read().decode('utf-8')
+                        summaries_content.append(content)
+                    except Exception as e:
+                        summaries_content.append('[Error loading summary]')
+        # Create context from summaries
+        context = "\n\n".join(summaries_content) if summaries_content else ""
         client = openai.OpenAI(
             base_url="https://openrouter.ai/api/v1",
             api_key=OPENROUTER_API_KEY,
         )
+        # Add context to the message if there are summaries
+        full_message = f"Context from attached summaries:\n{context}\n\nUser message: {message}" if context else message
         completion = client.chat.completions.create(
             extra_headers={
                 "HTTP-Referer": OPENROUTER_SITE_URL,
                 "X-Title": OPENROUTER_SITE_TITLE,
             },
             model=OPENROUTER_MODEL,
-            messages=[{"role": "user", "content": message}]
+            messages=[{"role": "user", "content": full_message}]
         )
         ai_response = completion.choices[0].message.content
+        # Track token usage
+        usage = getattr(completion, 'usage', None)
+        if usage:
+            input_tokens = getattr(usage, 'prompt_tokens', 0)
+            output_tokens = getattr(usage, 'completion_tokens', 0)
+            user = mongo.db.users.find_one({'_id': ObjectId(session['user_id'])})
+            mongo.db.users.update_one(
+                {'_id': ObjectId(session['user_id'])},
+                {'$inc': {
+                    'chat_input_tokens': input_tokens,
+                    'chat_output_tokens': output_tokens
+                }}
+            )
         return jsonify({'status': 'success', 'response': ai_response})
     except Exception as e:
         logger.error(f"Error in chat API: {str(e)}")

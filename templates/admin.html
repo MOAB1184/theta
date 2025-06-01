@@ -92,6 +92,13 @@
             background: rgba(255, 255, 255, 0.1);
         }
         
+        .btn-outline.enabled-btn {
+            color: green;
+        }
+        .btn-outline.disabled-btn {
+            color: gray;
+        }
+        
         main {
             padding: 40px 0;
         }
@@ -317,7 +324,7 @@
                                 </td>
                                 <td>
                                     <form method="POST" action="{{ url_for('toggle_theta', user_id=user._id) }}" style="display:inline;">
-                                        <button type="submit" class="btn btn-outline" style="color: {{ 'green' if user.talk_to_theta_enabled else 'gray' }};">
+                                        <button type="submit" class="btn btn-outline {{ 'enabled-btn' if user.talk_to_theta_enabled else 'disabled-btn' }}">
                                             {{ 'Enabled' if user.talk_to_theta_enabled else 'Disabled' }}
                                         </button>
                                     </form>
@@ -328,7 +335,7 @@
                                         <form method="POST" action="{{ url_for('admin_delete_user', user_id=user._id) }}" style="display: inline;">
                                             <button type="submit" class="btn btn-outline" style="color: #ef4444;">Delete</button>
                                         </form>
-                                    </div>
+                    </div>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -389,6 +396,34 @@
                     </div>
                     {% endif %}
                 </div>
+            </div>
+
+            <!-- Theta Chatbot Usage Section -->
+            <div class="section">
+                <h2 class="section-title">Theta Chatbot Usage</h2>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Input Tokens</th>
+                            <th>Output Tokens</th>
+                            <th>Cost</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td>{{ user.username }}</td>
+                            <td>{{ user.chat_input_tokens|default(0) }}</td>
+                            <td>{{ user.chat_output_tokens|default(0) }}</td>
+                            <td>
+                                ${{ '%.4f' % (user.chat_input_tokens|default(0) / 1_000_000 * 0.10 + user.chat_output_tokens|default(0) / 1_000_000 * 0.20) }}
+                                <span style="color: #888; font-size: 0.9em;">(${{ '%.4f' % (user.chat_input_tokens|default(0) / 1_000_000 * 0.10) }} input, ${{ '%.4f' % (user.chat_output_tokens|default(0) / 1_000_000 * 0.20) }} output)</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </main>

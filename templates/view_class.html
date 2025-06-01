@@ -449,16 +449,16 @@
                     <h1 class="page-title">{{ class_obj.name }}</h1>
                     <div class="header-actions">
                         {% if talk_to_theta_enabled %}
-                        <a href="/chat" class="btn btn-primary" style="margin-right: 1rem;">Talk to Theta</a>
+                        <a href="/chat?class_id={{ class_obj._id }}" class="btn btn-primary" style="margin-right: 1rem;">Talk to Theta</a>
                         {% endif %}
-                        <div class="user-menu">
-                            <button class="user-button">
+                <div class="user-menu">
+                    <button class="user-button">
                                 <div class="user-avatar">{{ username[0].upper() }}</div>
                                 <span>{{ username }}</span>
-                            </button>
+                    </button>
                         </div>
-                    </div>
-                </header>
+                </div>
+            </header>
             
                 <!-- Top Section: Class Info and Student Management -->
                 <div class="top-section">
@@ -573,7 +573,7 @@
             <p>Summary will be processed and uploaded soon...</p>
         </div>
     </template>
-
+    
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Sidebar functionality (unchanged)
