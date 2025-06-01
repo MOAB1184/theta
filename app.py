@@ -40,10 +40,6 @@ try:
 except Exception as e:
     logger.error(f"Error loading .env file: {e}. Using environment variables if available.")
 
-# Define base data directory for all storage
-BASE_DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), 'local_data'))
-os.makedirs(BASE_DATA_DIR, exist_ok=True)
-
 # Initialize Flask app
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'thetasummary-secret-key'
@@ -67,9 +63,6 @@ sendgrid_client = SendGridAPIClient(os.getenv('SENDGRID_API_KEY'))
 # Use absolute path for SQLite database in /tmp for Vercel compatibility
 db_path = '/tmp/users.db'
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
-
-# Configure user files directory
-USER_FILES_DIR = os.path.join(BASE_DATA_DIR, 'user_files')
 
 # Update UPLOAD_FOLDER to use Wasabi
 app.config['UPLOAD_FOLDER'] = os.getenv('WASABI_BUCKET_NAME')
