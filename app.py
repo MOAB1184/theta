@@ -1505,9 +1505,9 @@ def handle_exception(e):
     return str(e), 500
 
 def generate_summary(transcript, timestamp, class_id):
-    """Generate a summary using Deepseek API. This function is called by the queue workers."""
-    if not DEEPSEEK_API_KEY:
-        raise Exception("Deepseek API key not configured")
+    """Generate a summary using Gemini API. This function is called by the queue workers."""
+    if not GEMINI_API_KEY:
+        raise Exception("Gemini API key not configured")
         
     summarization_prompt_template = get_global_prompt()
     if not summarization_prompt_template.strip().endswith("Transcript:"):
@@ -1515,19 +1515,16 @@ def generate_summary(transcript, timestamp, class_id):
     else:
         full_summarization_prompt = summarization_prompt_template + transcript
         
-    logger.info("Using Deepseek for summarization...")
+    logger.info("Using Gemini for summarization...")
     try:
-        summary_resp = deepseek_client.chat.completions.create(
-            model=DEEPSEEK_MODEL,
-            messages=[{"role": "user", "content": full_summarization_prompt}],
-            stream=False
-        )
-        summary = summary_resp.choices[0].message.content
+        gemini_model = genai.GenerativeModel('gemini-2.0-flash-lite')
+        gemini_response = gemini_model.generate_content(full_summarization_prompt)
+        summary = gemini_response.text
     except Exception as e:
-        logger.error(f"Deepseek API error: {e}")
+        logger.error(f"Gemini API error: {e}")
         if "authenticate" in str(e).lower() or "authorization" in str(e).lower():
-            raise Exception("Deepseek API key is invalid")
-        raise Exception(f"Error with Deepseek API: {str(e)}")
+            raise Exception("Gemini API key is invalid")
+        raise Exception(f"Error with Gemini API: {str(e)}")
         
     summary_filename = f"summary_{timestamp}.txt"
     summary_path = None

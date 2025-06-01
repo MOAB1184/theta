@@ -51,7 +51,7 @@ def process_job(job_id):
         # 1. Transcribe with Gemini
         with open(input_path, 'rb') as f:
             audio_bytes = f.read()
-        gemini_model = genai.GenerativeModel('models/gemini-1.5-flash')
+        gemini_model = genai.GenerativeModel('gemini-2.0-flash-lite')
         audio_part = {
             'mime_type': 'audio/wav',  # You may want to detect or store the real mime type
             'data': audio_bytes
@@ -61,15 +61,10 @@ def process_job(job_id):
         with open(transcript_path, 'w', encoding='utf-8') as f:
             f.write(transcript)
         log_job(job_id, 'Transcription complete')
-        # 2. Summarize with DeepSeek
-        deepseek_client = openai.OpenAI(api_key=DEEPSEEK_API_KEY, base_url=DEEPSEEK_URL)
+        # 2. Summarize with Gemini
         prompt = "Please summarize this transcript for a student. Transcript: " + transcript
-        summary_resp = deepseek_client.chat.completions.create(
-            model=DEEPSEEK_MODEL,
-            messages=[{"role": "user", "content": prompt}],
-            stream=False
-        )
-        summary = summary_resp.choices[0].message.content
+        summary_response = gemini_model.generate_content(prompt)
+        summary = summary_response.text
         with open(summary_path, 'w', encoding='utf-8') as f:
             f.write(summary)
         log_job(job_id, 'Summarization complete')

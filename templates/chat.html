@@ -669,67 +669,67 @@
     <a id="back-to-class" style="position:fixed;top:18px;left:18px;z-index:2000;text-decoration:none;" href="#">
         <button style="background:#232323;color:#e3e4e6;border:none;padding:8px 18px;border-radius:8px;font-size:1em;box-shadow:0 2px 8px rgba(0,0,0,0.12);cursor:pointer;display:flex;align-items:center;gap:7px;">
             <i class="fas fa-arrow-left"></i> Back to Class
-        </button>
+                </button>
     </a>
     <div id="app-container">
-        <div id="main-content">
-            <div class="greeting-area">
-                <span class="greeting-asterisk">*</span>
-                <h1 class="greeting-text">How can Theta help you today?</h1>
-            </div>
+            <div id="main-content">
+                <div class="greeting-area">
+                    <span class="greeting-asterisk">*</span>
+                    <h1 class="greeting-text">How can Theta help you today?</h1>
+                </div>
 
-            <div id="input-container">
+                <div id="input-container">
                 <div id="attached-summaries" class="input-pill-container"></div>
                 <textarea id="user-input" placeholder="How can I help you today?"></textarea>
-                <div id="input-controls">
-                    <div class="left-controls">
+                    <div id="input-controls">
+                        <div class="left-controls">
                         <button class="attach-button" id="attach-summary-button" title="Attach Summary">
                             <i class="fas fa-paperclip"></i>
                         </button>
                         <button class="attach-button" id="history-toggle" title="Chat History">
                             <i class="fas fa-history"></i>
                         </button>
-                    </div>
-                    <div class="right-controls">
+                        </div>
+                        <div class="right-controls">
                         <button id="send-button" title="Send message"><i class="fas fa-arrow-right"></i></button>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
         <div id="chat-box"></div>
 
-        <div id="voice-mode-ui" class="hidden">
-            <div class="voice-mode-header">
-                <div class="voice-mode-title">How can Theta help you today?</div>
-                <button id="close-voice-mode" aria-label="Close voice mode"><i class="fa-solid fa-times"></i></button>
+            <div id="voice-mode-ui" class="hidden">
+                <div class="voice-mode-header">
+                    <div class="voice-mode-title">How can Theta help you today?</div>
+                    <button id="close-voice-mode" aria-label="Close voice mode"><i class="fa-solid fa-times"></i></button>
+                </div>
+                <div id="particle-animation-container">
+                    <canvas id="particle-canvas"></canvas>
+                </div>
+                <div id="voice-controls">
+                    <button id="call-button" class="voice-control-button" aria-label="End call">
+                        <i class="fa-solid fa-phone" style="color: #ff3366;"></i>
+                    </button>
+                    <button id="mic-button" class="voice-control-button" aria-label="Toggle microphone">
+                        <i class="fa-solid fa-microphone"></i>
+                    </button>
+                </div>
             </div>
-            <div id="particle-animation-container">
-                <canvas id="particle-canvas"></canvas>
-            </div>
-            <div id="voice-controls">
-                <button id="call-button" class="voice-control-button" aria-label="End call">
-                    <i class="fa-solid fa-phone" style="color: #ff3366;"></i>
-                </button>
-                <button id="mic-button" class="voice-control-button" aria-label="Toggle microphone">
-                    <i class="fa-solid fa-microphone"></i>
-                </button>
-            </div>
-        </div>
 
         <div id="chat-history" class="chat-history">
             <h3 style="color: #e3e4e6; margin-top: 0;">Chat History</h3>
             <div id="history-list"></div>
-        </div>
+                </div>
 
         <div id="summary-modal" class="modal">
             <div class="modal-content">
                 <div class="modal-header">
                     <h3 class="modal-title">Select Summary to Attach</h3>
                     <button class="close-modal">×</button>
-                </div>
+            </div>
                 <div class="summary-list" id="summary-list">
-                </div>
+    </div>
             </div>
         </div>
     </div>
@@ -914,42 +914,42 @@
 
                 // Step 3: Parse Markdown with marked.js
                 if (typeof marked !== 'undefined') {
-                    marked.setOptions({
-                        gfm: true,
-                        breaks: true,
-                        pedantic: false,
-                        sanitizer: null
-                    });
-                    let htmlContent = marked.parse(processedContent);
+                marked.setOptions({
+                    gfm: true,
+                    breaks: true,
+                    pedantic: false,
+                    sanitizer: null
+                });
+                let htmlContent = marked.parse(processedContent);
 
                     // Step 4: Restore and render LaTeX math with KaTeX
-                    mathPlaceholders.forEach(({ placeholder, content }) => {
-                        try {
-                            const isDisplay = placeholder.includes('_DISPLAY_');
-                            let tex;
-                            if (content.startsWith('\\[') || content.startsWith('\\(')) {
-                                tex = content.slice(2, -2).trim();
-                            } else if (content.startsWith('$$')) {
-                                tex = content.slice(2, -2).trim();
-                            } else {
-                                tex = content.slice(1, -1).trim();
-                            }
-                            const rendered = katex.renderToString(tex, {
-                                throwOnError: false,
-                                displayMode: isDisplay,
-                                strict: false,
+                mathPlaceholders.forEach(({ placeholder, content }) => {
+                    try {
+                        const isDisplay = placeholder.includes('_DISPLAY_');
+                        let tex;
+                        if (content.startsWith('\\[') || content.startsWith('\\(')) {
+                            tex = content.slice(2, -2).trim();
+                        } else if (content.startsWith('$$')) {
+                            tex = content.slice(2, -2).trim();
+                        } else {
+                            tex = content.slice(1, -1).trim();
+                        }
+                        const rendered = katex.renderToString(tex, {
+                            throwOnError: false,
+                            displayMode: isDisplay,
+                            strict: false,
                                 trust: true,
                                 maxSize: 1000 // Limit rendering size to prevent overflow
-                            });
-                            const replacement = isDisplay ? `<div class="katex-display">${rendered}</div>` : `<span class="katex">${rendered}</span>`;
-                            htmlContent = htmlContent.replace(placeholder, replacement);
-                        } catch (err) {
-                            console.error(`Error rendering LaTeX: ${content}`, err);
-                            htmlContent = htmlContent.replace(placeholder, `<span class="katex-error">${content}</span>`);
-                        }
-                    });
+                        });
+                        const replacement = isDisplay ? `<div class="katex-display">${rendered}</div>` : `<span class="katex">${rendered}</span>`;
+                        htmlContent = htmlContent.replace(placeholder, replacement);
+                    } catch (err) {
+                        console.error(`Error rendering LaTeX: ${content}`, err);
+                        htmlContent = htmlContent.replace(placeholder, `<span class="katex-error">${content}</span>`);
+                    }
+                });
 
-                    return htmlContent;
+                return htmlContent;
                 }
                 return processedContent; // Fallback if marked is not loaded
             }
@@ -959,8 +959,8 @@
                 if (typeof window.renderMathInElement === 'function') {
                     document.querySelectorAll('.bot-message:not([data-math-rendered])').forEach(msg => {
                         window.renderMathInElement(msg, window.renderMathInElementOptions || {
-                            delimiters: [
-                                {left: "$$", right: "$$", display: true},
+                        delimiters: [
+                            {left: "$$", right: "$$", display: true},
                                 {left: "$", right: "$", display: false},
                                 {left: "\\(", right: "\\)", display: false},
                                 {left: "\\[", right: "\\]", display: true}
@@ -1061,7 +1061,7 @@
                     if (data.status === 'success') {
                         addMessage(data.response, 'bot');
                         saveChat();
-                    } else {
+                                    } else {
                         addMessage('Sorry, I encountered an error. Please try again.', 'bot');
                     }
                 } catch (error) {
@@ -1074,7 +1074,7 @@
             // Event Listeners for Buttons
             if (sendButton) {
                 sendButton.addEventListener('click', sendMessage);
-            } else {
+                    } else {
                 console.error('Send button not found');
             }
 
@@ -1094,7 +1094,7 @@
                     loadSummaries();
                     summaryModal.style.display = 'block';
                 });
-            } else {
+                } else {
                 console.error('Attach summary button not found');
             }
 
@@ -1109,9 +1109,9 @@
 
             if (closeModal) {
                 closeModal.addEventListener('click', () => {
-                    summaryModal.style.display = 'none';
-                });
-            } else {
+                summaryModal.style.display = 'none';
+            });
+                                    } else {
                 console.error('Close modal button not found');
             }
 
@@ -1126,7 +1126,7 @@
             const classId = urlParams.get('class_id');
             if (classId) {
                 document.getElementById('back-to-class').href = '/view_class?class_id=' + encodeURIComponent(classId);
-            } else {
+                    } else {
                 document.getElementById('back-to-class').href = '/';
             }
         });
@@ -1168,4 +1168,4 @@
         });
     </script>
 </body>
-</html>
+</html> 
