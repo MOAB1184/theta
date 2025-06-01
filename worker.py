@@ -61,10 +61,15 @@ def process_job(job_id):
         with open(transcript_path, 'w', encoding='utf-8') as f:
             f.write(transcript)
         log_job(job_id, 'Transcription complete')
-        # 2. Summarize with Gemini
+        # 2. Summarize with DeepSeek
         prompt = "Please summarize this transcript for a student. Transcript: " + transcript
-        summary_response = gemini_model.generate_content(prompt)
-        summary = summary_response.text
+        deepseek_client = openai.OpenAI(api_key=DEEPSEEK_API_KEY, base_url=DEEPSEEK_URL)
+        summary_resp = deepseek_client.chat.completions.create(
+            model=DEEPSEEK_MODEL,
+            messages=[{"role": "user", "content": prompt}],
+            stream=False
+        )
+        summary = summary_resp.choices[0].message.content
         with open(summary_path, 'w', encoding='utf-8') as f:
             f.write(summary)
         log_job(job_id, 'Summarization complete')

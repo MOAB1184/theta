@@ -455,77 +455,24 @@
             width: 16px;
             height: 16px;
         }
+        /* Remove transcript toggle styles */
         #toggle-transcript {
-            background-color: #242424;
-            color: #e0e0e0;
-            border: none;
-            cursor: pointer;
-            padding: 8px 16px;
-            border-radius: 50px;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            transition: background-color 0.2s;
+            display: none;
         }
         .transcript-toggle {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid #333;
+            display: none;
         }
         .toggle-label {
-            color: #e0e0e0;
-            font-size: 14px;
+            display: none;
         }
         .switch {
-            position: relative;
-            display: inline-block;
-            width: 50px;
-            height: 24px;
-        }
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
+            display: none;
         }
         .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #242424;
-            transition: .4s;
-        }
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 16px;
-            width: 16px;
-            left: 4px;
-            bottom: 4px;
-            background-color: #e0e0e0;
-            transition: .4s;
-        }
-        input:checked + .slider {
-            background-color: #4f8cff;
-        }
-        input:checked + .slider:before {
-            transform: translateX(26px);
-        }
-        .slider.round {
-            border-radius: 24px;
-        }
-        .slider.round:before {
-            border-radius: 50%;
+            display: none;
         }
         #transcript-content {
-            border-top: 1px solid #333;
-            margin-top: 15px;
-            padding-top: 15px;
+            display: none;
         }
     </style>
     <!-- KaTeX CSS -->
@@ -647,14 +594,6 @@
                 </div>
                 
                 <div id="error-message" class="error-message hidden"></div>
-
-                <div class="transcript-toggle">
-                    <label class="switch">
-                        <input type="checkbox" id="transcript-toggle">
-                        <span class="slider round"></span>
-                    </label>
-                    <span class="toggle-label">Show Transcripts</span>
-                </div>
             </div>
             
             <div id="loading" class="loading hidden">
@@ -854,17 +793,6 @@
                     }
                 });
 
-                // Add transcript toggle functionality
-                const transcriptToggle = document.getElementById('transcript-toggle');
-                let isTranscriptVisible = false;
-
-                transcriptToggle.addEventListener('change', function() {
-                    isTranscriptVisible = this.checked;
-                    document.querySelectorAll('.transcript-card').forEach(card => {
-                        card.classList.toggle('hidden', !isTranscriptVisible);
-                    });
-                });
-
                 // --- Persistent Background Summarization ---
                 // Helper to save and load ongoing tasks
                 function saveOngoingTask(taskId, meta) {
@@ -993,7 +921,7 @@
                                     statusText.textContent = 'Transcription complete';
                                     // Create and show transcript card immediately
                                     const transcriptCard = document.createElement('div');
-                                    transcriptCard.className = `result-card transcript-card ${isTranscriptVisible ? '' : 'hidden'}`;
+                                    transcriptCard.className = `result-card transcript-card`;
                                     transcriptCard.innerHTML = `
                                         <div class="card-header">
                                             <h2 class="card-title">Transcript</h2>
