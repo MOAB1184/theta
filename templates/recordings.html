@@ -790,11 +790,6 @@
                         mediaRecorder.stop();
                         recordBtn.disabled = false;
                         stopBtn.disabled = true;
-                        
-                        // Immediately redirect to class view with loading state
-                        const taskId = Date.now().toString(); // Generate a temporary task ID
-                        saveOngoingTask(taskId, { started: Date.now() });
-                        window.location.href = `/classes/${classId}?task_id=${taskId}`;
                     }
                 });
 

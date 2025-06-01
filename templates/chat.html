@@ -1125,8 +1125,8 @@
             const urlParams = new URLSearchParams(window.location.search);
             const classId = urlParams.get('class_id');
             if (classId) {
-                document.getElementById('back-to-class').href = '/view_class?class_id=' + encodeURIComponent(classId);
-                    } else {
+                document.getElementById('back-to-class').href = '/view_class/' + classId;
+            } else {
                 document.getElementById('back-to-class').href = '/';
             }
         });
