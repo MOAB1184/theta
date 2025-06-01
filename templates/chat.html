@@ -18,9 +18,9 @@
             color: #c1c2c5;
             display: flex;
             justify-content: center;
-            align-items: flex-start; /* Changed to allow scrolling */
+            align-items: flex-start;
             min-height: 100vh;
-            overflow-y: auto; /* Enable vertical scrolling */
+            overflow-y: auto;
         }
 
         * {
@@ -37,7 +37,7 @@
             justify-content: center;
             transition: all 0.3s ease-out;
             min-height: 100vh;
-            height: auto; /* Allow height to grow with content */
+            height: auto;
         }
 
         /* Main Content Area (Greeting, Input, Chips) */
@@ -231,6 +231,7 @@
             white-space: pre-wrap;
             background: #232323;
             box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+            text-align: left; /* Ensure text is left-aligned */
         }
 
         .user-message {
@@ -246,6 +247,7 @@
             margin-right: auto;
             margin-left: 0;
             border: 1px solid #3a3d42;
+            text-align: left; /* Ensure text is left-aligned */
         }
 
         /* --- Chat Active State --- */
@@ -289,9 +291,9 @@
             margin: 0 auto;
             padding-top: 20px;
             flex-grow: 1;
-            height: 60vh; /* Ensure chat box has a fixed height for scrolling */
+            height: 60vh;
             min-height: 300px;
-            overflow-y: auto; /* Allow scrolling up */
+            overflow-y: auto;
             background: transparent;
         }
 
@@ -313,17 +315,40 @@
             background-color: #45494e;
         }
 
-        /* Hide old header if it was ever there */
-        #chat-header { display: none; }
-
         /* KaTeX specific styling adjustments */
         .katex {
             font-size: 1.05em;
             color: inherit;
+            display: inline-block; /* Prevent stretching */
+            max-width: 100%; /* Constrain width */
+            overflow-x: hidden; /* Hide overflow instead of scrolling */
+            vertical-align: middle; /* Align with text */
         }
 
         .bot-message .katex {
             color: #d1d2d5;
+        }
+
+        .katex-display {
+            display: block;
+            margin: 0.5em 0 !important;
+            max-width: 100%;
+            overflow-x: hidden; /* Hide overflow instead of scrolling */
+            text-align: center; /* Center display math */
+        }
+
+        /* Reduce excessive vertical spacing in bot messages */
+        .bot-message p, .bot-message ul, .bot-message ol, .bot-message li {
+            margin: 0.3em 0 !important;
+            line-height: 1.5 !important;
+        }
+
+        .bot-message ul, .bot-message ol {
+            padding-left: 1.5em !important;
+        }
+
+        .bot-message br {
+            display: none !important; /* Remove line breaks to prevent extra spacing */
         }
 
         /* Voice Mode UI */
@@ -641,66 +666,71 @@
     </style>
 </head>
 <body>
+    <a id="back-to-class" style="position:fixed;top:18px;left:18px;z-index:2000;text-decoration:none;" href="#">
+        <button style="background:#232323;color:#e3e4e6;border:none;padding:8px 18px;border-radius:8px;font-size:1em;box-shadow:0 2px 8px rgba(0,0,0,0.12);cursor:pointer;display:flex;align-items:center;gap:7px;">
+            <i class="fas fa-arrow-left"></i> Back to Class
+        </button>
+    </a>
     <div id="app-container">
-            <div id="main-content">
-                <div class="greeting-area">
-                    <span class="greeting-asterisk">*</span>
-                    <h1 class="greeting-text">How can Theta help you today?</h1>
-                </div>
+        <div id="main-content">
+            <div class="greeting-area">
+                <span class="greeting-asterisk">*</span>
+                <h1 class="greeting-text">How can Theta help you today?</h1>
+            </div>
 
-                <div id="input-container">
+            <div id="input-container">
                 <div id="attached-summaries" class="input-pill-container"></div>
                 <textarea id="user-input" placeholder="How can I help you today?"></textarea>
-                    <div id="input-controls">
-                        <div class="left-controls">
-                        <button class="attach-button" title="Attach Summary">
+                <div id="input-controls">
+                    <div class="left-controls">
+                        <button class="attach-button" id="attach-summary-button" title="Attach Summary">
                             <i class="fas fa-paperclip"></i>
                         </button>
                         <button class="attach-button" id="history-toggle" title="Chat History">
                             <i class="fas fa-history"></i>
                         </button>
-                        </div>
-                        <div class="right-controls">
+                    </div>
+                    <div class="right-controls">
                         <button id="send-button" title="Send message"><i class="fas fa-arrow-right"></i></button>
-                        </div>
                     </div>
                 </div>
             </div>
+        </div>
 
         <div id="chat-box"></div>
-                </div>
 
-            <div id="voice-mode-ui" class="hidden">
-                <div class="voice-mode-header">
-                    <div class="voice-mode-title">How can Theta help you today?</div>
-                    <button id="close-voice-mode" aria-label="Close voice mode"><i class="fa-solid fa-times"></i></button>
+        <div id="voice-mode-ui" class="hidden">
+            <div class="voice-mode-header">
+                <div class="voice-mode-title">How can Theta help you today?</div>
+                <button id="close-voice-mode" aria-label="Close voice mode"><i class="fa-solid fa-times"></i></button>
+            </div>
+            <div id="particle-animation-container">
+                <canvas id="particle-canvas"></canvas>
+            </div>
+            <div id="voice-controls">
+                <button id="call-button" class="voice-control-button" aria-label="End call">
+                    <i class="fa-solid fa-phone" style="color: #ff3366;"></i>
+                </button>
+                <button id="mic-button" class="voice-control-button" aria-label="Toggle microphone">
+                    <i class="fa-solid fa-microphone"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="chat-history" class="chat-history">
+            <h3 style="color: #e3e4e6; margin-top: 0;">Chat History</h3>
+            <div id="history-list"></div>
+        </div>
+
+        <div id="summary-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">Select Summary to Attach</h3>
+                    <button class="close-modal">×</button>
                 </div>
-                <div id="particle-animation-container">
-                    <canvas id="particle-canvas"></canvas>
-                </div>
-                <div id="voice-controls">
-                    <button id="call-button" class="voice-control-button" aria-label="End call">
-                        <i class="fa-solid fa-phone" style="color: #ff3366;"></i>
-                    </button>
-                    <button id="mic-button" class="voice-control-button" aria-label="Toggle microphone">
-                        <i class="fa-solid fa-microphone"></i>
-                    </button>
+                <div class="summary-list" id="summary-list">
                 </div>
             </div>
-
-    <div id="chat-history" class="chat-history">
-        <h3 style="color: #e3e4e6; margin-top: 0;">Chat History</h3>
-        <div id="history-list"></div>
-                </div>
-
-    <div id="summary-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title">Select Summary to Attach</h3>
-                <button class="close-modal">×</button>
-            </div>
-            <div class="summary-list" id="summary-list">
-    </div>
         </div>
     </div>
 
@@ -711,7 +741,7 @@
             const chatBox = document.getElementById('chat-box');
             const userInput = document.getElementById('user-input');
             const sendButton = document.getElementById('send-button');
-            const attachButton = document.querySelector('.attach-button');
+            const attachSummaryButton = document.getElementById('attach-summary-button');
             const historyToggle = document.getElementById('history-toggle');
             const chatHistory = document.getElementById('chat-history');
             const summaryModal = document.getElementById('summary-modal');
@@ -777,7 +807,7 @@
 
                 if (chatIndex >= 0) {
                     history[chatIndex] = chatData;
-                        } else {
+                } else {
                     history.push(chatData);
                 }
 
@@ -853,63 +883,81 @@
                 }
             }
 
-            // Ensure send button works and chat activates
-            sendButton.addEventListener('click', sendMessage);
-            userInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    sendMessage();
-                }
-            });
+            // Process Markdown and LaTeX content
+            function processContent(rawContent) {
+                // Step 1: Normalize line breaks and remove excessive whitespace
+                let processedContent = rawContent
+                    .replace(/\r\n/g, '\n') // Normalize to \n
+                    .replace(/\n{3,}/g, '\n\n') // Reduce multiple newlines to double
+                    .replace(/^\s+|\s+$/gm, ''); // Trim leading/trailing whitespace per line
 
-            // Format summary for LaTeX content and markdown-like syntax (copied from recordings.html)
-            function formatSummary(summary) {
-                // Split summary into LaTeX and non-LaTeX segments
-                const latexRegex = /(\$\$[\s\S]*?\$\$|\$[^$]+\$|\\\([\s\S]*?\\\)|\\\[[\s\S]*?\\\])/g;
-                let parts = [];
-                let lastIndex = 0;
-                let match;
-                while ((match = latexRegex.exec(summary)) !== null) {
-                    if (match.index > lastIndex) {
-                        parts.push({text: summary.slice(lastIndex, match.index), isLatex: false});
-                    }
-                    parts.push({text: match[0], isLatex: true});
-                    lastIndex = latexRegex.lastIndex;
+                // Step 2: Escape LaTeX math to prevent Markdown parsing
+                const inlineMathRegex = /\\\(.*?\\\)|\$[^$]+\$/gs;
+                const displayMathRegex = /\\\[.*?\\\]|\$\$[\s\S]*?\$\$/gs;
+                const mathPlaceholders = [];
+                let placeholderIndex = 0;
+
+                function escapeMath(content, regex, prefix) {
+                    return content.replace(regex, (match) => {
+                        const placeholder = `MATH_PLACEHOLDER_${prefix}_${placeholderIndex++}`;
+                        mathPlaceholders.push({ placeholder, content: match });
+                        return placeholder;
+                    });
                 }
-                if (lastIndex < summary.length) {
-                    parts.push({text: summary.slice(lastIndex), isLatex: false});
+
+                processedContent = escapeMath(processedContent, inlineMathRegex, 'INLINE');
+                processedContent = escapeMath(processedContent, displayMathRegex, 'DISPLAY');
+
+                // Replace lines with only --- or -- with a few spaces
+                processedContent = processedContent.replace(/^\s*---+\s*$/gm, '        ');
+                processedContent = processedContent.replace(/^\s*--\s*$/gm, '        ');
+
+                // Step 3: Parse Markdown with marked.js
+                if (typeof marked !== 'undefined') {
+                    marked.setOptions({
+                        gfm: true,
+                        breaks: true,
+                        pedantic: false,
+                        sanitizer: null
+                    });
+                    let htmlContent = marked.parse(processedContent);
+
+                    // Step 4: Restore and render LaTeX math with KaTeX
+                    mathPlaceholders.forEach(({ placeholder, content }) => {
+                        try {
+                            const isDisplay = placeholder.includes('_DISPLAY_');
+                            let tex;
+                            if (content.startsWith('\\[') || content.startsWith('\\(')) {
+                                tex = content.slice(2, -2).trim();
+                            } else if (content.startsWith('$$')) {
+                                tex = content.slice(2, -2).trim();
+                            } else {
+                                tex = content.slice(1, -1).trim();
+                            }
+                            const rendered = katex.renderToString(tex, {
+                                throwOnError: false,
+                                displayMode: isDisplay,
+                                strict: false,
+                                trust: true,
+                                maxSize: 1000 // Limit rendering size to prevent overflow
+                            });
+                            const replacement = isDisplay ? `<div class="katex-display">${rendered}</div>` : `<span class="katex">${rendered}</span>`;
+                            htmlContent = htmlContent.replace(placeholder, replacement);
+                        } catch (err) {
+                            console.error(`Error rendering LaTeX: ${content}`, err);
+                            htmlContent = htmlContent.replace(placeholder, `<span class="katex-error">${content}</span>`);
+                        }
+                    });
+
+                    return htmlContent;
                 }
-                // Markdown-like formatting for non-LaTeX parts
-                function mdFormat(text) {
-                    // Replace lines with only --- or -- with a few spaces
-                    text = text.replace(/^\s*-{2,}\s*$/gm, '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;');
-                    text = text.replace(/^\s*--\s*$/gm, '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;');
-                    text = text.replace(/^### (.*)$/gm, '<h3>$1</h3>');
-                    text = text.replace(/^## (.*)$/gm, '<h2>$1</h2>');
-                    text = text.replace(/^# (.*)$/gm, '<h1>$1</h1>');
-                    text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-                    text = text.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-                    // LaTeX section/subsection
-                    text = text.replace(/\\section\{([^}]+)\}/g, '<h2>$1</h2>');
-                    text = text.replace(/\\subsection\{([^}]+)\}/g, '<h3>$1</h3>');
-                    // LaTeX environments
-                    text = text.replace(/\\begin\{document\}/g, '');
-                    text = text.replace(/\\end\{document\}/g, '');
-                    text = text.replace(/\\begin\{itemize\}/g, '<div class="itemize">');
-                    text = text.replace(/\\end\{itemize\}/g, '</div>');
-                    text = text.replace(/\\item/g, '<div class="item">');
-                    text = text.replace(/\\textbf\{([^}]+)\}/g, '<strong>$1</strong>');
-                    text = text.replace(/\\emph\{([^}]+)\}/g, '<em>$1</em>');
-                    text = text.replace(/\n\n/g, '<br><br>');
-                    return text;
-                }
-                return parts.map(part => part.isLatex ? part.text : mdFormat(part.text)).join('');
+                return processedContent; // Fallback if marked is not loaded
             }
 
             // Helper: Render KaTeX math in all chat messages
             function renderMathInChatBox() {
                 if (typeof window.renderMathInElement === 'function') {
-                    document.querySelectorAll('.bot-message').forEach(msg => {
+                    document.querySelectorAll('.bot-message:not([data-math-rendered])').forEach(msg => {
                         window.renderMathInElement(msg, window.renderMathInElementOptions || {
                             delimiters: [
                                 {left: "$$", right: "$$", display: true},
@@ -929,6 +977,7 @@
                                 "\\CC": "\\mathbb{C}"
                             }
                         });
+                        msg.setAttribute('data-math-rendered', 'true'); // Mark as rendered
                     });
                 }
             }
@@ -937,9 +986,12 @@
                 const messageDiv = document.createElement('div');
                 messageDiv.className = `message ${type}-message`;
                 if (type === 'user' && attached.length > 0) {
-                    messageDiv.textContent = `${text} [with ${attached.join(', ')}]`;
+                    messageDiv.textContent = `${text} [${attached.join(', ')}]`;
                 } else if (type === 'bot') {
-                    messageDiv.innerHTML = formatSummary(text);
+                    messageDiv.innerHTML = processContent(text);
+                    // Clean up excessive spacing
+                    messageDiv.querySelectorAll('br + br').forEach(br => br.remove());
+                    messageDiv.querySelectorAll('p:empty').forEach(p => p.remove());
                 } else {
                     messageDiv.textContent = text;
                 }
@@ -950,44 +1002,11 @@
                     appContainer.classList.add('chat-active');
                     chatBox.style.display = 'block';
                 }
-                // Only render math for this message (for performance)
-                if (typeof window.renderMathInElement === 'function' && type === 'bot') {
-                    window.renderMathInElement(messageDiv, window.renderMathInElementOptions || {
-                        delimiters: [
-                            {left: "$$", right: "$$", display: true},
-                            {left: "$", right: "$", display: false},
-                            {left: "\\(", right: "\\)", display: false},
-                            {left: "\\[", right: "\\]", display: true}
-                        ],
-                        throwOnError: false,
-                        errorColor: '#cc0000',
-                        strict: false,
-                        trust: true,
-                        macros: {
-                            "\\RR": "\\mathbb{R}",
-                            "\\NN": "\\mathbb{N}",
-                            "\\ZZ": "\\mathbb{Z}",
-                            "\\QQ": "\\mathbb{Q}",
-                            "\\CC": "\\mathbb{C}"
-                        }
-                    });
+                // Only render math for this message if not already rendered
+                if (type === 'bot') {
+                    renderMathInChatBox();
                 }
             }
-
-            // Event Listeners
-            attachButton.addEventListener('click', () => {
-                loadSummaries();
-                summaryModal.style.display = 'block';
-            });
-
-            closeModal.addEventListener('click', () => {
-                        summaryModal.style.display = 'none';
-            });
-
-            historyToggle.addEventListener('click', () => {
-                chatHistory.classList.toggle('active');
-                appContainer.classList.toggle('history-active');
-            });
 
             // Typing indicator logic
             function showTypingIndicator() {
@@ -1007,7 +1026,7 @@
                 if (indicator) indicator.remove();
             }
 
-            // Modified sendMessage function
+            // Send message function
             async function sendMessage() {
                 const message = userInput.value.trim();
                 if (!message) return;
@@ -1052,16 +1071,70 @@
                 }
             }
 
+            // Event Listeners for Buttons
+            if (sendButton) {
+                sendButton.addEventListener('click', sendMessage);
+            } else {
+                console.error('Send button not found');
+            }
+
+            if (userInput) {
+                userInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        sendMessage();
+                    }
+                });
+            } else {
+                console.error('User input not found');
+            }
+
+            if (attachSummaryButton) {
+                attachSummaryButton.addEventListener('click', () => {
+                    loadSummaries();
+                    summaryModal.style.display = 'block';
+                });
+            } else {
+                console.error('Attach summary button not found');
+            }
+
+            if (historyToggle) {
+                historyToggle.addEventListener('click', () => {
+                    chatHistory.classList.toggle('active');
+                    appContainer.classList.toggle('history-active');
+                });
+            } else {
+                console.error('History toggle button not found');
+            }
+
+            if (closeModal) {
+                closeModal.addEventListener('click', () => {
+                    summaryModal.style.display = 'none';
+                });
+            } else {
+                console.error('Close modal button not found');
+            }
+
             // Load initial chat history
             loadChatHistory();
 
             // Initial render of any existing messages
             renderMathInChatBox();
+
+            // Set back button href to class page
+            const urlParams = new URLSearchParams(window.location.search);
+            const classId = urlParams.get('class_id');
+            if (classId) {
+                document.getElementById('back-to-class').href = '/view_class?class_id=' + encodeURIComponent(classId);
+            } else {
+                document.getElementById('back-to-class').href = '/';
+            }
         });
     </script>
     <!-- KaTeX JS and Auto-render -->
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGqyகேரளжіSECURITYfactorGANESHAbirthdayDOWNLOADSleaveBIRTHPLACEpredictionBELIEVEviewSEXUALoutcomePROPOSALhunterCORNERpersonMETHODstopPERCENTAGEvillageADMISSIONexchangeCONTACTchoiceTRUTHshowcaseMOMENTdirectorRISKsectionCHARACTERnovelDEALdestinationBROADproblemINDUSTRYeditorQUICKLYvisitorVIEWERtranslationCONSTRUCTIONintervalCOLLECTIONflatDEPARTUREstrategyLANGUAGEregionSPEAKERdirectorTARGET" crossorigin="anonymous"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax5AS+fW الاحصائياتKOMPRESSORlosLAURENCEviolencePERCENTAGEconditionOPERATIONcombinationSMARTautomaticallyMACHINEorganizationMOTORcyclePLASTICadvantageVIEWactorVISUALcapitalTOURISTcommunicationSOCIETYvariationABILITYsecretaryTOOLmorningCOMPETITIONsignaturePRODUCTtransportationZONEsectorOPERATIONdifferencePERFORMANCEalternativeMESSAGEadvantageOFFICEimportanceDEALreflectionCONSTRUCTIONexaminationDEPARTUREpercentageVARIETYregion" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
         // Wait for KaTeX to be loaded before setting options and rendering math
         window.addEventListener('DOMContentLoaded', function() {
@@ -1094,3 +1167,5 @@
             tryInitKaTeX();
         });
     </script>
+</body>
+</html>
