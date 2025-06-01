@@ -28,6 +28,7 @@ from concurrent.futures import ThreadPoolExecutor
 from flask_mail import Mail, Message
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail as SendGridMail
+import requests
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -1640,6 +1641,39 @@ def toggle_theta(user_id):
 @app.route('/chat')
 def chat():
     return render_template('chat.html')
+
+# OpenRouter configuration
+OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY')
+OPENROUTER_MODEL = "deepseek/deepseek-r1-distill-qwen-7b"
+OPENROUTER_SITE_URL = os.getenv('OPENROUTER_SITE_URL', 'https://thetasummary.com')
+OPENROUTER_SITE_TITLE = os.getenv('OPENROUTER_SITE_TITLE', 'ThetaSummary')
+
+@app.route('/api/chat', methods=['POST'])
+def chat_api():
+    if 'user_id' not in session:
+        return jsonify({'status': 'error', 'message': 'Not logged in'}), 401
+    try:
+        data = request.get_json()
+        message = data.get('message')
+        if not message:
+            return jsonify({'status': 'error', 'message': 'No message provided'}), 400
+        client = openai.OpenAI(
+            base_url="https://openrouter.ai/api/v1",
+            api_key=OPENROUTER_API_KEY,
+        )
+        completion = client.chat.completions.create(
+            extra_headers={
+                "HTTP-Referer": OPENROUTER_SITE_URL,
+                "X-Title": OPENROUTER_SITE_TITLE,
+            },
+            model=OPENROUTER_MODEL,
+            messages=[{"role": "user", "content": message}]
+        )
+        ai_response = completion.choices[0].message.content
+        return jsonify({'status': 'success', 'response': ai_response})
+    except Exception as e:
+        logger.error(f"Error in chat API: {str(e)}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
 
 if __name__ == '__main__':
     ensure_admin_and_school()
