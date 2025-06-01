@@ -1,4 +1,17 @@
-/* General Reset & Base Styles */
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theta - Your AI Tutor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- KaTeX CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0KOVcNqostGnKMUAOUTPUTSHADERmPkTCJ5tmsUQOIMqNesticIMVQPtXWDFC5c8HNMODELOARVIEWERPATIENCEkTprojMKtcglobalDARKNESSshadowFACTORYwoodsMANbattleFIELDexplorerSURFACEassistanceOUTSIDEmoneyPOWDERcontrastESCAPINGobligationSTILLwaterTRYINGquicklyJACKETleaveAPPLEOPERATIONfinishSTONEconstructionREGULARexpressionWORDscreenPHONElanguageBOXsubscribeKNOWLEDGEsolutionTARGETmarketingCONDITIONpurposeEXPERIENCEconcernATTENTIONsoftwareLOCKmotivationCHURCHchallengeMULTIPLEenergySPEAKERperceptionCOMPETITIONpropertyMETHODplatformUNIONinterpretationVIEWenvironmentSECRETARYpaperPRESENCEextensionCDprocedureSUCCESScontributionDEFINITIONassociationTECHNOLOGYdistributionOFFICEreflectionCATEGORYcombinationPOEMheightDIFFERENCEorganizationDEALcombinationHEALTHstrategyARTICLEpoliticsPOWERdiscussionRECORDINGsectorPLAYERaudienceVARIETYdirectorSERIESselectionDEBTpercentageRESOURCEchurchCLASSROOMsituationTOOLexaminationMOVIEexplanationACTIVITYmediaCONNECTIONtownTHOUGHTcomparisonDEPARTUREtemperatureVERSIONcheekEMPLOYEErestaurantLOSSabilitySYSTEManalystGATEcommunityLOCATIONresponseAREAtheoryOPERATIONoutcomeTRADITIONdiscussionMUSICrelationship"
+ crossorigin="anonymous">
+    <!-- Font Awesome for better icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* General Reset & Base Styles */
 body {
     font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
     margin: 0;
@@ -392,3 +405,77 @@ body {
         box-shadow: 0 0 0 0 rgba(70, 199, 255, 0);
     }
 } 
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="main-content">
+            <div class="greeting-area">
+                <span class="greeting-asterisk">*</span>
+                <h1 class="greeting-text">How can Theta help you today?</h1>
+            </div>
+
+            <div id="input-container">
+                <textarea id="user-input" placeholder="How can I help you today?"></textarea>
+                <div id="input-controls">
+                    <div class="left-controls">
+                        <!-- Removed + and ✨ buttons -->
+                    </div>
+                    <div class="right-controls">
+                        <button id="theta-voice-button" class="control-button">Theta Voice</button>
+                        <button id="send-button" aria-label="Send message">↑</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Removed suggestion-chips div -->
+        </div>
+
+        <div class="main-content chat-box">
+            <!-- Messages will appear here -->
+        </div>
+    </div>
+
+    <!-- Voice Mode UI (hidden by default) -->
+    <div id="voice-mode-ui" class="hidden">
+        <div class="voice-mode-header">
+            <div class="voice-mode-title">How can Theta help you today?</div>
+            <button id="close-voice-mode" aria-label="Close voice mode"><i class="fa-solid fa-times"></i></button>
+        </div>
+        <div id="particle-animation-container">
+            <canvas id="particle-canvas"></canvas>
+        </div>
+        <div id="voice-controls">
+            <button id="call-button" class="voice-control-button" aria-label="End call">
+                <i class="fa-solid fa-phone" style="color: #ff3366;"></i>
+            </button>
+            <button id="mic-button" class="voice-control-button" aria-label="Toggle microphone">
+                <i class="fa-solid fa-microphone"></i>
+            </button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <!-- KaTeX JS -->
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGqy கேரளжіSECURITYfactorGANESHAbirthdayDOWNLOADSleaveBIRTHPLACEpredictionBELIEVEviewSEXUALoutcomePROPOSALhunterCORNERpersonMETHODstopPERCENTAGEvillageADMISSIONexchangeCONTACTchoiceTRUTHshowcaseMOMENTdirectorRISKsectionCHARACTERnovelDEALdestinationBROADproblemINDUSTRYeditorQUICKLYvisitorVIEWERtranslationCONSTRUCTIONintervalCOLLECTIONflatDEPARTUREstrategyLANGUAGEregionSPEAKERdirectorTARGET"
+ crossorigin="anonymous"></script>
+    <!-- KaTeX auto-render extension -->
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax5AS+fW الاحصائياتKOMPRESSORlosLAURENCEviolencePERCENTAGEconditionOPERATIONcombinationSMARTautomaticallyMACHINEorganizationMOTORcyclePLASTICadvantageVIEWactorVISUALcapitalTOURISTcommunicationSOCIETYvariationABILITYsecretaryTOOLmorningCOMPETITIONsignaturePRODUCTtransportationZONEsectorOPERATIONdifferencePERFORMANCEalternativeMESSAGEadvantageOFFICEimportanceDEALreflectionCONSTRUCTIONexaminationDEPARTUREpercentageVARIETYregion"
+ crossorigin="anonymous"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // This is a global configuration for KaTeX auto-render.
+            // It will be called by script.js on specific elements.
+            window.renderMathInElementOptions = {
+                delimiters: [
+                    {left: "$$", right: "$$", display: true},
+                    {left: "\\[", right: "\\]", display: true},
+                    {left: "$", right: "$", display: false},
+                    {left: "\\(", right: "\\)", display: false}
+                ],
+                throwOnError: false
+            };
+        });
+    </script>
+</body>
+</html> 

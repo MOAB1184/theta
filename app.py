@@ -91,17 +91,6 @@ def save_global_prompt(prompt_text):
         upsert=True
     )
 
-# Configure Deepseek
-DEEPSEEK_MODEL = "deepseek-reasoner"
-DEEPSEEK_URL = "https://api.deepseek.com/v1"
-DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY")
-
-# Configure Deepseek client
-deepseek_client = openai.OpenAI(
-    api_key=DEEPSEEK_API_KEY,
-    base_url=DEEPSEEK_URL,
-)
-
 # Configure Gemini
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 if GEMINI_API_KEY:
@@ -282,7 +271,8 @@ def create_user(username, password_hash, role, email, is_admin=False, school_id=
         "subscription_type": "plus",
         "subscription_start": None,
         "subscription_end": None,
-        "subscription_status": "inactive"
+        "subscription_status": "inactive",
+        "talk_to_theta_enabled": False
     }
     return mongo.db.users.insert_one(user)
 
@@ -992,6 +982,11 @@ def view_class(class_id):
     sidebar_classes = []
     if user['role'] == 'teacher':
         sidebar_classes = list(mongo.db.classes.find({'teacher_id': user['_id']}))
+    # For talk_to_theta_enabled:
+    if user['role'] == 'teacher':
+        talk_to_theta_enabled = user.get('talk_to_theta_enabled', False)
+    else:
+        talk_to_theta_enabled = teacher.get('talk_to_theta_enabled', False)
     return render_template('view_class.html', 
                          class_obj=class_obj,
                          user_role=user['role'],
@@ -1004,7 +999,8 @@ def view_class(class_id):
                          pending_requests=pending_objs,
                          summary_count=summary_count,
                          student_count=student_count,
-                         classes=sidebar_classes if user['role'] == 'teacher' else [])
+                         classes=sidebar_classes if user['role'] == 'teacher' else [],
+                         talk_to_theta_enabled=talk_to_theta_enabled)
 
 @app.route('/classes/<class_id>/enroll', methods=['POST'])
 def enroll_in_class(class_id):
@@ -1633,6 +1629,24 @@ def api_class_summaries(class_id):
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
     return jsonify({'status': 'success', 'summaries': summaries})
+
+@app.route('/admin/toggle_theta/<user_id>', methods=['POST'])
+def toggle_theta(user_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
+    if not user or not user.get('is_admin'):
+        return redirect(url_for('dashboard'))
+    target = mongo.db.users.find_one({"_id": ObjectId(user_id)})
+    if not target or target.get('role') != 'teacher':
+        return redirect(url_for('admin_dashboard'))
+    enabled = not target.get('talk_to_theta_enabled', False)
+    mongo.db.users.update_one({"_id": ObjectId(user_id)}, {"$set": {"talk_to_theta_enabled": enabled}})
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/chat')
+def chat():
+    return render_template('chat.html')
 
 if __name__ == '__main__':
     ensure_admin_and_school()

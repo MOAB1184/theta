@@ -296,6 +296,7 @@
                                 <th>Role</th>
                                 <th>Subscription</th>
                                 <th>Status</th>
+                                <th>Talk to Theta</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -315,12 +316,19 @@
                                     </span>
                                 </td>
                                 <td>
+                                    <form method="POST" action="{{ url_for('toggle_theta', user_id=user._id) }}" style="display:inline;">
+                                        <button type="submit" class="btn btn-outline" style="color: {{ 'green' if user.talk_to_theta_enabled else 'gray' }};">
+                                            {{ 'Enabled' if user.talk_to_theta_enabled else 'Disabled' }}
+                                        </button>
+                                    </form>
+                                </td>
+                                <td>
                                     <div class="action-buttons">
                                         <button class="btn btn-outline" onclick="editUser('{{ user._id }}')">Edit</button>
                                         <form method="POST" action="{{ url_for('admin_delete_user', user_id=user._id) }}" style="display: inline;">
                                             <button type="submit" class="btn btn-outline" style="color: #ef4444;">Delete</button>
                                         </form>
-                    </div>
+                                    </div>
                                 </td>
                             </tr>
                             {% endfor %}
