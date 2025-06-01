@@ -1,0 +1,77 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\begin{document}
+
+\section{Key Formulas and Their Use Cases}
+\begin{itemize}
+    \item \textbf{Unit Circle Equation}: \(x^2 + y^2 = 1\)
+    \begin{itemize}
+        \item Components: \(x\) and \(y\) represent coordinates on a circle with radius 1 centered at the origin.
+        \item Use Case: Determines if a point lies on the unit circle. Example: Verify if \((\frac{\sqrt{3}}{2}, \frac{1}{2})\) is on the unit circle.
+    \end{itemize}
+    
+    \item \textbf{Polar to Cartesian Coordinates}: 
+    \[
+    x = r\cos\theta, \quad y = r\sin\theta
+    \]
+    \begin{itemize}
+        \item Components: \(r\) (radius), \(\theta\) (angle in radians).
+        \item Use Case: Convert polar coordinates \((2, \frac{\pi}{4})\) to Cartesian form.
+    \end{itemize}
+    
+    \item \textbf{Vertex of a Parabola}:
+    \[
+    \text{Vertex } (h,k) = \left(-\frac{b}{2a}, f\left(-\frac{b}{2a}\right)\right)
+    \]
+    \begin{itemize}
+        \item Components: For quadratic \(ax^2 + bx + c\), calculates the turning point.
+        \item Use Case: Find the vertex of \(f(x) = 2x^2 - 4x + 1\).
+    \end{itemize}
+\end{itemize}
+
+\section{Example Problems and Solutions}
+
+\subsection{Problem 1: Unit Circle Verification}
+\textbf{Question}: Verify that \((\frac{\sqrt{3}}{2}, \frac{1}{2})\) lies on the unit circle.\\
+\textbf{Solution}:
+\begin{align*}
+    x^2 + y^2 &= \left(\frac{\sqrt{3}}{2}\right)^2 + \left(\frac{1}{2}\right)^2 \\
+    &= \frac{3}{4} + \frac{1}{4} \\
+    &= 1 \quad \text{(Satisfies the unit circle equation)}
+\end{align*}
+\textbf{Explanation}: Substitute coordinates into \(x^2 + y^2\). Since the sum equals 1, the point lies on the unit circle.\\
+\textbf{Answer}: Yes.
+
+\subsection{Problem 2: Polar to Cartesian Conversion}
+\textbf{Question}: Convert \((r, \theta) = (2, \frac{\pi}{4})\) to Cartesian coordinates.\\
+\textbf{Solution}:
+\begin{align*}
+    x &= 2\cos\left(\frac{\pi}{4}\right) = 2 \cdot \frac{\sqrt{2}}{2} = \sqrt{2} \\
+    y &= 2\sin\left(\frac{\pi}{4}\right) = 2 \cdot \frac{\sqrt{2}}{2} = \sqrt{2}
+\end{align*}
+\textbf{Explanation}: Use \(x = r\cos\theta\) and \(y = r\sin\theta\). \(\cos\frac{\pi}{4} = \sin\frac{\pi}{4} = \frac{\sqrt{2}}{2}\).\\
+\textbf{Answer}: \((\sqrt{2}, \sqrt{2})\).
+
+\subsection{Problem 3: Vertex of a Parabola}
+\textbf{Question}: Find the vertex of \(f(x) = 2x^2 - 4x + 1\).\\
+\textbf{Solution}:
+\begin{align*}
+    h &= -\frac{b}{2a} = -\frac{-4}{2 \cdot 2} = 1 \\
+    k &= f(1) = 2(1)^2 - 4(1) + 1 = -1
+\end{align*}
+\textbf{Explanation}: Calculate \(h = -\frac{b}{2a}\) first, then substitute \(h\) into \(f(x)\) to find \(k\).\\
+\textbf{Answer}: Vertex at \((1, -1)\).
+
+\subsection{Problem 4: Trigonometric Value Calculation}
+\textbf{Question}: Find \(\sin\left(\frac{\pi}{3}\right)\) using the unit circle.\\
+\textbf{Solution}:
+\begin{itemize}
+    \item \(\frac{\pi}{3}\) radians corresponds to 60°.
+    \item On the unit circle, coordinates are \((\frac{1}{2}, \frac{\sqrt{3}}{2})\).
+    \item \(\sin\theta = y\text{-coordinate} = \frac{\sqrt{3}}{2}\).
+\end{itemize}
+\textbf{Explanation}: Use known unit circle angles and their associated coordinates.\\
+\textbf{Answer}: \(\frac{\sqrt{3}}{2}\).
+
+\end{document}

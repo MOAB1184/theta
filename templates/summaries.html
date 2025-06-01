@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ThetaSummary - AI-Powered Transcription</title>
+    <style>
+        /* Reset and Basic Styles */
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            background-color: #000000;
+            color: #e0e0e0;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        body {
+            padding-top: 86px; /* Adjust this value based on the actual height of your fixed header */
+        }
+
+        .container-content {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px 0;
+        }
+
+
+        a {
+            color: #c084fc;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        h1, h2, h3 {
+            margin-top: 0;
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        /* Header Wrapper - Fixed to the viewport */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding-top: 16px;
+            padding-bottom: 16px;
+            z-index: 1000;
+        }
+
+        /* Header Inner Container - This is the styled, rounded navigation BAR */
+        .header .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 95%;
+            max-width: 1280px;
+            margin: 0 auto;
+            background-color: rgba(28, 28, 30, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            padding: 10px 25px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.25);
+        }
+
+        .logo {
+            font-size: 1.9em;
+            font-weight: bold;
+            color: #ffffff;
+            flex-shrink: 0;
+        }
+
+        .nav-links {
+            display: none;
+            flex-grow: 1;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .nav-links a {
+            color: #b0b0b0;
+            font-size: 0.9em;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: #ffffff;
+            text-decoration: none;
+        }
+
+        .header-buttons {
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .header-buttons .btn {
+            margin-left: 10px;
+            padding: 7px 14px;
+            border-radius: 6px;
+            font-size: 0.85em;
+            font-weight: 500;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .btn-secondary {
+            background-color: rgba(50, 50, 50, 0.7);
+            color: #e0e0e0;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+         .btn-secondary:hover {
+            background-color: rgba(65, 65, 65, 0.8);
+            color: #ffffff;
+         }
+
+        .btn-primary {
+            background-color: #ffffff;
+            color: #000000;
+            font-weight: 600;
+        }
+        .btn-primary:hover {
+            background-color: #f0f0f0;
+        }
+
+        .mobile-menu-button {
+            display: block;
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 1.5em;
+            cursor: pointer;
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center; /* Ensures inline/inline-block children and text are centered */
+            padding-bottom: 80px;
+            padding-left: 20px;
+            padding-right: 20px;
+            background-image: radial-gradient(at 20% 25%, hsla(260,85%,60%,0.35) 0px, transparent 50%),
+                              radial-gradient(at 80% 30%, hsla(200,85%,55%,0.3) 0px, transparent 50%),
+                              radial-gradient(at 50% 80%, hsla(330,75%,60%,0.25) 0px, transparent 50%),
+                              #000000;
+            min-height: 70vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center; /* Centers the .container-content child if hero is flex */
+            overflow: hidden;
+        }
+
+        .hero h1 {
+            font-size: clamp(2.8em, 6vw, 4.5em);
+            margin-bottom: 25px;
+            max-width: 900px;
+            line-height: 1.15;
+            font-weight: 700;
+            background: -webkit-linear-gradient(45deg, #ede9fe, #d8b4fe, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-left: auto; /* <<< ADDED FOR CENTERING */
+            margin-right: auto; /* <<< ADDED FOR CENTERING */
+        }
+
+        .hero p {
+            font-size: clamp(1.1em, 2.5vw, 1.4em);
+            margin-bottom: 35px;
+            color: #c7c7c7;
+            max-width: 650px;
+            font-weight: 300;
+            margin-left: auto; /* <<< ADDED FOR CENTERING */
+            margin-right: auto; /* <<< ADDED FOR CENTERING */
+        }
+
+        /* hero-buttons div will rely on text-align: center from .hero for its inline-block buttons */
+        .hero-buttons .btn {
+            padding: 14px 30px;
+            font-size: 1.05em;
+            margin: 10px 10px; /* This creates space between buttons if they are inline-block */
+            border-radius: 8px;
+            font-weight: 600;
+            display: inline-block; /* Ensure they respond to text-align: center */
+        }
+        .hero-buttons .btn-large-primary {
+             background-color: #ffffff;
+             color: #000000;
+        }
+        .hero-buttons .btn-large-primary:hover {
+            background-color: #e6e6e6;
+        }
+        .hero-buttons .btn-large-secondary {
+            background-color: rgba(38, 38, 38, 0.8);
+            color: #ffffff;
+            border: 1px solid #404040;
+        }
+        .hero-buttons .btn-large-secondary:hover {
+            background-color: rgba(51, 51, 51, 0.9);
+        }
+
+        .hero-image-placeholder {
+            width: 85%;
+            max-width: 750px;
+            height: 400px;
+            background-color: #0d0d0d;
+            border: 1px solid #222222;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 50px;
+            border-radius: 12px;
+            color: #444444;
+            font-size: 1.1em;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            margin-left: auto; /* <<< ADDED FOR CENTERING */
+            margin-right: auto; /* <<< ADDED FOR CENTERING */
+        }
+
+        /* Trusted By Section */
+        .trusted-by {
+            text-align: center;
+            padding: 50px 0;
+            background-color: #000000;
+        }
+        .trusted-by .container-content { padding-top: 20px; padding-bottom: 20px;}
+
+
+        .trusted-by h3 {
+            font-size: 0.9em;
+            color: #888888;
+            margin-bottom: 35px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 500;
+        }
+
+        .logos {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 35px;
+        }
+
+        .logo-item {
+            font-size: 1.2em;
+            color: #777777;
+            opacity: 0.8;
+            font-weight: 500;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 70px 0;
+            background-color: #050505;
+        }
+        .features .container-content { padding-top: 20px; padding-bottom: 20px;}
+
+
+        .feature {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 90px;
+            text-align: center; /* Center text within the feature text block */
+        }
+         .feature .feature-text {
+            max-width: 550px; /* Max width for the text block */
+            margin-left: auto; /* Center the text block */
+            margin-right: auto; /* Center the text block */
+            margin-bottom: 30px;
+        }
+
+
+        .feature:nth-child(even) .feature-text { /* For alternating layout, specific centering already applied */
+            order: 1;
+        }
+        .feature:nth-child(even) .feature-image-placeholder {
+            order: 2;
+        }
+
+
+        .feature h2 {
+            font-size: clamp(2em, 5vw, 2.8em);
+            margin-bottom: 20px;
+            color: #f0f0f0;
+        }
+
+        .feature p {
+            font-size: 1.15em;
+            color: #a0a0a0;
+        }
+
+        .feature-image-placeholder {
+            width: 100%;
+            max-width: 600px;
+            height: 350px;
+            background-color: #0f0f0f;
+            border: 1px solid #252525;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 10px;
+            color: #404040;
+            font-size: 1.2em;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+            margin-left: auto; /* Center image placeholder */
+            margin-right: auto; /* Center image placeholder */
+        }
+
+        /* Specific Feature Blocks Section */
+        .feature-blocks {
+            padding: 70px 0;
+            background-color: #000000;
+        }
+        .feature-blocks .container-content { padding-top: 20px; padding-bottom: 20px;}
+        .feature-blocks .container-content > h2 {
+            text-align: center;
+            font-size: clamp(2.2em, 5vw, 3em);
+            margin-bottom: 60px;
+        }
+        .blocks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+        .block-item {
+            background-color: #0a0a0a;
+            padding: 35px;
+            border-radius: 12px;
+            border: 1px solid #202020;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .block-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 25px rgba(168, 85, 247, 0.1);
+        }
+        .block-item-image-placeholder {
+            width: 100%;
+            height: 120px;
+            background-color: #181818;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #c084fc;
+            margin-bottom: 25px;
+            font-size: 2em;
+        }
+        .block-item h3 {
+            font-size: 1.6em;
+            margin-bottom: 12px;
+            color: #f0f0f0;
+        }
+        .block-item p {
+            font-size: 1em;
+            color: #909090;
+        }
+
+        /* Testimonials Section */
+        .testimonials {
+            padding: 70px 0;
+            background-color: #050505;
+        }
+        .testimonials .container-content { padding-top: 20px; padding-bottom: 20px;}
+        .testimonials h2 {
+            text-align: center;
+            font-size: clamp(2em, 5vw, 2.8em);
+            margin-bottom: 50px;
+        }
+
+        .testimonial-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .testimonial-card {
+            background-color: #0e0e0e;
+            padding: 30px;
+            border-radius: 10px;
+            border: 1px solid #222222;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .testimonial-card p {
+            font-style: italic;
+            color: #cccccc;
+            margin-bottom: 20px;
+            font-size: 1.05em;
+        }
+
+        .testimonial-card .author {
+            font-weight: 600;
+            color: #999999;
+            font-size: 0.95em;
+        }
+
+        /* Call to Action Section */
+        .cta {
+            padding: 90px 20px;
+            text-align: center;
+            background-image: radial-gradient(at 10% 20%, hsla(270,80%,55%,0.3) 0px, transparent 55%),
+                              radial-gradient(at 85% 30%, hsla(210,75%,50%,0.25) 0px, transparent 60%),
+                              #000000;
+        }
+         .cta .container-content { padding-top: 20px; padding-bottom: 20px;}
+
+        .cta h2 {
+            font-size: clamp(2.5em, 5.5vw, 3.2em);
+            margin-bottom: 25px;
+            color: #ffffff;
+            max-width: 700px; /* Example max-width for CTA heading */
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta p {
+            font-size: 1.25em;
+            margin-bottom: 35px;
+            color: #c7c7c7;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta .btn-large-primary {
+            padding: 16px 40px;
+            font-size: 1.15em;
+            background-color: #ffffff;
+            color: #000000;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: transform 0.2s ease, background-color 0.2s ease;
+            display: inline-block; /* Ensure it respects text-align center */
+        }
+        .cta .btn-large-primary:hover {
+            background-color: #f5f5f5;
+            transform: scale(1.03);
+        }
+
+        /* Footer */
+        .footer {
+            background-color: #000000;
+            color: #777777;
+            padding: 50px 0 30px;
+            text-align: center;
+            border-top: 1px solid #1a1a1a;
+        }
+        .footer .container-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 20px; padding-bottom: 20px;
+        }
+
+
+        .footer-links {
+            margin-bottom: 25px;
+        }
+
+        .footer-links a {
+            color: #888888;
+            margin: 0 12px;
+            font-size: 0.9em;
+            transition: color 0.3s ease;
+        }
+        .footer-links a:hover {
+            color: #ffffff;
+        }
+
+        .footer p {
+            margin: 8px 0;
+            font-size: 0.85em;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 900px) {
+            .nav-links {
+                display: none;
+            }
+            .header-buttons {
+                 display: flex;
+            }
+            .mobile-menu-button {
+                display: block;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding-top: 70px;
+            }
+            .header {
+                padding-top: 12px;
+                padding-bottom: 12px;
+            }
+             .header .container {
+                width: 92%;
+                padding: 8px 15px;
+            }
+            .logo {
+                font-size: 1.6em;
+            }
+             .header-buttons .btn {
+                font-size: 0.8em;
+                padding: 6px 10px;
+                margin-left: 6px;
+            }
+             .mobile-menu-button {
+                font-size: 1.3em;
+            }
+
+            .feature {
+                flex-direction: column;
+            }
+            .feature .feature-text, /* Ensure feature text block is also centered on mobile if it has max-width */
+            .feature-image-placeholder {
+                max-width: 90%;
+                margin-left: auto;
+                margin-right: auto;
+            }
+            .feature:nth-child(even) .feature-content,
+            .feature:nth-child(even) .feature-image-placeholder {
+                order: 0;
+            }
+            .hero-buttons .btn {
+                display: block;
+                width: 80%;
+                margin: 10px auto;
+            }
+        }
+
+
+        @media (min-width: 901px) {
+            .nav-links {
+                display: flex;
+            }
+            .mobile-menu-button {
+                display: none;
+            }
+             .header-buttons {
+                display: flex;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .feature { /* For side-by-side layout */
+                flex-direction: row;
+                justify-content: space-between;
+                text-align: left; /* Text inside blocks will align left */
+            }
+            .feature .feature-text { /* Text block aligns left, text inside aligns left */
+                flex-basis: 45%;
+                margin-bottom: 0;
+                margin-left: 0; /* Override auto for flex layout */
+                margin-right: 0; /* Override auto for flex layout */
+                text-align: left;
+            }
+             .feature .feature-image-placeholder {
+                flex-basis: 50%;
+                margin-left: 0; /* Override auto for flex layout */
+                margin-right: 0; /* Override auto for flex layout */
+            }
+
+            .feature:nth-child(even) .feature-text {
+                order: 2;
+            }
+            .feature:nth-child(even) .feature-image-placeholder {
+                order: 1;
+            }
+            .footer .container-content {
+                flex-direction: row;
+                justify-content: space-between;
+            }
+             .footer-links {
+                margin-bottom: 0;
+            }
+        }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="container"> <!-- This div is the rounded bar -->
+            <div class="logo">ThetaSummary</div>
+            <nav class="nav-links">
+                <a href="#">Pricing</a>
+                <a href="#">Features</a>
+                <a href="#">Enterprise</a>
+                <a href="#">Blog</a>
+                <a href="#">Docs</a>
+            </nav>
+            <div class="header-buttons">
+                <a href="#" class="btn btn-secondary">Sign In</a>
+                <a href="#" class="btn btn-primary">Download</a>
+            </div>
+            <button class="mobile-menu-button" aria-label="Open menu">☰</button>
+        </div>
+    </header>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobile-menu">
+        <button class="close-mobile-menu" id="close-mobile-menu">×</button>
+        <a href="#">Pricing</a>
+        <a href="#">Features</a>
+        <a href="#">Enterprise</a>
+        <a href="#">Blog</a>
+        <a href="#">Docs</a>
+        <a href="#">Sign In</a>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container-content">
+            <h1>Transform Your Learning Experience</h1>
+            <p>Record classes, lectures, or study sessions, and let our AI generate comprehensive, structured summaries in seconds with subject-specific formatting.</p>
+            <div class="hero-buttons">
+                <a href="/recordings" class="btn btn-large-primary">Download for Your OS</a>
+                <a href="/dashboard" class="btn btn-large-secondary">See All Downloads</a>
+            </div>
+            <div class="hero-image-placeholder">
+                <span>ThetaSummary in Action - Recording and Summarization Interface</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Summaries Listing Section -->
+    <section class="feature-blocks">
+        <div class="container-content">
+            <h2>My Summaries</h2>
+            
+            {% if summaries|length > 0 %}
+                <div class="blocks-grid">
+                    {% for summary in summaries %}
+                        <div class="block-item">
+                            <div class="summary-date">{{ summary.date }}</div>
+                            <div class="summary-preview">{{ summary.preview }}</div>
+                            <div class="summary-actions">
+                                <a href="{{ url_for('view_summary', filename=summary.filename) }}" class="btn btn-secondary" title="View Summary">
+                                    View
+                                </a>
+                                <a href="{{ url_for('download_file', filename=summary.filename) }}" class="btn btn-secondary" title="Download Summary">
+                                    Download
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">📝</div>
+                    <h2 class="empty-state-title">No Summaries Yet</h2>
+                    <p class="empty-state-message">Start by recording your first class or lecture to generate a comprehensive AI-powered summary.</p>
+                    <a href="/recordings" class="btn btn-large-primary">Create Your First Recording</a>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container-content">
+            <div class="footer-links">
+                <a href="#">support@thetasummary.com</a>
+                <a href="#">Features</a>
+                <a href="#">Privacy</a>
+                <a href="#">Terms</a>
+                <a href="#">Help</a>
+            </div>
+            <p>&copy; 2023 ThetaSummary. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Mobile menu functionality
+            const mobileMenuButton = document.querySelector('.mobile-menu-button');
+            const closeMobileMenu = document.querySelector('.close-mobile-menu');
+            const mobileMenu = document.querySelector('.mobile-menu');
+            
+            mobileMenuButton.addEventListener('click', function() {
+                mobileMenu.classList.add('active');
+            });
+            
+            closeMobileMenu.addEventListener('click', function() {
+                mobileMenu.classList.remove('active');
+            });
+        });
+    </script>
+</body>
+</html> 

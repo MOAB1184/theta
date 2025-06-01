@@ -1,0 +1,112 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\begin{document}
+
+\section{Key Formulas and Their Use Cases}
+
+\subsection{Sinusoidal Height Model}
+The vertical position of an object in periodic motion can be modeled as:
+\[
+H(t) = A \cos\left(\frac{2\pi}{P}(t - h)\right) + K
+\]
+\begin{itemize}
+  \item \textbf{Amplitude (A)}: Half the difference between max/min heights:  
+  \[
+  A = \frac{\text{max} - \text{min}}{2}
+  \]
+  \item \textbf{Vertical Shift (K)}: Midpoint between max/min heights:  
+  \[
+  K = \frac{\text{max} + \text{min}}{2}
+  \]
+  \item \textbf{Period (P)}: Time for one full revolution
+  \item \textbf{Phase Shift (h)}: Horizontal displacement to align with initial conditions
+\end{itemize}
+\textbf{Use Case}: Modeling Ferris wheel height over time given diameter (40 ft), ground clearance (3 ft), and period (8 sec).
+
+\subsection{Double-Angle Identities}
+\[
+\sin(2\theta) = 2\sin\theta\cos\theta; \quad \cos(2\theta) = \cos^2\theta - \sin^2\theta = 1 - 2\sin^2\theta
+\]
+\textbf{Use Case}: Simplifying expressions like $\cos(195^\circ)$ by rewriting as $\cos(150^\circ + 45^\circ)$.
+
+\subsection{Half-Angle Identity}
+\[
+\sin\left(\frac{\theta}{2}\right) = \pm \sqrt{\frac{1 - \cos\theta}{2}}
+\]
+\textbf{Use Case}: Finding exact values for non-unit-circle angles like $\sin\left(\frac{5\pi}{8}\right)$.
+
+\section{Example Problems and Solutions}
+
+\subsection{Problem 1: Height at Specific Time}
+\textbf{Problem}: A Ferris wheel with max height 43 ft, min height 3 ft, and period 8 sec reaches its top at $t=3$ sec. Find the height at $t=9$ sec.
+
+\textbf{Solution}:
+\begin{enumerate}
+  \item Calculate amplitude: $A = \frac{43 - 3}{2} = 20$
+  \item Calculate vertical shift: $K = \frac{43 + 3}{2} = 23$
+  \item Model equation: 
+  \[
+  H(t) = 20\cos\left(\frac{\pi}{4}(t - 3)\right) + 23
+  \]
+  \item Substitute $t=9$:
+  \[
+  H(9) = 20\cos\left(\frac{\pi}{4}(6)\right) + 23 = 20\cos\left(\frac{3\pi}{2}\right) + 23 = 20(0) + 23 = \boxed{23 \text{ ft}}
+  \]
+\end{enumerate}
+
+\subsection{Problem 2: Time to Reach Specific Height}
+\textbf{Problem}: Using the same Ferris wheel model, find the second time it reaches 20 ft.
+
+\textbf{Solution}:
+\begin{enumerate}
+  \item Set equation equal to 20:
+  \[
+  20\cos\left(\frac{\pi}{4}(t - 3)\right) + 23 = 20
+  \]
+  \item Solve algebraically:
+  \[
+  \cos\left(\frac{\pi}{4}(t - 3)\right) = -\frac{3}{20}
+  \]
+  \item Apply arccosine:
+  \[
+  \frac{\pi}{4}(t - 3) = \cos^{-1}\left(-\frac{3}{20}\right) \approx 1.722 \text{ radians}
+  \]
+  \item Solve for $t$:
+  \[
+  t = 3 + \frac{4(1.722)}{\pi} \approx \boxed{5.19 \text{ seconds}}
+  \]
+\end{enumerate}
+
+\subsection{Problem 3: Double-Angle Application}
+\textbf{Problem}: Simplify $\sin(2\theta)$ if $\sin\theta = \frac{3}{5}$ where $\theta$ is acute.
+
+\textbf{Solution}:
+\begin{enumerate}
+  \item Find $\cos\theta$ using Pythagorean identity:
+  \[
+  \cos\theta = \sqrt{1 - \left(\frac{3}{5}\right)^2} = \frac{4}{5}
+  \]
+  \item Apply double-angle formula:
+  \[
+  \sin(2\theta) = 2\left(\frac{3}{5}\right)\left(\frac{4}{5}\right) = \boxed{\frac{24}{25}}
+  \]
+\end{enumerate}
+
+\subsection{Problem 4: Half-Angle Application}
+\textbf{Problem}: Find $\cos(195^\circ)$ using half-angle identities.
+
+\textbf{Solution}:
+\begin{enumerate}
+  \item Rewrite as half-angle: $195^\circ = \frac{390^\circ}{2}$
+  \item Use identity (negative root for second quadrant):
+  \[
+  \cos(195^\circ) = -\sqrt{\frac{1 + \cos(390^\circ)}{2}} = -\sqrt{\frac{1 + \cos(30^\circ)}{2}}
+  \]
+  \item Substitute $\cos(30^\circ) = \frac{\sqrt{3}}{2}$:
+  \[
+  \cos(195^\circ) = -\sqrt{\frac{2 + \sqrt{3}}{4}} = \boxed{-\frac{\sqrt{2 + \sqrt{3}}}{2}}
+  \]
+\end{enumerate}
+
+\end{document}

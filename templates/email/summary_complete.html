@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            color: #c084fc;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #c084fc;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .footer {
+            margin-top: 30px;
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">ThetaSummary</div>
+    </div>
+    
+    <p>Hello {{ username }},</p>
+    
+    <p>Great news! Your summary for {{ class_name }} is ready to view.</p>
+    
+    <div style="text-align: center;">
+        <a href="{{ summary_url }}" class="button">View Summary</a>
+    </div>
+    
+    <p>If the button doesn't work, you can also copy and paste this link into your browser:</p>
+    <p>{{ summary_url }}</p>
+    
+    <p>Thank you for using ThetaSummary!</p>
+    
+    <div class="footer">
+        <p>This email was sent by ThetaSummary. Please do not reply to this email.</p>
+    </div>
+</body>
+</html> 

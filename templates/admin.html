@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - ThetaSummary</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Reset and Basic Styles */
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        header {
+            background-color: #1a1a1a;
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #ffffff;
+            text-decoration: none;
+        }
+        
+        .logo span {
+            color: #c084fc;
+        }
+        
+        .user-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .username {
+            font-weight: 500;
+            color: #b0b0b0;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            border: none;
+        }
+        
+        .btn-primary {
+            background: #c084fc;
+            color: #ffffff;
+        }
+        
+        .btn-primary:hover {
+            background: #a855f7;
+        }
+        
+        .btn-outline {
+            background: transparent;
+            color: #e0e0e0;
+            border: 1px solid #404040;
+        }
+        
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        main {
+            padding: 40px 0;
+        }
+        
+        .page-title {
+            font-size: 2rem;
+            margin-bottom: 30px;
+            color: #ffffff;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(145deg, #1a1a1a, #242424);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-title {
+            font-size: 1.1rem;
+            color: #a0a0a0;
+            margin-bottom: 12px;
+        }
+        
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 8px;
+        }
+        
+        .stat-subtitle {
+            font-size: 0.9rem;
+            color: #808080;
+        }
+        
+        .stat-card.pro {
+            border-left: 4px solid #c084fc;
+        }
+        
+        .stat-card.enterprise {
+            border-left: 4px solid #f472b6;
+        }
+        
+        .stat-card.plus {
+            border-left: 4px solid #60a5fa;
+        }
+        
+        .section {
+            background: #1a1a1a;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 32px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            color: #ffffff;
+            margin: 0;
+        }
+
+        .user-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 16px;
+        }
+        
+        .user-table th {
+            background: #242424;
+            color: #ffffff;
+            font-weight: 600;
+            text-align: left;
+            padding: 16px;
+            border-bottom: 2px solid #333;
+        }
+        
+        .user-table td {
+            padding: 16px;
+            border-bottom: 1px solid #333;
+            color: #e0e0e0;
+        }
+        
+        .user-table tr:hover {
+            background: #242424;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .status-active {
+            background: #10b981;
+            color: #ffffff;
+        }
+        
+        .status-inactive {
+            background: #6b7280;
+            color: #ffffff;
+        }
+        
+        .status-cancelled {
+            background: #ef4444;
+            color: #ffffff;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .search-bar {
+            background: #242424;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 12px 16px;
+            color: #ffffff;
+            width: 100%;
+            margin-bottom: 24px;
+        }
+        
+        .search-bar:focus {
+            outline: none;
+            border-color: #c084fc;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <a href="{{ url_for('dashboard') }}" class="logo">Theta<span>Summary</span> Admin</a>
+                <div class="user-actions">
+                    <span class="username">{{ username }}</span>
+                    <a href="{{ url_for('logout') }}" class="btn btn-outline">Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <main>
+        <div class="container">
+            <h1 class="page-title">Admin Dashboard</h1>
+            
+            <!-- Statistics Cards -->
+            <div class="dashboard-grid">
+                <div class="stat-card pro">
+                    <div class="stat-title">Pro Users</div>
+                    <div class="stat-value">{{ pro_users_count }}</div>
+                    <div class="stat-subtitle">Active Pro subscriptions</div>
+                </div>
+                <div class="stat-card enterprise">
+                    <div class="stat-title">Enterprise Users</div>
+                    <div class="stat-value">{{ enterprise_users_count }}</div>
+                    <div class="stat-subtitle">Active Enterprise subscriptions</div>
+                </div>
+                <div class="stat-card plus">
+                    <div class="stat-title">Plus Users</div>
+                    <div class="stat-value">{{ plus_users_count }}</div>
+                    <div class="stat-subtitle">Users on plus plan</div>
+                </div>
+            </div>
+            
+            <!-- User Management Section -->
+            <div class="section">
+                <div class="section-header">
+                    <h2 class="section-title">User Management</h2>
+                    <a href="{{ url_for('create_school_route') }}" class="btn btn-primary">+ Create School</a>
+                    </div>
+                
+                <input type="text" class="search-bar" placeholder="Search users..." id="userSearch">
+                
+                <div class="user-list-container">
+                    <table class="user-table">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Role</th>
+                                <th>Subscription</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                            <tr>
+                                <td>{{ user.username }}</td>
+                                <td>{{ user.role }}</td>
+                                <td>
+                                    <span class="status-badge status-{{ user.subscription_type }}">
+                                        {{ user.subscription_type|title }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="status-badge status-{{ user.subscription_status }}">
+                                        {{ user.subscription_status|title }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="btn btn-outline" onclick="editUser('{{ user._id }}')">Edit</button>
+                                        <form method="POST" action="{{ url_for('admin_delete_user', user_id=user._id) }}" style="display: inline;">
+                                            <button type="submit" class="btn btn-outline" style="color: #ef4444;">Delete</button>
+                                        </form>
+                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Pending Teachers Section -->
+            <div class="section">
+                <h2 class="section-title">Pending Teacher Approvals</h2>
+            <div class="user-list-container">
+                <table class="user-table">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                                <th>School</th>
+                                <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                            {% for teacher in pending_teachers %}
+                        <tr>
+                                <td>{{ teacher.username }}</td>
+                                <td>{{ teacher.school_name }}</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <form method="POST" action="{{ url_for('approve_teacher', teacher_id=teacher._id) }}" style="display: inline;">
+                                            <button type="submit" class="btn btn-primary">Approve</button>
+                                        </form>
+                                        <form method="POST" action="{{ url_for('deny_teacher', teacher_id=teacher._id) }}" style="display: inline;">
+                                            <button type="submit" class="btn btn-outline" style="color: #ef4444;">Deny</button>
+                                        </form>
+                                    </div>
+                                </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                </div>
+            </div>
+            
+            <!-- Global Prompt Section -->
+            <div class="section">
+                <h2 class="section-title">Global Summarization Prompt</h2>
+                <p style="color: #a0a0a0; margin-bottom: 24px;">Edit the single global prompt used for all summarization tasks.</p>
+                
+                <div class="prompt-list">
+                    {% if global_prompt %}
+                    <div class="prompt-item">
+                        <div class="prompt-title">
+                            <span>Global Prompt</span>
+                            <a href="{{ url_for('edit_global_prompt') }}" class="btn btn-outline">Edit Prompt</a>
+                        </div>
+                        <div class="prompt-description">
+                            <pre style="background: #242424; padding: 16px; border-radius: 8px; overflow-x: auto; color: #e0e0e0;">{{ global_prompt }}</pre>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <script>
+        // Search functionality
+        document.getElementById('userSearch').addEventListener('input', function(e) {
+            const searchText = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('.user-table tbody tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchText) ? '' : 'none';
+            });
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Summary - ThetaSummary</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- KaTeX CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css" integrity="sha384-5TcZemv2l/9On385z///+d7MSYlvIEw9FuZTIdZ14vJLqWphw7e7ZPuOiCHJcFCP" crossorigin="anonymous">
+    <!-- KaTeX JS -->
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js" integrity="sha384-cMkvdD8LoxVzGF/RPUKAcvmm49FQ0oxwDF3BGKtDXcEc+T1b2N+teh/OJfpU0jr6" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #121212; color: #e0e0e0; line-height: 1.6; min-height: 100vh; }
+        .app-container { display: flex; min-height: 100vh; }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            width: 250px;
+            background-color: #1a1a1a;
+            transition: all 0.3s ease;
+            overflow-y: auto;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            z-index: 100;
+            transform: translateX(-250px);
+        }
+        .sidebar.active {
+            transform: translateX(0);
+        }
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .sidebar-logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #ffffff;
+            text-decoration: none;
+        }
+        .close-menu {
+            background: none;
+            border: none;
+            color: #a0a0a0;
+            cursor: pointer;
+            font-size: 1.5rem;
+        }
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+        .sidebar-menu-title {
+            padding: 0 20px;
+            margin-bottom: 10px;
+            color: #a0a0a0;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .menu-item {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: #e0e0e0;
+            transition: all 0.2s ease;
+        }
+        .menu-item:hover, .menu-item.active {
+            background-color: #242424;
+        }
+        .menu-item-icon {
+            margin-right: 10px;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid #333;
+        }
+        .sidebar-footer-text {
+            color: #a0a0a0;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: #e0e0e0;
+            padding: 10px 15px;
+            background-color: #242424;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+        .logout-btn:hover {
+            background-color: #333;
+        }
+        .logout-icon {
+            margin-right: 8px;
+        }
+        
+        /* Sidebar Overlay for Mobile */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 99;
+            display: none;
+        }
+        .sidebar-overlay.active {
+            display: block;
+        }
+        
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            margin-left: 0;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        .main-content.sidebar-active {
+            margin-left: 250px;
+            width: calc(100% - 250px);
+        }
+        
+        /* Header Styles */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .menu-toggle {
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+        }
+        .page-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+        .user-menu {
+            position: relative;
+        }
+        .user-button {
+            background: none;
+            border: none;
+            color: #ffffff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        .user-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background-color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        
+        /* Summary Content Styles */
+        .summary-container {
+            background: #1a1a1a;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.18);
+            padding: 28px 24px;
+        }
+        .summary-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .summary-title {
+            font-size: 1.5rem;
+            color: #4f8cff;
+            margin: 0;
+        }
+        .summary-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        .back-btn, .summary-action-btn {
+            color: #7bb6ff;
+            text-decoration: none;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: color 0.2s;
+        }
+        .back-btn:hover, .summary-action-btn:hover {
+            color: #a7d3ff;
+            text-decoration: underline;
+        }
+        .summary-content {
+            font-size: 1.05rem;
+            color: #e0e0e0;
+            line-height: 1.8;
+        }
+        .summary-content h1 {
+            font-size: 1.8rem;
+            color: #ffffff;
+            margin: 20px 0 10px;
+        }
+        .summary-content h2 {
+            font-size: 1.4rem;
+            color: #ffffff;
+            margin: 20px 0 10px;
+        }
+        .summary-content h3 {
+            font-size: 1.2rem;
+            color: #e0e0e0;
+            margin: 15px 0 8px;
+        }
+        .summary-content strong {
+            font-weight: 700;
+            color: #ffffff;
+        }
+        .summary-content em {
+            font-style: italic;
+            color: #e0e0e0;
+        }
+        .summary-content p {
+            margin-bottom: 15px;
+        }
+        .summary-content ul, .summary-content ol {
+            margin: 10px 0 10px 20px;
+        }
+        .summary-content li {
+            margin-bottom: 8px;
+        }
+        .error-message {
+            background: #ff4f4f;
+            color: #fff;
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .error-message:not(.hidden) {
+            display: block;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        .loading:not(.hidden) {
+            display: block;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4f8cff;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .katex { font-size: 1.1em; }
+        
+        /* Responsive Styles */
+        @media (min-width: 768px) {
+            .sidebar {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 250px;
+                width: calc(100% - 250px);
+            }
+            .menu-toggle {
+                display: none;
+            }
+            .close-menu {
+                display: none;
+            }
+        }
+        @media (max-width: 767px) {
+            .main-content.sidebar-active {
+                margin-left: 0;
+                width: 100%;
+                opacity: 0.7;
+            }
+            .summary-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+        
+        /* LaTeX Content Styles */
+        .latex-content {
+            overflow-x: auto;
+            padding: 10px 0;
+            margin: 10px 0;
+        }
+        .latex-content .katex {
+            font-size: 1.1em;
+        }
+        .latex-content .katex-display {
+            margin: 1em 0;
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding: 10px 0;
+        }
+        .latex-content .katex-display > .katex {
+            display: block;
+            text-align: center;
+            max-width: 100%;
+        }
+        .latex-content .katex-error {
+            color: #ff4f4f;
+            font-family: monospace;
+            background: #2a1a1a;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar-overlay"></div>
+    
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="/dashboard" class="sidebar-logo">ThetaSummary</a>
+                <button class="close-menu">×</button>
+            </div>
+            
+            <div class="sidebar-menu">
+                <div class="sidebar-menu-title">Menu</div>
+                <a href="{{ url_for('dashboard') }}" class="menu-item">
+                    <span class="menu-item-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 13A6 6 0 1 1 8 2a6 6 0 0 1 0 12z"/>
+                            <path d="M8 4a.5.5 0 0 1 .5.5v2.5H11a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V8H5a.5.5 0 0 1 0-1h2.5V4.5A.5.5 0 0 1 8 4z"/>
+                        </svg>
+                    </span>
+                    Dashboard
+                </a>
+                {% if user_role == 'teacher' %}
+                <!-- List all classes for teacher -->
+                {% for class in classes %}
+                <a href="{{ url_for('view_class', class_id=class._id) }}" class="menu-item">
+                    <span class="menu-item-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#4f8cff" viewBox="0 0 16 16">
+                            <circle cx="8" cy="8" r="7" stroke="#4f8cff" stroke-width="2" fill="none"/>
+                        </svg>
+                    </span>
+                    {{ class.name }}
+                </a>
+                {% endfor %}
+                {% endif %}
+                <a href="{{ url_for('create_class') }}" class="menu-item">
+                    <span class="menu-item-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 13A6 6 0 1 1 8 2a6 6 0 0 1 0 12z"/>
+                            <path d="M8 4a.5.5 0 0 1 .5.5v2.5H11a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V8H5a.5.5 0 0 1 0-1h2.5V4.5A.5.5 0 0 1 8 4z"/>
+                        </svg>
+                    </span>
+                    Create New Class
+                </a>
+                {% if is_admin %}
+                <a href="{{ url_for('admin_dashboard') }}" class="menu-item">
+                    <span class="menu-item-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 13A6 6 0 1 1 8 2a6 6 0 0 1 0 12z"/>
+                            <path d="M8 4a.5.5 0 0 1 .5.5v2.5H11a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V8H5a.5.5 0 0 1 0-1h2.5V4.5A.5.5 0 0 1 8 4z"/>
+                        </svg>
+                    </span>
+                    Admin Settings
+                </a>
+                {% endif %}
+            </div>
+            
+            <div class="sidebar-footer">
+                <div class="sidebar-footer-text">Logged in as {{ username }}</div>
+                <a href="{{ url_for('logout') }}" class="logout-btn">
+                    <span class="logout-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z"/>
+                            <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/>
+                        </svg>
+                    </span>
+                    Logout
+                </a>
+            </div>
+        </aside>
+        
+        <main class="main-content">
+            <header class="header">
+                <button class="menu-toggle">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/>
+                    </svg>
+                </button>
+                <h1 class="page-title">View Summary</h1>
+                <div class="user-menu">
+                    <button class="user-button">
+                        <div class="user-avatar">{{ username[0].upper() }}</div>
+                        <span>{{ username }}</span>
+                    </button>
+                </div>
+            </header>
+            
+            <div class="summary-container">
+                <div class="error-message hidden" id="error-message"></div>
+                <div class="loading hidden" id="loading">
+                    <div class="spinner"></div>
+                </div>
+                <div class="summary-header">
+                    <div>
+                        <h2 class="summary-title">{{ filename }}</h2>
+                    </div>
+                    <div class="summary-actions">
+                        <a href="{{ url_for('view_class', class_id=class_id) }}" class="back-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+                            </svg>
+                            Back to Class
+                        </a>
+                        <a href="{{ url_for('download_file', filename=filename) }}" class="summary-action-btn" id="download-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+                            </svg>
+                            Download
+                        </a>
+                    </div>
+                </div>
+                
+                <div id="summary-content" class="latex-content"></div>
+                <script type="application/json" id="summary-raw-content">{{ content|tojson }}</script>
+                <script>
+                    // Show error message
+                    function showError(message) {
+                        const errorMessage = document.getElementById('error-message');
+                        if (errorMessage) {
+                            errorMessage.textContent = message;
+                            errorMessage.classList.remove('hidden');
+                            setTimeout(() => {
+                                errorMessage.classList.add('hidden');
+                            }, 10000);
+                        }
+                    }
+
+                    // Process Markdown and LaTeX content
+                    function processContent(rawContent) {
+                        // Step 1: Escape LaTeX math to prevent Markdown parsing
+                        const inlineMathRegex = /\\\(.*?\\\)|\$[^$]+\$/gs;
+                        const displayMathRegex = /\\\[.*?\\\]|\$\$[\s\S]*?\$\$/gs;
+                        const mathPlaceholders = [];
+                        let placeholderIndex = 0;
+
+                        // Store LaTeX math and replace with placeholders
+                        function escapeMath(content, regex, prefix) {
+                            return content.replace(regex, (match) => {
+                                const placeholder = `MATH_PLACEHOLDER_${prefix}_${placeholderIndex++}`;
+                                mathPlaceholders.push({ placeholder, content: match });
+                                return placeholder;
+                            });
+                        }
+
+                        let processedContent = rawContent;
+                        processedContent = escapeMath(processedContent, inlineMathRegex, 'INLINE');
+                        processedContent = escapeMath(processedContent, displayMathRegex, 'DISPLAY');
+
+                        // Replace lines with only --- or -- with a few spaces
+                        processedContent = processedContent.replace(/^\s*---+\s*$/gm, '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;');
+                        processedContent = processedContent.replace(/^\s*--\s*$/gm, '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;');
+
+                        // Step 2: Parse Markdown with marked.js
+                        marked.setOptions({
+                            gfm: true,
+                            breaks: true,
+                            pedantic: false,
+                            sanitizer: null
+                        });
+                        let htmlContent = marked.parse(processedContent);
+
+                        // Step 3: Restore and render LaTeX math with KaTeX
+                        mathPlaceholders.forEach(({ placeholder, content }) => {
+                            try {
+                                const isDisplay = placeholder.includes('_DISPLAY_');
+                                let tex;
+                                if (content.startsWith('\\[') || content.startsWith('\\(')) {
+                                    tex = content.slice(2, -2).trim();
+                                } else if (content.startsWith('$$')) {
+                                    tex = content.slice(2, -2).trim();
+                                } else {
+                                    tex = content.slice(1, -1).trim();
+                                }
+                                const rendered = katex.renderToString(tex, {
+                                    throwOnError: false,
+                                    displayMode: isDisplay,
+                                    strict: false,
+                                    trust: true
+                                });
+                                const replacement = isDisplay ? `<div class="katex-display">${rendered}</div>` : `<span class="katex">${rendered}</span>`;
+                                htmlContent = htmlContent.replace(placeholder, replacement);
+                            } catch (err) {
+                                console.error(`Error rendering LaTeX: ${content}`, err);
+                                htmlContent = htmlContent.replace(placeholder, `<span class="katex-error">${content}</span>`);
+                            }
+                        });
+
+                        return htmlContent;
+                    }
+
+                    // Initialize content rendering
+                    document.addEventListener('DOMContentLoaded', function() {
+                        try {
+                            const rawContent = JSON.parse(document.getElementById('summary-raw-content').textContent);
+                            const summaryContent = document.getElementById('summary-content');
+                            summaryContent.innerHTML = processContent(rawContent);
+                        } catch (err) {
+                            console.error('Error processing content:', err);
+                            showError('Failed to render summary content. Check the console for details.');
+                        }
+                    });
+                </script>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                // Sidebar functionality
+                const menuToggle = document.querySelector('.menu-toggle');
+                const closeMenu = document.querySelector('.close-menu');
+                const sidebar = document.querySelector('.sidebar');
+                const mainContent = document.querySelector('.main-content');
+                const sidebarOverlay = document.querySelector('.sidebar-overlay');
+                const downloadBtn = document.getElementById('download-btn');
+                const errorMessage = document.getElementById('error-message');
+                const loading = document.getElementById('loading');
+                
+                // Function to toggle sidebar visibility
+                function toggleSidebar() {
+                    sidebar.classList.toggle('active');
+                    mainContent.classList.toggle('sidebar-active');
+                    sidebarOverlay.classList.toggle('active');
+                }
+                
+                // Event listeners for sidebar toggle buttons
+                menuToggle.addEventListener('click', toggleSidebar);
+                closeMenu.addEventListener('click', toggleSidebar);
+                sidebarOverlay.addEventListener('click', toggleSidebar);
+                
+                // Handle download button click
+                downloadBtn.addEventListener('click', async function(e) {
+                    e.preventDefault();
+                    const filename = '{{ filename }}';
+                    loading.classList.remove('hidden');
+                    errorMessage.classList.add('hidden');
+                    
+                    try {
+                        const response = await fetch('/api/check_file', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ filename: filename }),
+                        });
+                        const data = await response.json();
+                        
+                        if (data.status === 'success' && data.exists) {
+                            // If file exists, proceed with download
+                            window.location.href = downloadBtn.href;
+                        } else {
+                            showError('Summary file not found or access denied. Please try refreshing the page.');
+                        }
+                    } catch (err) {
+                        console.error('Error checking file:', err);
+                        showError('Error checking file availability. Please try again.');
+                    } finally {
+                        loading.classList.add('hidden');
+                    }
+                });
+                
+                // Handle responsive behavior
+                function handleResize() {
+                    if (window.innerWidth < 768) {
+                        sidebar.classList.remove('active');
+                        mainContent.classList.remove('sidebar-active');
+                        sidebarOverlay.classList.remove('active');
+                    }
+                }
+                
+                // Initial setup and resize handling
+                window.addEventListener('resize', handleResize);
+                handleResize();
+            } catch (err) {
+                console.error('Error in DOMContentLoaded:', err);
+                showError('An error occurred while loading the page. Check the console for details.');
+            }
+        });
+    </script>
+</body>
+</html>

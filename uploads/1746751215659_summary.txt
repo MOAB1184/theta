@@ -1,0 +1,100 @@
+```latex
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\begin{document}
+
+\section{Key Formulas and Their Use Cases}
+\begin{itemize}
+    \item \textbf{Quadratic Formula}: \( x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a} \)
+    \begin{itemize}
+        \item \emph{Components}: Solves quadratic equations \( ax^2 + bx + c = 0 \), where \( a \neq 0 \).
+        \item \emph{Use Case}: Finding roots of parabolic motion equations or profit optimization in economics.
+    \end{itemize}
+    
+    \item \textbf{Pythagorean Theorem}: \( a^2 + b^2 = c^2 \)
+    \begin{itemize}
+        \item \emph{Components}: Relates legs \( a, b \) and hypotenuse \( c \) of a right triangle.
+        \item \emph{Use Case}: Calculating distances in 2D geometry or diagonal measurements in construction.
+    \end{itemize}
+    
+    \item \textbf{Area of a Circle}: \( A = \pi r^2 \)
+    \begin{itemize}
+        \item \emph{Components}: \( r \) is the radius; calculates the area enclosed by a circle.
+        \item \emph{Use Case}: Determining material quantities for circular objects (e.g., pipes, wheels).
+    \end{itemize}
+    
+    \item \textbf{Slope-Intercept Form}: \( y = mx + b \)
+    \begin{itemize}
+        \item \emph{Components}: \( m \) is the slope, \( b \) is the y-intercept.
+        \item \emph{Use Case}: Modeling linear relationships in data analysis or predicting trends.
+    \end{itemize}
+\end{itemize}
+
+\section{Example Problems and Solutions}
+\subsection{Example 1: Quadratic Formula}
+\textbf{Problem}: Solve \( 2x^2 + 5x - 3 = 0 \). \\
+\textbf{Solution}:
+\begin{enumerate}
+    \item Identify coefficients: \( a = 2 \), \( b = 5 \), \( c = -3 \).
+    \item Plug into the formula:
+    \[
+    x = \frac{-5 \pm \sqrt{5^2 - 4(2)(-3)}}{2(2)}
+    \]
+    \item Simplify the discriminant:
+    \[
+    \sqrt{25 + 24} = \sqrt{49} = 7
+    \]
+    \item Calculate roots:
+    \[
+    x = \frac{-5 + 7}{4} = \frac{1}{2}, \quad x = \frac{-5 - 7}{4} = -3
+    \]
+\end{enumerate}
+\textbf{Final Answer}: \( x = \frac{1}{2} \) or \( x = -3 \).
+
+\subsection{Example 2: Pythagorean Theorem}
+\textbf{Problem}: A right triangle has legs \( a = 3 \) and \( b = 4 \). Find the hypotenuse \( c \). \\
+\textbf{Solution}:
+\begin{enumerate}
+    \item Apply the theorem:
+    \[
+    c^2 = 3^2 + 4^2 = 9 + 16 = 25
+    \]
+    \item Solve for \( c \):
+    \[
+    c = \sqrt{25} = 5
+    \]
+\end{enumerate}
+\textbf{Final Answer}: \( c = 5 \).
+
+\subsection{Example 3: Area of a Circle}
+\textbf{Problem}: Calculate the area of a circle with radius \( r = 5 \) meters. \\
+\textbf{Solution}:
+\begin{enumerate}
+    \item Use the formula:
+    \[
+    A = \pi (5)^2 = 25\pi
+    \]
+\end{enumerate}
+\textbf{Final Answer}: \( 25\pi \, \text{m}^2 \) (≈78.54 m\(^2\)).
+
+\subsection{Example 4: Slope-Intercept Form}
+\textbf{Problem}: Find the equation of a line with slope \( m = 2 \) passing through \( (1, 3) \). \\
+\textbf{Solution}:
+\begin{enumerate}
+    \item Start with \( y = 2x + b \).
+    \item Substitute \( (1, 3) \):
+    \[
+    3 = 2(1) + b \implies b = 1
+    \]
+    \item Write the equation:
+    \[
+    y = 2x + 1
+    \]
+\end{enumerate}
+\textbf{Final Answer}: \( y = 2x + 1 \).
+
+\end{document}
+``` 
+
+This LaTeX document adheres to the math-specific prompt, focusing on formulas and detailed example problems. The structure avoids historical/social studies content and emphasizes mathematical notation, step-by-step solutions, and practical applications.

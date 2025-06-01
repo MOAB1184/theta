@@ -1,0 +1,53 @@
+```latex
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\begin{document}
+
+\section{Key Concepts and Terms}
+\begin{itemize}
+    \item \textbf{Decolonization}: The process by which African colonies gained independence from European powers (1950s–1970s). Significant as it reshaped global politics and inspired civil rights movements worldwide.
+    
+    \item \textbf{African Nationalism}: Ideology advocating political unity and self-determination for African nations. Key figures like Kwame Nkrumah used it to mobilize anti-colonial resistance.
+    
+    \item \textbf{Neo-colonialism}: Continued economic/political influence by former colonial powers post-independence. Examples include French control over African governments and resource extraction.
+    
+    \item \textbf{Cold War Proxy Conflicts}: Superpowers (U.S. and USSR) manipulated African nations for ideological dominance. Example: U.S./Belgium-backed assassination of Patrice Lumumba in Congo (1960).
+    
+    \item \textbf{Ethnic Conflict}: Post-independence tensions exacerbated by colonial "divide and rule" policies. Example: Nigerian Civil War (1967–1970) rooted in ethnic divisions.
+\end{itemize}
+
+\section{Historical Events and Timelines}
+\subsection{Major Events}
+\begin{itemize}
+    \item \textbf{1957}: Ghana gains independence under Kwame Nkrumah, inspiring pan-African movements.
+    \item \textbf{1960 (Year of Africa)}: 17 African nations declare independence, accelerating decolonization.
+    \item \textbf{1960–1965}: Congo Crisis; Lumumba assassinated, highlighting Cold War interference.
+    \item \textbf{1967–1970}: Nigerian Civil War due to ethnic tensions and resource disputes.
+\end{itemize}
+
+\subsection{Cause-Effect Relationships}
+\begin{itemize}
+    \item Colonial policies of \emph{divide and rule} $\rightarrow$ post-independence ethnic violence (e.g., Rwanda genocide).
+    \item Rapid decolonization without infrastructure $\rightarrow$ political instability (40+ coups in Africa by 1980).
+    \item Cold War rivalry $\rightarrow$ foreign-backed coups and resource exploitation (e.g., Congo’s mineral wealth).
+\end{itemize}
+
+\section{Case Studies and Examples}
+\begin{itemize}
+    \item \textbf{Ghana’s Independence (1957)}: First sub-Saharan colony to gain independence. Nkrumah’s pan-Africanism became a model for other nations, emphasizing unity against colonialism.
+    
+    \item \textbf{Congo Crisis (1960–1965)}: Lumumba’s assassination by Western-backed forces exposed neo-colonialism and set a precedent for foreign interference in African politics.
+    
+    \item \textbf{Nigerian Civil War (1967–1970)}: Ethnic tensions between Igbo secessionists and the government highlighted the fragility of colonial-era borders.
+    
+    \item \textbf{French Neo-colonialism}: France maintained covert control over currencies and militaries in former colonies (e.g., Franc CFA), limiting true sovereignty.
+\end{itemize}
+
+\section{Application to Modern Society}
+\textbf{Modern Relevance}: Decolonization’s legacy persists in Africa’s political and economic struggles. France’s military presence in Sahel nations (e.g., Mali) and exploitation of mineral resources (e.g., uranium in Niger) mirror colonial patterns. The \emph{\$300 billion illegal capital flight} from Africa (2000–2008) underscores ongoing economic neo-colonialism. Ethnic conflicts, such as Cameroon’s Anglophone crisis, trace back to arbitrary colonial borders. Meanwhile, movements like \#BlackLivesMatter draw parallels to anti-colonial solidarity, emphasizing global racial justice. Post-independence aid dependency and tax havens (e.g., British Virgin Islands) reveal systemic exploitation, urging reforms in global governance.
+
+\end{document}
+``` 
+
+This summary focuses on the Social Studies prompt, emphasizing historical cause-effect relationships, key terms, and modern implications of decolonization. The LaTeX structure uses sections, subsections, and itemized lists for clarity, with **bold** and *emphasized* terms to highlight critical concepts.

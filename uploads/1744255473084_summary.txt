@@ -1,0 +1,78 @@
+```latex
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\begin{document}
+
+\section{Key Formulas and Their Use Cases}
+\subsection{Probability Formulas}
+\begin{itemize}
+    \item \textbf{Geometric Series Formula}: For probability sequences where events repeat until success:
+    \[
+    P(\text{Adam wins}) = \frac{a_1}{1 - r}
+    \]
+    Where $a_1$ is the first-term probability and $r$ is the common ratio of failures. Used for infinite probability summation (e.g., recurring game trials).
+
+    \item \textbf{n-th Term Probability}: Probability Adam wins on the $n$-th roll:
+    \[
+    P(n) = \left(\frac{5}{12}\right)^{n-1} \cdot \frac{1}{6}
+    \]
+    Derived from multiplying failure probabilities ($\frac{5}{6}$ for Adam and $\frac{1}{2}$ for Daniel) raised to trial count, multiplied by success probability.
+
+    \item \textbf{Mutually Exclusive Events}: For disjoint events $A$ and $B$:
+    \[
+    P(A \cup B) = P(A) + P(B)
+    \]
+    Applied when calculating combined probabilities of non-overlapping outcomes (e.g., winning on first vs. second trial).
+\end{itemize}
+
+\section{Example Problems and Solutions}
+\subsection{Problem 1: Probability on 3rd Trial}
+\textbf{Question}: What is the probability Adam wins on his third roll?  
+
+\textbf{Solution}:
+\begin{align*}
+    P(3) &= \left(\text{Failure}_1 \times \text{Failure}_2 \times \text{Success}_3\right) \\
+         &= \left(\frac{5}{6}\right) \times \left(\frac{1}{2}\right) \times \left(\frac{5}{6}\right) \times \left(\frac{1}{2}\right) \times \frac{1}{6} \\
+         &= \left(\frac{5}{12}\right)^2 \times \frac{1}{6} \\
+         &= \frac{25}{864} \approx 0.0289
+\end{align*}
+\textbf{Explanation}: Multiply Adam's first failure ($\frac{5}{6}$), Daniel's failure ($\frac{1}{2}$), their second-round failures, and Adam's third-round success ($\frac{1}{6}$).
+
+\subsection{Problem 2: Total Winning Probability}
+\textbf{Question}: Calculate the total probability Adam eventually wins.  
+
+\textbf{Solution}:
+\begin{align*}
+    P_{\text{total}} &= \frac{a_1}{1 - r} = \frac{\frac{1}{6}}{1 - \frac{5}{12}} \\
+                     &= \frac{\frac{1}{6}}{\frac{7}{12}} = \frac{1}{6} \times \frac{12}{7} = \frac{2}{7} \approx 0.2857
+\end{align*}
+\textbf{Explanation}: Use the infinite geometric series formula with $a_1 = \frac{1}{6}$ and $r = \frac{5}{12}$ (product of Adam’s and Daniel’s failure probabilities).
+
+\subsection{Problem 3: Mutually Exclusive Events}
+\textbf{Question}: Are "Adam wins on first roll" and "Daniel wins on second roll" mutually exclusive?  
+
+\textbf{Solution}:
+\begin{itemize}
+    \item Let $A$ = Adam wins first roll ($P(A) = \frac{1}{6}$)
+    \item Let $B$ = Daniel wins second roll ($P(B) = \frac{5}{6} \times \frac{1}{2} = \frac{5}{12}$)
+    \item $A \cap B = \emptyset$ because Adam’s first-roll win ends the game
+    \item Thus, $P(A \cap B) = 0$; they are mutually exclusive
+\end{itemize}
+
+\subsection{Problem 4: General n-th Term Calculation}
+\textbf{Question}: Prove that $P(n) = \left(\frac{5}{12}\right)^{n-1} \cdot \frac{1}{6}$.  
+
+\textbf{Solution}:
+\begin{align*}
+    \text{For } n=1: & \quad P(1) = \frac{1}{6} \\
+    \text{For } n=2: & \quad P(2) = \frac{5}{6} \times \frac{1}{2} \times \frac{1}{6} = \frac{5}{12} \times \frac{1}{6} \\
+    \text{For } n=k: & \quad P(k) = \underbrace{\left(\frac{5}{6} \times \frac{1}{2}\right)^{k-1}}_{\text{$k-1$ failures}} \times \frac{1}{6} \\
+                     & \quad = \left(\frac{5}{12}\right)^{k-1} \cdot \frac{1}{6}
+\end{align*}
+\textbf{Explanation}: Each failure cycle (Adam + Daniel) contributes $\frac{5}{12}$, repeated $n-1$ times before Adam’s success.
+
+\end{document}
+``` 
+
+This LaTeX document focuses exclusively on mathematical content from the transcript, with 4 detailed example problems in Section 2. Each problem includes full step-by-step solutions and conceptual explanations using proper mathematical notation. The structure follows the math-specific prompt requirements.
