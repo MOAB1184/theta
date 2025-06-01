@@ -284,7 +284,6 @@
         }
 
         #app-container.chat-active #chat-box {
-            display: flex;
             order: 1;
             max-width: 800px;
             margin: 0 auto;
@@ -293,7 +292,7 @@
             height: 60vh; /* Ensure chat box has a fixed height for scrolling */
             min-height: 300px;
             overflow-y: auto; /* Allow scrolling up */
-            flex-direction: column;
+            background: transparent;
         }
 
         /* Custom Scrollbar for WebKit Browsers */
@@ -909,11 +908,11 @@
 
             // Helper: Render KaTeX math in all chat messages
             function renderMathInChatBox() {
-                                        if (window.renderMathInElement) {
+                if (typeof window.renderMathInElement === 'function') {
                     document.querySelectorAll('.bot-message').forEach(msg => {
-                        window.renderMathInElement(msg, {
-                                                delimiters: [
-                                                    {left: "$$", right: "$$", display: true},
+                        window.renderMathInElement(msg, window.renderMathInElementOptions || {
+                            delimiters: [
+                                {left: "$$", right: "$$", display: true},
                                 {left: "$", right: "$", display: false},
                                 {left: "\\(", right: "\\)", display: false},
                                 {left: "\\[", right: "\\]", display: true}
@@ -932,7 +931,7 @@
                     messageDiv.textContent = `${text} [with ${attached.join(', ')}]`;
                 } else if (type === 'bot') {
                     messageDiv.innerHTML = formatSummary(text);
-                    } else {
+                } else {
                     messageDiv.textContent = text;
                 }
                 chatBox.appendChild(messageDiv);
@@ -940,11 +939,11 @@
                 // Activate chat view if not already
                 if (!appContainer.classList.contains('chat-active')) {
                     appContainer.classList.add('chat-active');
-                    chatBox.style.display = 'flex';
+                    chatBox.style.display = 'block';
                 }
                 // Only render math for this message (for performance)
-                if (window.renderMathInElement && type === 'bot') {
-                    window.renderMathInElement(messageDiv, {
+                if (typeof window.renderMathInElement === 'function' && type === 'bot') {
+                    window.renderMathInElement(messageDiv, window.renderMathInElementOptions || {
                         delimiters: [
                             {left: "$$", right: "$$", display: true},
                             {left: "$", right: "$", display: false},
@@ -1002,7 +1001,7 @@
 
                 // Ensure chat box and input are visible
                 appContainer.classList.add('chat-active');
-                chatBox.style.display = 'flex';
+                chatBox.style.display = 'block';
 
                 showTypingIndicator();
                 try {
@@ -1046,16 +1045,25 @@
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGqyகேரளжіSECURITYfactorGANESHAbirthdayDOWNLOADSleaveBIRTHPLACEpredictionBELIEVEviewSEXUALoutcomePROPOSALhunterCORNERpersonMETHODstopPERCENTAGEvillageADMISSIONexchangeCONTACTchoiceTRUTHshowcaseMOMENTdirectorRISKsectionCHARACTERnovelDEALdestinationBROADproblemINDUSTRYeditorQUICKLYvisitorVIEWERtranslationCONSTRUCTIONintervalCOLLECTIONflatDEPARTUREstrategyLANGUAGEregionSPEAKERdirectorTARGET" crossorigin="anonymous"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax5AS+fW الاحصائياتKOMPRESSORlosLAURENCEviolencePERCENTAGEconditionOPERATIONcombinationSMARTautomaticallyMACHINEorganizationMOTORcyclePLASTICadvantageVIEWactorVISUALcapitalTOURISTcommunicationSOCIETYvariationABILITYsecretaryTOOLmorningCOMPETITIONsignaturePRODUCTtransportationZONEsectorOPERATIONdifferencePERFORMANCEalternativeMESSAGEadvantageOFFICEimportanceDEALreflectionCONSTRUCTIONexaminationDEPARTUREpercentageVARIETYregion" crossorigin="anonymous"></script>
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            window.renderMathInElementOptions = {
-                delimiters: [
-                    {left: "$$", right: "$$", display: true},
-                    {left: "\\[", right: "\\]", display: true},
-                    {left: "$", right: "$", display: false},
-                    {left: "\\(", right: "\\)", display: false}
-                ],
-                throwOnError: false,
-                errorColor: '#cc0000' // Optional, can be removed to hide errors
-            };
+        // Wait for KaTeX to be loaded before setting options and rendering math
+        window.addEventListener('DOMContentLoaded', function() {
+            function tryInitKaTeX() {
+                if (typeof window.renderMathInElement === 'function') {
+                    window.renderMathInElementOptions = {
+                        delimiters: [
+                            {left: "$$", right: "$$", display: true},
+                            {left: "\\[", right: "\\]", display: true},
+                            {left: "$", right: "$", display: false},
+                            {left: "\\(", right: "\\)", display: false}
+                        ],
+                        throwOnError: false,
+                        errorColor: '#cc0000'
+                    };
+                    if (typeof renderMathInChatBox === 'function') renderMathInChatBox();
+                } else {
+                    setTimeout(tryInitKaTeX, 50);
+                }
+            }
+            tryInitKaTeX();
         });
     </script>

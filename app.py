@@ -1731,13 +1731,17 @@ def chat_api():
         )
         # Add context to the message if there are summaries
         full_message = f"Context from attached summaries:\n{context}\n\nUser message: {message}" if context else message
+        system_prompt = "You are Theta, an AI assistant. Your job is to help the user with whatever they need in a friendly, helpful, and clear way. Always introduce yourself as Theta if asked your name."
         completion = client.chat.completions.create(
             extra_headers={
                 "HTTP-Referer": OPENROUTER_SITE_URL,
                 "X-Title": OPENROUTER_SITE_TITLE,
             },
             model=OPENROUTER_MODEL,
-            messages=[{"role": "user", "content": full_message}]
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": full_message}
+            ]
         )
         ai_response = completion.choices[0].message.content
         # Track token usage
