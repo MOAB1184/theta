@@ -221,14 +221,14 @@
         }
 
         .message {
-            margin-bottom: 12px;
-            padding: 14px 22px;
-            border-radius: 20px;
-            line-height: 1.5;
+            margin-bottom: 8px;
+            padding: 6px 12px;
+            border-radius: 12px;
+            line-height: 1.4;
             max-width: 75%;
-            min-width: 30%;
+            min-width: 0;
             width: fit-content;
-            font-size: 1em;
+            font-size: 0.95em;
             display: block;
             position: relative;
             overflow-wrap: anywhere;
@@ -244,9 +244,8 @@
             margin-left: auto;
             margin-right: 0;
             border: none;
-            margin-bottom: 6px;
-            padding-top: 8px;
-            padding-bottom: 8px;
+            margin-bottom: 4px;
+            padding: 6px 12px 0 12px;
             line-height: 1.3;
         }
 
@@ -641,24 +640,24 @@
         .markdown-body {
             color: #d1d2d5;
             background-color: #2a2d31;
-            padding: 10px;
-            border-radius: 8px;
+            padding: 8px;
+            border-radius: 6px;
         }
 
-        .markdown-body em {
-            font-style: normal; /* Prevent italicization for emphasis */
+        .markdown-body p {
+            margin: 0.5em 0;
         }
 
         .markdown-body code {
             background-color: #3a3d42;
             color: #e3e4e6;
-            padding: 2px 4px;
+            padding: 1px 3px;
             border-radius: 4px;
         }
 
         .markdown-body pre {
             background-color: #3a3d42;
-            padding: 10px;
+            padding: 8px;
             border-radius: 4px;
             overflow-x: auto;
         }
@@ -668,7 +667,7 @@
     <a id="back-to-class" style="position:fixed;top:18px;left:18px;z-index:2000;text-decoration:none;" href="#">
         <button style="background:#232323;color:#e3e4e6;border:none;padding:8px 18px;border-radius:8px;font-size:1em;box-shadow:0 2px 8px rgba(0,0,0,0.12);cursor:pointer;display:flex;align-items:center;gap:7px;">
             <i class="fas fa-arrow-left"></i> Back to Class
-                </button>
+        </button>
     </a>
     <div id="app-container">
             <div id="main-content">
@@ -875,21 +874,135 @@
 
             // Process content with Markdown and LaTeX
             function processContent(rawContent) {
-                // Convert ((...)) to $$...$$ for block math if it looks like math
-                let content = rawContent.replace(/\(\(([^\)]+)\)\)/g, function(_, inner) {
-                    if (/[\\^_]|frac|sqrt|sin|cos|tan|log|exp/.test(inner)) {
+                let content = rawContent;
+                
+                // First, protect existing LaTeX delimiters from being modified
+                const protectedBlocks = [];
+                let blockIndex = 0;
+                
+                // Protect existing $$ blocks
+                content = content.replace(/\$\$([^$]+)\$\$/g, (match, inner) => {
+                    const placeholder = `__PROTECTED_BLOCK_${blockIndex}__`;
+                    protectedBlocks[blockIndex] = match;
+                    blockIndex++;
+                    return placeholder;
+                });
+                
+                // Protect existing $ blocks
+                content = content.replace(/\$([^$]+)\$/g, (match, inner) => {
+                    const placeholder = `__PROTECTED_INLINE_${blockIndex}__`;
+                    protectedBlocks[blockIndex] = match;
+                    blockIndex++;
+                    return placeholder;
+                });
+                
+                // Enhanced math detection patterns
+                const mathPatterns = [
+                    // Common math functions and operators
+                    /[\\^_]|frac|sqrt|sin|cos|tan|log|exp|ln|arctan|arcsin|arccos/,
+                    // Greek letters
+                    /\\alpha|\\beta|\\gamma|\\delta|\\theta|\\pi|\\sigma|\\omega/,
+                    // Mathematical symbols
+                    /\\sum|\\int|\\prod|\\lim|\\infty|\\partial/,
+                    // Subscripts and superscripts with numbers
+                    /\w+\^\d+|\w+_\d+/,
+                    // Fractions and roots
+                    /\d+\/\d+|\\sqrt\{.*\}/,
+                    // Mathematical expressions with parentheses containing operators
+                    /\([^)]*[\+\-\*/\^][^)]*\)/
+                ];
+                
+                function isMathExpression(text) {
+                    // Remove spaces for better detection
+                    const cleanText = text.replace(/\s/g, '');
+                    
+                    // Check against all math patterns
+                    return mathPatterns.some(pattern => pattern.test(cleanText)) ||
+                        // Check for complex expressions with multiple operators
+                        (cleanText.match(/[\+\-\*/\^]/g) && cleanText.match(/[\+\-\*/\^]/g).length >= 2) ||
+                        // Check for expressions with parentheses and mathematical content
+                        (/\([^)]*[\d\w][\+\-\*/\^][\d\w][^)]*\)/.test(cleanText)) ||
+                        // Check for coordinate pairs like (-3, 4)
+                        (/\(-?\d+,\s*-?\d+\)/.test(cleanText) && /coordinate|point|vertex/.test(rawContent.toLowerCase()));
+                }
+                
+                // Convert double parentheses ((...)) to $$ for display math
+                content = content.replace(/\(\(([^)]+)\)\)/g, (match, inner) => {
+                    if (isMathExpression(inner)) {
                         return '$$' + inner + '$$';
                     }
-                    return '((' + inner + '))';
+                    return match;
                 });
-                // Convert (...) to $...$ for inline math if it looks like math
-                content = content.replace(/\(([^\)]+)\)/g, function(_, inner) {
-                    if (/[\\^_]|frac|sqrt|sin|cos|tan|log|exp/.test(inner)) {
+                
+                // Convert single parentheses (...) to $ for inline math, but be more careful
+                content = content.replace(/\(([^)]+)\)/g, (match, inner) => {
+                    // Skip if it's clearly not math (like coordinate points in regular text)
+                    if (inner.match(/^-?\d+,\s*-?\d+$/) && !isMathExpression(rawContent)) {
+                        return match;
+                    }
+                    
+                    // Skip if it's a simple phrase or word
+                    if (inner.split(/\s+/).length > 3 && !isMathExpression(inner)) {
+                        return match;
+                    }
+                    
+                    if (isMathExpression(inner)) {
                         return '$' + inner + '$';
                     }
-                    return '(' + inner + ')';
+                    return match;
                 });
+                
+                // Handle specific mathematical expressions that might be missed
+                // Convert expressions like "x = 1" to math mode when in mathematical context
+                content = content.replace(/\b([a-zA-Z])\s*=\s*([-+]?\d+(?:\.\d+)?)\b/g, (match, variable, value) => {
+                    // Only convert if it's clearly in a mathematical context
+                    if (/formula|equation|calculate|solve|find|vertex|coordinate/.test(rawContent.toLowerCase())) {
+                        return '$' + match + '$';
+                    }
+                    return match;
+                });
+                
+                // Convert expressions like "y = 3x^2 - 6x + 1" to math mode
+                content = content.replace(/\b([a-zA-Z])\s*=\s*([^.!?]+?)(?=\.|$|\s+[A-Z])/g, (match, variable, expression) => {
+                    if (isMathExpression(expression) && expression.length < 50) {
+                        return '$' + match.trim() + '$';
+                    }
+                    return match;
+                });
+                
+                // Handle square root expressions
+                content = content.replace(/\\sqrt\{([^}]+)\}/g, '\\sqrt{$1}');
+                content = content.replace(/sqrt\(([^)]+)\)/g, '\\sqrt{$1}');
+                
+                // Handle fractions
+                content = content.replace(/(\d+)\/(\d+)/g, '\\frac{$1}{$2}');
+                
+                // Restore protected blocks
+                for (let i = 0; i < protectedBlocks.length; i++) {
+                    content = content.replace(`__PROTECTED_BLOCK_${i}__`, protectedBlocks[i]);
+                    content = content.replace(`__PROTECTED_INLINE_${i}__`, protectedBlocks[i]);
+                }
+                
+                // Process with marked for markdown
                 return marked.parse(content);
+            }
+
+            // Also add this enhanced KaTeX rendering function
+            function renderMathEnhanced(element) {
+                // Use KaTeX auto-render with more comprehensive delimiters
+                if (typeof renderMathInElement !== 'undefined') {
+                    renderMathInElement(element, {
+                        delimiters: [
+                            {left: '$$', right: '$$', display: true},
+                            {left: '$', right: '$', display: false},
+                            {left: '\\(', right: '\\)', display: false},
+                            {left: '\\[', right: '\\]', display: true}
+                        ],
+                        throwOnError: false,
+                        errorColor: '#cc0000',
+                        strict: 'warn'
+                    });
+                }
             }
 
             function addMessage(text, type, scroll = true, attached = []) {
@@ -901,7 +1014,7 @@
                     messageDiv.className = 'message user-message';
                     if (attached.length > 0) {
                         messageDiv.innerHTML = `${processContent(text)} [${attached.join(', ')}]`;
-                                    } else {
+                    } else {
                         messageDiv.innerHTML = processContent(text);
                     }
                 } else {
@@ -914,7 +1027,9 @@
                     appContainer.classList.add('chat-active');
                     chatBox.style.display = 'block';
                 }
-                renderMathInElement(messageDiv, { delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}] });
+                
+                // Use the enhanced math rendering
+                renderMathEnhanced(messageDiv);
             }
 
             // Typing indicator logic
@@ -962,7 +1077,7 @@
                     if (data.status === 'success') {
                         addMessage(data.response, 'bot');
                         saveChat();
-                    } else {
+                                    } else {
                         addMessage('Sorry, I encountered an error. Please try again.', 'bot');
                     }
                 } catch (error) {
@@ -995,13 +1110,14 @@
             // Load initial chat history
             loadChatHistory();
 
-            // Set back button href to class page
-            const urlParams = new URLSearchParams(window.location.search);
-            const classId = urlParams.get('class_id');
+            // Set back button href dynamically for static and Flask
+            var urlParams = new URLSearchParams(window.location.search);
+            var classId = urlParams.get('class_id');
+            var backBtn = document.getElementById('back-to-class');
             if (classId) {
-                document.getElementById('back-to-class').href = '/view_class/' + classId;
+                backBtn.href = '/classes/' + classId;
             } else {
-                document.getElementById('back-to-class').href = '/classes';
+                backBtn.href = '/classes';
             }
         });
     </script>
