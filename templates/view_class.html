@@ -529,7 +529,7 @@
                         <div class="summary-card">
                             <div class="summary-header">
                                 <div style="display:flex;align-items:center;gap:10px;">
-                                    <span class="summary-date" style="font-weight:normal;font-size:1.1rem;" data-timestamp="{{ summary.created_at }}">{{ summary.created_at }}</span>
+                                    <span class="summary-date" style="font-weight:normal;font-size:1.1rem;" data-timestamp="{{ summary.timestamp if summary.timestamp else '' }}">{{ summary.created_at }}</span>
                                     {% if user_role == 'teacher' %}
                                         {% if not summary.approved %}
                                             <span style="color:#ffb300;font-size:0.95rem;">Pending Approval</span>
@@ -744,9 +744,21 @@
                     loadingCard = document.getElementById('loading-card-' + taskId);
                 }
 
+                let failCount = 0;
                 const pollInterval = setInterval(async () => {
                     try {
                         const statusResponse = await fetch(`/api/summarize/status/${taskId}`);
+                        if (statusResponse.status === 404) {
+                            failCount++;
+                            if (failCount >= 3) {
+                                clearInterval(pollInterval);
+                                removeOngoingTask(taskId);
+                                if (loadingCard) {
+                                    loadingCard.querySelector('p').textContent = 'Summary task not found or expired.';
+                                }
+                            }
+                            return;
+                        }
                         const statusData = await statusResponse.json();
                         if (statusData.status === 'success') {
                             clearInterval(pollInterval);
@@ -805,8 +817,11 @@
             // Update all summary dates to use local timezone
             document.querySelectorAll('.summary-date').forEach(el => {
                 const timestamp = el.getAttribute('data-timestamp');
-                if (timestamp) {
-                    el.textContent = formatDate(parseInt(timestamp));
+                if (timestamp && !isNaN(parseInt(timestamp))) {
+                    // If timestamp is in seconds, convert to ms
+                    let ts = parseInt(timestamp);
+                    if (ts < 1000000000000) ts = ts * 1000;
+                    el.textContent = formatDate(ts);
                 }
             });
         });
