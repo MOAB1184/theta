@@ -1730,34 +1730,28 @@ def chat_api():
                         summaries_content.append('[Error loading summary]')
         # Create context from summaries
         context = "\n\n".join(summaries_content) if summaries_content else ""
-        client = openai.OpenAI(
-            base_url="https://openrouter.ai/api/v1",
-            api_key=OPENROUTER_API_KEY,
-        )
+        
         # Add context to the message if there are summaries
         full_message = f"Context from attached summaries:\n{context}\n\nUser message: {message}" if context else message
-        completion = client.chat.completions.create(
-            extra_headers={
-                "HTTP-Referer": OPENROUTER_SITE_URL,
-                "X-Title": OPENROUTER_SITE_TITLE,
-            },
-            model=OPENROUTER_MODEL,
-            messages=[{"role": "user", "content": full_message}]
+        
+        # Initialize Gemini model
+        gemini_model = genai.GenerativeModel('gemini-2.5-flash-preview-05-20')
+        gemini_response = gemini_model.generate_content(full_message)
+        ai_response = gemini_response.text
+        
+        # Track token usage (approximate)
+        input_tokens = len(full_message.split()) * 1.3  # Approximate token count
+        output_tokens = len(ai_response.split()) * 1.3  # Approximate token count
+        
+        user = mongo.db.users.find_one({'_id': ObjectId(session['user_id'])})
+        mongo.db.users.update_one(
+            {'_id': ObjectId(session['user_id'])},
+            {'$inc': {
+                'chat_input_tokens': int(input_tokens),
+                'chat_output_tokens': int(output_tokens)
+            }}
         )
-        ai_response = completion.choices[0].message.content
-        # Track token usage
-        usage = getattr(completion, 'usage', None)
-        if usage:
-            input_tokens = getattr(usage, 'prompt_tokens', 0)
-            output_tokens = getattr(usage, 'completion_tokens', 0)
-            user = mongo.db.users.find_one({'_id': ObjectId(session['user_id'])})
-            mongo.db.users.update_one(
-                {'_id': ObjectId(session['user_id'])},
-                {'$inc': {
-                    'chat_input_tokens': input_tokens,
-                    'chat_output_tokens': output_tokens
-                }}
-            )
+        
         return jsonify({'status': 'success', 'response': ai_response})
     except Exception as e:
         logger.error(f"Error in chat API: {str(e)}")
