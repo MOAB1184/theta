@@ -3,222 +3,189 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up - ThetaSummary</title>
+    <title>Register - ThetaSummary</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * { 
-            box-sizing: border-box; 
-            margin: 0; 
+        /* Reset and Basic Styles */
+        body, html {
+            margin: 0;
             padding: 0;
-        }
-        body { 
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: #121212;
             color: #e0e0e0;
             line-height: 1.6;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
         }
-        header {
-            padding: 30px 0;
-        }
+        
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 0 20px;
-            width: 100%;
         }
-        .logo {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #ffffff;
-            text-decoration: none;
-            display: inline-block;
-        }
-        .auth-container {
-            max-width: 400px;
+        
+        .register-card {
+            background: #1a1a1a;
+            border-radius: 12px;
+            padding: 32px;
             margin: 40px auto;
-            padding: 30px;
-            background-color: #1a1a1a;
-            border-radius: 8px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
         }
-        .auth-title {
-            font-size: 1.8rem;
-            margin-bottom: 20px;
+        
+        .page-title {
+            font-size: 2rem;
+            margin-bottom: 24px;
+            color: #ffffff;
             text-align: center;
         }
+        
         .form-group {
             margin-bottom: 20px;
         }
-        label {
+        
+        .form-label {
             display: block;
             margin-bottom: 8px;
+            color: #b0b0b0;
             font-weight: 500;
         }
-        input[type="text"],
-        input[type="password"],
-        input[type="email"],
-        select {
+        
+        .form-input {
             width: 100%;
-            padding: 12px;
+            padding: 12px 16px;
+            background: #242424;
             border: 1px solid #333;
-            border-radius: 4px;
-            background-color: #242424;
-            color: #e0e0e0;
-            font-size: 16px;
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
         }
-        input[type="text"]:focus,
-        input[type="password"]:focus,
-        input[type="email"]:focus,
-        select:focus {
+        
+        .form-input:focus {
             outline: none;
-            border-color: #ffffff;
-            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+            border-color: #c084fc;
         }
+        
+        .form-text {
+            display: block;
+            margin-top: 4px;
+            color: #808080;
+            font-size: 0.9rem;
+        }
+        
         .btn {
             display: inline-block;
-            padding: 12px 20px;
-            border-radius: 4px;
-            text-decoration: none;
+            width: 100%;
+            padding: 12px 24px;
+            background: #c084fc;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
             font-weight: 500;
             cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 16px;
-            border: none;
-            text-align: center;
+            transition: background-color 0.3s ease;
         }
-        .btn-primary {
-            background: #ffffff;
-            color: #121212;
-            width: 100%;
+        
+        .btn:hover {
+            background: #a855f7;
         }
-        .btn-primary:hover {
-            background: #e0e0e0;
-        }
-        .auth-footer {
-            text-align: center;
-            margin-top: 20px;
-            color: #a0a0a0;
-        }
-        .auth-footer a {
-            color: #ffffff;
-            text-decoration: none;
-        }
-        .auth-footer a:hover {
-            text-decoration: underline;
-        }
+        
         .error-message {
-            background-color: rgba(231, 76, 60, 0.2);
-            color: #e74c3c;
-            padding: 10px;
-            border-radius: 4px;
-            margin-bottom: 20px;
-            border-left: 3px solid #e74c3c;
-        }
-        main {
-            flex: 1;
-        }
-        footer {
-            background-color: #1a1a1a;
-            padding: 20px 0;
-            text-align: center;
-            margin-top: auto;
-        }
-        footer p {
-            color: #707070;
-        }
-        .thetasummary-title {
-            text-align: center;
-            margin-top: 32px;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid #ef4444;
+            color: #ef4444;
+            padding: 12px 16px;
+            border-radius: 8px;
             margin-bottom: 24px;
+        }
+        
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 24px;
+            color: #b0b0b0;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .back-link:hover {
+            color: #ffffff;
         }
     </style>
 </head>
 <body>
-    <header>
-        <div class="container" style="display: flex; justify-content: center; align-items: center;">
-            <a href="/" class="logo">ThetaSummary</a>
-        </div>
-    </header>
-
-    <main>
-        <div class="container">
-            <div class="auth-container">
-                <h1 class="auth-title">Create Account</h1>
-                
-                {% if error %}
-                <div class="error-message">
-                    {{ error }}
+    <div class="container">
+        <div class="register-card">
+            <h1 class="page-title">Create Account</h1>
+            
+            {% if error %}
+            <div class="error-message">{{ error }}</div>
+            {% endif %}
+            
+            <form method="POST" action="{{ url_for('register') }}">
+                <div class="form-group">
+                    <label class="form-label" for="username">Username</label>
+                    <input type="text" id="username" name="username" class="form-input" value="{{ username }}" required>
                 </div>
-                {% endif %}
                 
-                <form action="/register" method="POST">
-                    <div class="form-group">
-                        <label for="username">Username</label>
-                        <input type="text" id="username" name="username" required value="{{ username|default('') }}">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="email">Email</label>
-                        <input type="email" id="email" name="email">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="password">Password</label>
-                        <input type="password" id="password" name="password" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="role">I am a:</label>
-                        <select id="role" name="role" required onchange="toggleSchoolDropdown()">
-                            <option value="student" {% if role == 'student' %}selected{% endif %}>Student</option>
-                            <option value="teacher" {% if role == 'teacher' %}selected{% endif %}>Teacher</option>
-                        </select>
-                    </div>
-                    
-                    <div id="school-dropdown" style="display: {% if role == 'teacher' %}block{% else %}none{% endif %}; margin-bottom: 18px;">
-                        <label for="school_id">School</label>
-                        <select id="school_id" name="school_id" {% if role == 'teacher' %}required{% endif %}>
-                            <option value="">Select a school</option>
-                            {% for school in schools %}
-                            <option value="{{ school._id }}" {% if school._id|string == school_id|string %}selected{% endif %}>{{ school.name }} ({{ school.district }}, {{ school.state }})</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary">Create Account</button>
-                </form>
-                
-                <div class="auth-footer">
-                    Already have an account? <a href="/login">Log In</a>
+                <div class="form-group">
+                    <label class="form-label" for="email">Email</label>
+                    <input type="email" id="email" name="email" class="form-input" required>
                 </div>
-            </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="password">Password</label>
+                    <input type="password" id="password" name="password" class="form-input" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="role">Role</label>
+                    <select id="role" name="role" class="form-input" required onchange="toggleSchoolDropdown()">
+                        <option value="student" {% if role == 'student' %}selected{% endif %}>Student</option>
+                        <option value="teacher" {% if role == 'teacher' %}selected{% endif %}>Teacher</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" id="school-group" style="display: none;">
+                    <label class="form-label" for="school_id">School</label>
+                    <select id="school_id" name="school_id" class="form-input">
+                        <option value="">Select a school</option>
+                        {% for school in schools %}
+                        <option value="{{ school._id }}">{{ school.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <p class="form-text" style="color: #c084fc;">Note: You need to either purchase a subscription or enter a valid demo code to register. If you don't have a demo code, you'll be redirected to the payment page.</p>
+                </div>
+                
+                <button type="submit" class="btn">Create Account</button>
+            </form>
+            
+            <a href="{{ url_for('login') }}" class="back-link">← Back to Login</a>
         </div>
-    </main>
-
-    <footer>
-        <div class="container">
-            <p>&copy; 2023 ThetaSummary. All rights reserved.</p>
-        </div>
-    </footer>
+    </div>
 
     <script>
-    function toggleSchoolDropdown() {
-        var role = document.getElementById('role').value;
-        var schoolDropdown = document.getElementById('school-dropdown');
-        var emailInput = document.getElementById('email');
-        if (role === 'teacher') {
-            schoolDropdown.style.display = 'block';
-            document.getElementById('school_id').setAttribute('required', 'required');
-            emailInput.setAttribute('required', 'required');
-        } else {
-            schoolDropdown.style.display = 'none';
-            document.getElementById('school_id').removeAttribute('required');
-            emailInput.removeAttribute('required');
+        function toggleSchoolDropdown() {
+            const roleSelect = document.getElementById('role');
+            const schoolGroup = document.getElementById('school-group');
+            const schoolSelect = document.getElementById('school_id');
+            
+            if (roleSelect.value === 'teacher') {
+                schoolGroup.style.display = 'block';
+                schoolSelect.required = true;
+            } else {
+                schoolGroup.style.display = 'none';
+                schoolSelect.required = false;
+            }
         }
-    }
-    document.addEventListener('DOMContentLoaded', toggleSchoolDropdown);
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', toggleSchoolDropdown);
     </script>
 </body>
 </html> 

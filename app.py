@@ -302,44 +302,65 @@ def register():
             email = request.form.get('email')
             role = request.form.get('role')
             school_id = request.form.get('school_id') if role == 'teacher' else None
+            demo_code = request.form.get('demo_code')
 
             if not role or role not in ['student', 'teacher']:
-                    return render_template('register.html', error='Invalid role selected', username=username, schools=schools)
+                return render_template('register.html', error='Invalid role selected', username=username, schools=schools)
+
+            # Check if user has a valid demo code or subscription
+            if not demo_code:
+                return redirect(url_for('buy'))
+
+            # Validate demo code if provided
+            demo_code_obj = mongo.db.demo_codes.find_one({
+                "code": demo_code,
+                "used": False,
+                "expires_at": {"$gt": datetime.datetime.utcnow()}
+            })
+            
+            if not demo_code_obj:
+                return render_template('register.html', error='Invalid or expired demo code', username=username, role=role, schools=schools)
+            
+            # Mark demo code as used
+            mongo.db.demo_codes.update_one(
+                {"_id": demo_code_obj["_id"]},
+                {"$set": {"used": True}}
+            )
 
             if role == 'teacher':
-                    if not email or not re.match(r"[^@]+@[^@]+\.[^@]+", email):
-                        return render_template('register.html', error='Invalid email address', username=username, schools=schools)
-                    if not school_id:
-                        return render_template('register.html', error='Please select a school.', username=username, role=role, schools=schools)
-                    existing_email = mongo.db.users.find_one({"email": email})
-                    if existing_email:
-                        return render_template('register.html', error='Email already registered', role=role, username=username, schools=schools)
-                
+                if not email or not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+                    return render_template('register.html', error='Invalid email address', username=username, schools=schools)
+                if not school_id:
+                    return render_template('register.html', error='Please select a school.', username=username, role=role, schools=schools)
+                existing_email = mongo.db.users.find_one({"email": email})
+                if existing_email:
+                    return render_template('register.html', error='Email already registered', role=role, username=username, schools=schools)
+            
             existing_user = get_user_by_username(username)
             if existing_user:
-                    return render_template('register.html', error='Username already exists', role=role, username=username, schools=schools)
+                return render_template('register.html', error='Username already exists', role=role, username=username, schools=schools)
 
             password_hash = generate_password_hash(password)
             if role == 'teacher':
-                    teacher = {
-                        "username": username,
-                        "password_hash": password_hash,
-                        "role": role,
-                        "email": email,
-                        "email_verified": False,
-                        "verification_token": ''.join(random.choices(string.ascii_letters + string.digits, k=32)),
-                        "is_admin": False,
-                        "school_id": ObjectId(school_id) if school_id else None,
-                        "subscribed": False
-                    }
-                    mongo.db.pending_teachers.insert_one(teacher)
-                    return render_template('register.html', error='Teacher account request sent! Waiting for admin approval.', schools=schools)
+                teacher = {
+                    "username": username,
+                    "password_hash": password_hash,
+                    "role": role,
+                    "email": email,
+                    "email_verified": False,
+                    "verification_token": ''.join(random.choices(string.ascii_letters + string.digits, k=32)),
+                    "is_admin": False,
+                    "school_id": ObjectId(school_id) if school_id else None,
+                    "subscribed": False
+                }
+                mongo.db.pending_teachers.insert_one(teacher)
+                return render_template('register.html', error='Teacher account request sent! Waiting for admin approval.', schools=schools)
             else:
-                    user = create_user(username, password_hash, role, email, is_admin=False, school_id=school_id)
-                    session['user_id'] = str(user.inserted_id)
-                    session['username'] = username
-                    session['role'] = role
-                    flash('Registration successful! You can now join classes.', 'success')
+                user = create_user(username, password_hash, role, email, is_admin=False, school_id=school_id)
+                session['user_id'] = str(user.inserted_id)
+                session['username'] = username
+                session['role'] = role
+                flash('Registration successful! You can now join classes.', 'success')
             return redirect(url_for('dashboard'))
         except Exception as e:
             import traceback
@@ -805,44 +826,42 @@ def download_file(filename):
 
 # Admin routes
 @app.route('/admin')
-def admin_dashboard():
+def admin():
     if 'user_id' not in session:
         return redirect(url_for('login'))
+    
     user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
     if not user or not user.get('is_admin'):
         return redirect(url_for('dashboard'))
     
-    # Get subscription statistics
-    pro_users_count = mongo.db.users.count_documents({
-        "subscription_type": "pro",
-        "subscription_status": "active"
-    })
-    enterprise_users_count = mongo.db.users.count_documents({
-        "subscription_type": "enterprise",
-        "subscription_status": "active"
-    })
-    plus_users_count = mongo.db.users.count_documents({
-        "subscription_type": "plus"
-    })
+    # Get user statistics
+    pro_users_count = mongo.db.users.count_documents({"subscription_type": "pro", "subscription_status": "active"})
+    enterprise_users_count = mongo.db.users.count_documents({"subscription_type": "enterprise", "subscription_status": "active"})
+    plus_users_count = mongo.db.users.count_documents({"subscription_type": "plus", "subscription_status": "active"})
     
+    # Get all users
     users = list(mongo.db.users.find())
-    schools = list(mongo.db.schools.find())
-    school_map = {str(s['_id']): s['name'] for s in schools}
+    
+    # Get pending teachers
     pending_teachers = list(mongo.db.pending_teachers.find())
-    # Attach school name to each pending teacher
-    for teacher in pending_teachers:
-        school_id = str(teacher.get('school_id')) if teacher.get('school_id') else None
-        teacher['school_name'] = school_map.get(school_id, 'N/A')
+    
+    # Get global prompt
     global_prompt = get_global_prompt()
     
-    return render_template('admin.html', 
-                         users=users, 
-                         schools=schools, 
-                         pending_teachers=pending_teachers, 
-                         global_prompt=global_prompt,
+    # Get demo code if it was just generated
+    demo_code = request.args.get('demo_code')
+    demo_code_expiry = request.args.get('demo_code_expiry')
+    
+    return render_template('admin.html',
+                         username=user['username'],
                          pro_users_count=pro_users_count,
                          enterprise_users_count=enterprise_users_count,
-                         plus_users_count=plus_users_count)
+                         plus_users_count=plus_users_count,
+                         users=users,
+                         pending_teachers=pending_teachers,
+                         global_prompt=global_prompt,
+                         demo_code=demo_code,
+                         demo_code_expiry=demo_code_expiry)
 
 @app.route('/admin/prompts/edit', methods=['GET', 'POST'])
 def edit_global_prompt():
@@ -869,7 +888,7 @@ def edit_global_prompt():
         save_global_prompt(prompt_text)
         
         flash("Global prompt updated successfully!", "success")
-        return redirect(url_for('admin_dashboard'))
+        return redirect(url_for('admin'))
     
     return render_template('edit_prompt.html', 
                          prompt={'prompt_text': current_prompt}, 
@@ -1068,7 +1087,7 @@ def admin_delete_user(user_id):
     if not user or not user.get('is_admin'):
         return redirect(url_for('dashboard'))
     mongo.db.users.delete_one({"_id": ObjectId(user_id)})
-    return redirect(url_for('admin_dashboard'))
+    return redirect(url_for('admin'))
 
 @app.route('/admin/delete_class/<class_id>', methods=['POST'])
 def admin_delete_class(class_id):
@@ -1078,7 +1097,7 @@ def admin_delete_class(class_id):
     if not user or not user.get('is_admin'):
         return redirect(url_for('dashboard'))
     mongo.db.classes.delete_one({"_id": ObjectId(class_id)})
-    return redirect(url_for('admin_dashboard'))
+    return redirect(url_for('admin'))
 
 @app.route('/admin/create_school', methods=['GET', 'POST'])
 def create_school_route():
@@ -1096,7 +1115,7 @@ def create_school_route():
         if mongo.db.schools.find_one({"name": name}):
             return render_template('create_school.html', error='School already exists.', schools=get_all_schools())
         mongo.db.schools.insert_one({"name": name, "district": district, "state": state})
-        return redirect(url_for('admin_dashboard'))
+        return redirect(url_for('dashboard'))
     return render_template('create_school.html', schools=get_all_schools())
 
 def scan_wasabi_files(username, class_code=None):
@@ -1716,6 +1735,24 @@ def chat_api():
         class_id = data.get('class_id') or request.args.get('class_id')
         if not message:
             return jsonify({'status': 'error', 'message': 'No message provided'}), 400
+
+        # Get user and check token balance
+        user = mongo.db.users.find_one({'_id': ObjectId(session['user_id'])})
+        if not user:
+            return jsonify({'status': 'error', 'message': 'User not found'}), 404
+
+        # Calculate estimated token usage
+        input_tokens = len(message.split()) * 1.3  # Approximate token count
+        estimated_output_tokens = input_tokens * 2  # Conservative estimate
+        
+        # Check if user has enough tokens
+        if user.get('token_balance', 0) < (input_tokens + estimated_output_tokens):
+            return jsonify({
+                'status': 'error',
+                'message': 'Insufficient tokens. Please purchase more tokens to continue.',
+                'redirect': url_for('buy')
+            }), 402
+
         # Fetch summary content from Wasabi S3
         summaries_content = []
         if attached_summaries and class_id:
@@ -1731,6 +1768,7 @@ def chat_api():
                         summaries_content.append(content)
                     except Exception as e:
                         summaries_content.append('[Error loading summary]')
+        
         # Create context from summaries
         context = "\n\n".join(summaries_content) if summaries_content else ""
         
@@ -1742,23 +1780,154 @@ def chat_api():
         gemini_response = gemini_model.generate_content(full_message)
         ai_response = gemini_response.text
         
-        # Track token usage (approximate)
-        input_tokens = len(full_message.split()) * 1.3  # Approximate token count
-        output_tokens = len(ai_response.split()) * 1.3  # Approximate token count
+        # Calculate actual token usage
+        input_tokens = len(full_message.split()) * 1.3
+        output_tokens = len(ai_response.split()) * 1.3
         
-        user = mongo.db.users.find_one({'_id': ObjectId(session['user_id'])})
+        # Update user's token balance and usage
         mongo.db.users.update_one(
             {'_id': ObjectId(session['user_id'])},
-            {'$inc': {
-                'chat_input_tokens': int(input_tokens),
-                'chat_output_tokens': int(output_tokens)
-            }}
+            {
+                '$inc': {
+                    'token_balance': -(input_tokens + output_tokens),
+                    'chat_input_tokens': int(input_tokens),
+                    'chat_output_tokens': int(output_tokens)
+                }
+            }
         )
         
         return jsonify({'status': 'success', 'response': ai_response})
     except Exception as e:
         logger.error(f"Error in chat API: {str(e)}")
         return jsonify({'status': 'error', 'message': str(e)}), 500
+
+# Token pricing constants
+INPUT_TOKEN_PRICE = 0.15  # $0.15 per 1M tokens
+OUTPUT_TOKEN_PRICE = 0.60  # $0.60 per 1M tokens
+PLUS_PRO_TOKEN_PRICE = 1.00  # $1.00 per 1M tokens for Plus/Pro users
+
+@app.route('/purchase_tokens', methods=['POST'])
+def purchase_tokens():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    try:
+        token_amount = int(request.form.get('token_amount', 0))
+        if token_amount <= 0:
+            flash('Invalid token amount', 'error')
+            return redirect(url_for('admin'))
+        
+        user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
+        if not user:
+            return redirect(url_for('logout'))
+        
+        # Calculate price based on user's subscription type
+        if user.get('subscription_type') in ['plus', 'pro']:
+            price = token_amount * PLUS_PRO_TOKEN_PRICE
+        else:
+            price = token_amount * (INPUT_TOKEN_PRICE + OUTPUT_TOKEN_PRICE)
+        
+        # Create Stripe checkout session
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price_data': {
+                    'currency': 'usd',
+                    'product_data': {
+                        'name': f'{token_amount}M Tokens',
+                        'description': 'Token purchase for ThetaSummary'
+                    },
+                    'unit_amount': int(price * 100)  # Convert to cents
+                },
+                'quantity': 1
+            }],
+            mode='payment',
+            success_url=url_for('token_purchase_success', _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
+            cancel_url=url_for('token_purchase_cancelled', _external=True),
+            client_reference_id=str(user['_id']),
+            metadata={
+                'user_id': str(user['_id']),
+                'token_amount': token_amount
+            }
+        )
+        
+        return redirect(checkout_session.url, code=303)
+        
+    except Exception as e:
+        logger.error(f"Error creating token purchase session: {e}")
+        flash('Error processing token purchase', 'error')
+        return redirect(url_for('admin'))
+
+@app.route('/token_purchase_success')
+def token_purchase_success():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    try:
+        session_id = request.args.get('session_id')
+        checkout_session = stripe.checkout.Session.retrieve(session_id)
+        
+        if checkout_session.payment_status == 'paid':
+            user_id = checkout_session.metadata.get('user_id')
+            token_amount = int(checkout_session.metadata.get('token_amount', 0))
+            
+            # Update user's token balance
+            mongo.db.users.update_one(
+                {"_id": ObjectId(user_id)},
+                {"$inc": {"token_balance": token_amount * 1_000_000}}  # Convert millions to actual tokens
+            )
+            
+            flash('Token purchase successful!', 'success')
+        else:
+            flash('Payment not completed', 'error')
+            
+    except Exception as e:
+        logger.error(f"Error processing token purchase success: {e}")
+        flash('Error processing payment', 'error')
+    
+    return redirect(url_for('admin'))
+
+@app.route('/token_purchase_cancelled')
+def token_purchase_cancelled():
+    flash('Token purchase cancelled', 'info')
+    return redirect(url_for('admin'))
+
+@app.route('/generate_demo_code', methods=['POST'])
+def generate_demo_code():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
+    if not user or not user.get('is_admin'):
+        return redirect(url_for('dashboard'))
+    
+    try:
+        # Generate a random 8-character code
+        demo_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+        expiry_date = datetime.datetime.utcnow() + datetime.timedelta(days=2)
+        
+        # Store the demo code
+        mongo.db.demo_codes.insert_one({
+            "code": demo_code,
+            "created_by": user['_id'],
+            "created_at": datetime.datetime.utcnow(),
+            "expires_at": expiry_date,
+            "used": False
+        })
+        
+        return redirect(url_for('admin', demo_code=demo_code, demo_code_expiry=expiry_date.strftime('%Y-%m-%d %H:%M:%S UTC')))
+        
+    except Exception as e:
+        logger.error(f"Error generating demo code: {e}")
+        flash('Error generating demo code', 'error')
+        return redirect(url_for('admin'))
+
+@app.template_filter('commaformat')
+def commaformat(value):
+    try:
+        return f"{int(value):,}"
+    except Exception:
+        return value
 
 if __name__ == '__main__':
     ensure_admin_and_school()

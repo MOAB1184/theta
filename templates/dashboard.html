@@ -515,7 +515,7 @@
                 </a>
                 {% endif %}
                 {% if is_admin %}
-                <a href="{{ url_for('admin_dashboard') }}" class="menu-item">
+                <a href="{{ url_for('admin') }}" class="menu-item">
                     <span class="menu-item-icon">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                             <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 13A6 6 0 1 1 8 2a6 6 0 0 1 0 12z"/>
@@ -523,6 +523,17 @@
                         </svg>
                     </span>
                     Admin Settings
+                </a>
+                {% endif %}
+                {% if user_role == 'teacher' %}
+                <a href="{{ url_for('buy') }}" class="menu-item" style="color:#c084fc;font-weight:600;">
+                    <span class="menu-item-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#c084fc" viewBox="0 0 16 16">
+                            <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 13A6 6 0 1 1 8 2a6 6 0 0 1 0 12z"/>
+                            <path d="M8 4a.5.5 0 0 1 .5.5v2.5H11a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V8H5a.5.5 0 0 1 0-1h2.5V4.5A.5.5 0 0 1 8 4z"/>
+                        </svg>
+                    </span>
+                    Purchase Tokens
                 </a>
                 {% endif %}
             </div>
