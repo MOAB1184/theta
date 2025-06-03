@@ -141,6 +141,12 @@
                     </div>
                     
                     <div class="form-group">
+                        <label class="form-label" for="demo_code">Demo Code (or purchase a plan)</label>
+                        <input type="text" id="demo_code" name="demo_code" class="form-input" placeholder="Enter demo code if you have one">
+                        <p class="form-text" style="color: #c084fc;">You need either a valid demo code or to purchase a subscription plan to register.</p>
+                    </div>
+                    
+                    <div class="form-group">
                     <label class="form-label" for="role">Role</label>
                     <select id="role" name="role" class="form-input" required onchange="toggleSchoolDropdown()">
                             <option value="student" {% if role == 'student' %}selected{% endif %}>Student</option>

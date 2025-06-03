@@ -306,7 +306,7 @@ def register():
             demo_code = request.form.get('demo_code')
 
             if not role or role not in ['student', 'teacher']:
-                    return render_template('register.html', error='Invalid role selected', username=username, schools=schools)
+                return render_template('register.html', error='Invalid role selected', username=username, schools=schools)
 
             # Check if user has a valid demo code or subscription
             if not demo_code:
@@ -329,45 +329,67 @@ def register():
             )
 
             if role == 'teacher':
-                    if not email or not re.match(r"[^@]+@[^@]+\.[^@]+", email):
-                        return render_template('register.html', error='Invalid email address', username=username, schools=schools)
-                    if not school_id:
-                        return render_template('register.html', error='Please select a school.', username=username, role=role, schools=schools)
-                    existing_email = mongo.db.users.find_one({"email": email})
-                    if existing_email:
-                        return render_template('register.html', error='Email already registered', role=role, username=username, schools=schools)
-                
+                if not email or not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+                    return render_template('register.html', error='Invalid email address', username=username, schools=schools)
+                if not school_id:
+                    return render_template('register.html', error='Please select a school.', username=username, role=role, schools=schools)
+                existing_email = mongo.db.users.find_one({"email": email})
+                if existing_email:
+                    return render_template('register.html', error='Email already registered', role=role, username=username, schools=schools)
+            
             existing_user = get_user_by_username(username)
             if existing_user:
-                    return render_template('register.html', error='Username already exists', role=role, username=username, schools=schools)
+                return render_template('register.html', error='Username already exists', role=role, username=username, schools=schools)
 
             password_hash = generate_password_hash(password)
             if role == 'teacher':
-                    teacher = {
-                        "username": username,
-                        "password_hash": password_hash,
-                        "role": role,
-                        "email": email,
-                        "email_verified": False,
-                        "verification_token": ''.join(random.choices(string.ascii_letters + string.digits, k=32)),
-                        "is_admin": False,
-                        "school_id": ObjectId(school_id) if school_id else None,
-                        "subscribed": False
-                    }
-                    mongo.db.pending_teachers.insert_one(teacher)
-                    return render_template('register.html', error='Teacher account request sent! Waiting for admin approval.', schools=schools)
+                teacher = {
+                    "username": username,
+                    "password_hash": password_hash,
+                    "role": role,
+                    "email": email,
+                    "email_verified": False,
+                    "verification_token": ''.join(random.choices(string.ascii_letters + string.digits, k=32)),
+                    "is_admin": False,
+                    "school_id": ObjectId(school_id) if school_id else None,
+                    "subscribed": False
+                }
+                mongo.db.pending_teachers.insert_one(teacher)
+                return render_template('register.html', error='Teacher account request sent! Waiting for admin approval.', schools=schools)
             else:
-                    user = create_user(username, password_hash, role, email, is_admin=False, school_id=school_id)
-                    session['user_id'] = str(user.inserted_id)
-                    session['username'] = username
-                    session['role'] = role
-                    flash('Registration successful! You can now join classes.', 'success')
+                user = create_user(username, password_hash, role, email, is_admin=False, school_id=school_id)
+                session['user_id'] = str(user.inserted_id)
+                session['username'] = username
+                session['role'] = role
+                
+                # Send verification email
+                verification_url = url_for('verify_email', token=user.verification_token, _external=True)
+                email_template = render_template('email/verify_email.html',
+                                              username=username,
+                                              verification_url=verification_url)
+                send_email(email, 'Verify your ThetaSummary account', email_template)
+                
+                flash('Registration successful! Please check your email to verify your account.', 'success')
             return redirect(url_for('dashboard'))
         except Exception as e:
             import traceback
             error_message = f"REGISTER ERROR: {e}<br><pre>{traceback.format_exc()}</pre>"
             return render_template('register.html', error=error_message, username=request.form.get('username'), role=request.form.get('role'), schools=schools)
     return render_template('register.html', role='student', schools=schools)
+
+def send_email(to_email, subject, html_content):
+    try:
+        message = SendGridMail(
+            from_email=os.getenv('MAIL_DEFAULT_SENDER', 'noreply@thetasummary.com'),
+            to_emails=to_email,
+            subject=subject,
+            html_content=html_content
+        )
+        sendgrid_client.send(message)
+        logger.info(f"Email sent successfully to {to_email}")
+    except Exception as e:
+        logger.error(f"Error sending email to {to_email}: {e}")
+        raise e
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -607,6 +629,75 @@ def summarize():
 
         if not class_id:
             return jsonify({'status': 'error', 'message': 'No class ID provided'}), 400
+
+        # Get user and check subscription limits
+        user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
+        if not user:
+            return jsonify({'status': 'error', 'message': 'User not found'}), 404
+
+        # Check if user has an active subscription
+        if not user.get('subscribed') or user.get('subscription_status') != 'active':
+            return jsonify({'status': 'error', 'message': 'Active subscription required to generate summaries'}), 403
+
+        # Get plan limits
+        plan_limits = user.get('plan_limits', {})
+        subscription_type = user.get('subscription_type', 'plus')
+
+        # Count summaries for today and this month
+        today = datetime.datetime.utcnow().date()
+        month_start = datetime.datetime(today.year, today.month, 1)
+        
+        # Get all summaries for the user's classes
+        summaries_today = 0
+        summaries_month = 0
+        
+        if user['role'] == 'teacher':
+            classes = list(mongo.db.classes.find({"teacher_id": user['_id']}))
+        else:
+            enrolled_class_ids = user.get('enrolled_classes', [])
+            classes = list(mongo.db.classes.find({"_id": {"$in": enrolled_class_ids}})) if enrolled_class_ids else []
+
+        for class_obj in classes:
+            teacher = mongo.db.users.find_one({"_id": class_obj['teacher_id']})
+            if not teacher:
+                continue
+                
+            class_dir = f"{teacher['username']}/classes/{class_obj['class_code']}"
+            try:
+                response = s3_client.list_objects_v2(Bucket=os.getenv('WASABI_BUCKET_NAME'), Prefix=class_dir)
+                if 'Contents' in response:
+                    for obj in response['Contents']:
+                        key = obj['Key']
+                        if key.startswith(f"{class_dir}/summary_"):
+                            filename = key.split('/')[-1]
+                            try:
+                                summary_timestamp = int(filename.split('_')[1].split('.')[0])
+                                summary_date = datetime.datetime.fromtimestamp(summary_timestamp).date()
+                                summary_datetime = datetime.datetime.fromtimestamp(summary_timestamp)
+                                
+                                if summary_date == today:
+                                    summaries_today += 1
+                                if summary_datetime >= month_start:
+                                    summaries_month += 1
+                            except (ValueError, IndexError):
+                                continue
+            except Exception as e:
+                logger.error(f"Error counting summaries: {e}")
+                continue
+
+        # Check limits based on subscription type
+        if subscription_type == 'plus':
+            if summaries_today >= plan_limits.get('summaries_per_day', 2):
+                return jsonify({
+                    'status': 'error',
+                    'message': f'Daily limit reached ({plan_limits.get("summaries_per_day", 2)} summaries per day). Please upgrade to Pro for more summaries.'
+                }), 403
+        elif subscription_type == 'pro':
+            if summaries_month >= plan_limits.get('summaries_per_month', 150):
+                return jsonify({
+                    'status': 'error',
+                    'message': f'Monthly limit reached ({plan_limits.get("summaries_per_month", 150)} summaries per month). Please upgrade to Enterprise for unlimited summaries.'
+                }), 403
 
         # Generate a unique task ID
         task_id = f"{int(time.time())}-{uuid.uuid4()}"
@@ -1315,6 +1406,22 @@ def payment_success():
         subscription_type = checkout_session.metadata.get('subscription_type')
         subscription_id = checkout_session.subscription
         
+        # Set plan limits based on subscription type
+        plan_limits = {
+            'plus': {
+                'summaries_per_day': 2,
+                'summaries_per_month': 60  # 2 per day * 30 days
+            },
+            'pro': {
+                'summaries_per_day': 5,  # 150/30 = 5 per day
+                'summaries_per_month': 150
+            },
+            'enterprise': {
+                'summaries_per_day': float('inf'),
+                'summaries_per_month': float('inf')
+            }
+        }
+        
         mongo.db.users.update_one(
             {"_id": ObjectId(session['user_id'])},
             {
@@ -1323,10 +1430,20 @@ def payment_success():
                     "subscription_status": "active",
                     "subscription_start": datetime.datetime.utcnow(),
                     "subscription_id": subscription_id,
-                    "subscribed": True
+                    "subscribed": True,
+                    "plan_limits": plan_limits[subscription_type]
                 }
             }
         )
+        
+        # Send confirmation email
+        user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
+        if user and user.get('email'):
+            email_template = render_template('email/subscription_confirmation.html',
+                                          username=user['username'],
+                                          subscription_type=subscription_type,
+                                          plan_limits=plan_limits[subscription_type])
+            send_email(user['email'], 'Your ThetaSummary subscription is active!', email_template)
         
         flash('Payment successful! Your subscription has been activated.', 'success')
         return redirect(url_for('dashboard'))
@@ -1997,6 +2114,63 @@ def commaformat(value):
         return f"{int(value):,}"
     except Exception:
         return value
+
+@app.route('/admin/promote_teacher/<user_id>', methods=['POST'])
+def promote_teacher(user_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    # Check if user is admin
+    admin = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
+    if not admin or not admin.get('is_admin'):
+        flash('Unauthorized access', 'error')
+        return redirect(url_for('dashboard'))
+    
+    try:
+        subscription_type = request.form.get('subscription_type')
+        if not subscription_type or subscription_type not in ['plus', 'pro', 'enterprise']:
+            flash('Invalid subscription type', 'error')
+            return redirect(url_for('admin'))
+        
+        # Set plan limits based on subscription type
+        plan_limits = {
+            'plus': {
+                'summaries_per_day': 2,
+                'summaries_per_month': 60  # 2 per day * 30 days
+            },
+            'pro': {
+                'summaries_per_day': 5,  # 150/30 = 5 per day
+                'summaries_per_month': 150
+            },
+            'enterprise': {
+                'summaries_per_day': float('inf'),
+                'summaries_per_month': float('inf')
+            }
+        }
+        
+        # Update teacher's subscription
+        result = mongo.db.users.update_one(
+            {"_id": ObjectId(user_id), "role": "teacher"},
+            {
+                "$set": {
+                    "subscription_type": subscription_type,
+                    "subscription_status": "active",
+                    "subscription_start": datetime.datetime.utcnow(),
+                    "subscribed": True,
+                    "plan_limits": plan_limits[subscription_type]
+                }
+            }
+        )
+        
+        if result.modified_count > 0:
+            flash(f'Successfully promoted teacher to {subscription_type.capitalize()} plan', 'success')
+        else:
+            flash('Failed to promote teacher', 'error')
+            
+    except Exception as e:
+        flash(f'Error promoting teacher: {str(e)}', 'error')
+    
+    return redirect(url_for('admin'))
 
 if __name__ == '__main__':
     ensure_admin_and_school()
