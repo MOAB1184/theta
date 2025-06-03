@@ -175,6 +175,39 @@
             margin-bottom: 20px;
             text-align: center;
         }
+        
+        .token-purchase-section {
+            background: linear-gradient(145deg, #1a1a1a, #242424);
+            border-radius: 12px;
+            padding: 24px;
+            margin-top: 40px;
+            text-align: center;
+        }
+        
+        .token-purchase-section h2 {
+            color: #ffffff;
+            margin-bottom: 20px;
+        }
+        
+        .token-purchase-section p {
+            color: #a0a0a0;
+            margin-bottom: 24px;
+        }
+        
+        .token-amount-input {
+            background: #242424;
+            border: 1px solid #404040;
+            border-radius: 4px;
+            padding: 8px 12px;
+            color: #ffffff;
+            width: 100px;
+            margin-right: 12px;
+        }
+        
+        .token-amount-input:focus {
+            outline: none;
+            border-color: #c084fc;
+        }
     </style>
 </head>
 <body>
@@ -214,7 +247,6 @@
                         <li>Up to 10 summaries per month</li>
                         <li>Basic AI summarization</li>
                         <li>Standard support</li>
-                        <li>1 class management</li>
                     </ul>
                     <form action="{{ url_for('buy') }}" method="POST">
                         <input type="hidden" name="subscription_type" value="plus">
@@ -231,8 +263,6 @@
                         <li>Unlimited summaries</li>
                         <li>Advanced AI summarization</li>
                         <li>Priority support</li>
-                        <li>Up to 5 classes</li>
-                        <li>Custom prompts</li>
                     </ul>
                     <form action="{{ url_for('buy') }}" method="POST">
                         <input type="hidden" name="subscription_type" value="pro">
@@ -244,22 +274,26 @@
                 
                 <div class="pricing-card {% if current_subscription == 'enterprise' %}current{% endif %}">
                     <h2 class="plan-name">Enterprise</h2>
-                    <div class="plan-price">$49.99<span>/month</span></div>
+                    <div class="plan-price">Contact Us</div>
                     <ul class="plan-features">
                         <li>Unlimited everything</li>
                         <li>Premium AI summarization</li>
                         <li>24/7 dedicated support</li>
-                        <li>Unlimited classes</li>
                         <li>Custom integration</li>
-                        <li>API access</li>
                     </ul>
-                    <form action="{{ url_for('buy') }}" method="POST">
-                        <input type="hidden" name="subscription_type" value="enterprise">
-                        <button type="submit" class="btn btn-primary" {% if current_subscription == 'enterprise' %}disabled{% endif %}>
-                            {% if current_subscription == 'enterprise' %}Current Plan{% else %}Select Plan{% endif %}
-                        </button>
-                    </form>
+                    <a href="mailto:support@thetasummary.com" class="btn btn-primary">Contact Us</a>
                 </div>
+            </div>
+
+            <div class="token-purchase-section">
+                <h2>Purchase Additional Tokens</h2>
+                <p>Need more tokens for AI interactions? Purchase them here.</p>
+                <p style="color: #c084fc; margin-bottom: 20px;">$1.00 per 1 million tokens</p>
+                <form action="{{ url_for('purchase_tokens') }}" method="POST">
+                    <input type="number" name="token_amount" class="token-amount-input" min="1" value="1" required>
+                    <span style="color: #a0a0a0;">million tokens</span>
+                    <button type="submit" class="btn btn-primary">Purchase Tokens</button>
+                </form>
             </div>
         </div>
     </main>

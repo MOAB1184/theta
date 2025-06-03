@@ -1380,9 +1380,11 @@ def approve_summary(class_id, filename):
     class_obj = mongo.db.classes.find_one({"_id": ObjectId(class_id)})
     if not class_obj or user['role'] != 'teacher' or class_obj['teacher_id'] != user['_id']:
         return redirect(url_for('dashboard'))
+    # Update the summary's approved status
     mongo.db.classes.update_one(
-        {"_id": ObjectId(class_id), "summaries.filename": filename},
-        {"$set": {"summaries.$.approved": True}}
+        {"_id": ObjectId(class_id)},
+        {"$set": {"summaries.$[elem].approved": True}},
+        array_filters=[{"elem.filename": filename}]
     )
     return redirect(url_for('view_class', class_id=class_id))
 
@@ -1727,6 +1729,10 @@ def get_summaries():
         return jsonify({'status': 'error', 'message': 'Access denied'}), 403
     if user['role'] == 'student' and user['_id'] not in class_obj.get('students', []):
         return jsonify({'status': 'error', 'message': 'Access denied'}), 403
+
+    # Get list of approved summaries from the class object
+    approved_summaries = [s['filename'] for s in class_obj.get('summaries', []) if s.get('approved', False)]
+    
     teacher = mongo.db.users.find_one({'_id': class_obj['teacher_id']})
     class_code = class_obj.get('class_code')
     class_dir = f"{teacher['username']}/classes/{class_code}"
@@ -1738,6 +1744,9 @@ def get_summaries():
                 key = obj['Key']
                 if key.startswith(f"{class_dir}/summary_"):
                     filename = key.split('/')[-1]
+                    # Only include approved summaries
+                    if filename not in approved_summaries:
+                        continue
                     # Parse date from filename
                     try:
                         timestamp_str = filename.split('_')[1].split('.')[0]
@@ -1790,9 +1799,14 @@ def chat_api():
         if attached_summaries and class_id:
             class_obj = mongo.db.classes.find_one({'_id': ObjectId(class_id)})
             if class_obj:
+                # Get list of approved summaries
+                approved_summaries = [s['filename'] for s in class_obj.get('summaries', []) if s.get('approved', False)]
+                # Filter attached_summaries to only include approved ones
+                approved_attached = [f for f in attached_summaries if f in approved_summaries]
+                
                 teacher = mongo.db.users.find_one({'_id': class_obj['teacher_id']})
                 class_code = class_obj.get('class_code')
-                for filename in attached_summaries:
+                for filename in approved_attached:
                     key = f"{teacher['username']}/classes/{class_code}/{filename}"
                     try:
                         file_obj = s3_client.get_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=key)
@@ -1805,7 +1819,12 @@ def chat_api():
         context = "\n\n".join(summaries_content) if summaries_content else ""
         
         # Add context to the message if there are summaries
-        full_message = f"Context from attached summaries:\n{context}\n\nUser message: {message}" if context else message
+        full_message = f"""You are Theta, an AI assistant designed to help users with their educational needs. Use consistent LaTeX formatting when required for mathematical expressions. Your goal is to provide clear, accurate, and helpful responses while maintaining a professional and friendly tone.
+
+Context from attached summaries:
+{context}
+
+User message: {message}"""
         
         # Initialize OpenRouter client
         client = OpenAI(
@@ -1813,7 +1832,7 @@ def chat_api():
             api_key=OPENROUTER_API_KEY
         )
         
-        # Call OpenRouter API with system prompt
+        # Call OpenRouter API
         completion = client.chat.completions.create(
             extra_headers={
                 "HTTP-Referer": OPENROUTER_SITE_URL,
@@ -1821,10 +1840,6 @@ def chat_api():
             },
             model=OPENROUTER_MODEL,
             messages=[
-                {
-                    "role": "system",
-                    "content": "You are Theta, an AI assistant designed to help users with their educational needs. Use consistent LaTeX formatting when required for mathematical expressions. Your goal is to provide clear, accurate, and helpful responses while maintaining a professional and friendly tone."
-                },
                 {
                     "role": "user",
                     "content": full_message
@@ -1869,7 +1884,7 @@ def purchase_tokens():
         token_amount = int(request.form.get('token_amount', 0))
         if token_amount <= 0:
             flash('Invalid token amount', 'error')
-            return redirect(url_for('admin'))
+            return redirect(url_for('buy'))
         
         user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
         if not user:
@@ -1910,7 +1925,7 @@ def purchase_tokens():
     except Exception as e:
         logger.error(f"Error creating token purchase session: {e}")
         flash('Error processing token purchase', 'error')
-        return redirect(url_for('admin'))
+        return redirect(url_for('buy'))
 
 @app.route('/token_purchase_success')
 def token_purchase_success():
