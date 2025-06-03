@@ -1510,6 +1510,7 @@ def handle_exception(e):
 
 def generate_summary(transcript, timestamp, class_id):
     """Generate a summary using DeepSeek API. This function is called by the queue workers."""
+    logger.info(f"[SUMMARY] Starting summarization for class_id={class_id}, timestamp={timestamp}")
     if not DEEPSEEK_API_KEY:
         raise Exception("DeepSeek API key not configured")
         
@@ -1528,7 +1529,9 @@ def generate_summary(transcript, timestamp, class_id):
             stream=False
         )
         summary = summary_resp.choices[0].message.content
+        logger.info(f"[SUMMARY] Finished summarization for class_id={class_id}, timestamp={timestamp}")
     except Exception as e:
+        logger.error(f"[SUMMARY] Summarization failed for class_id={class_id}, timestamp={timestamp}: {e}")
         logger.error(f"DeepSeek API error: {e}")
         if "authenticate" in str(e).lower() or "authorization" in str(e).lower():
             raise Exception("DeepSeek API key is invalid")
