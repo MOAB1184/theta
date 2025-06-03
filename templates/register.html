@@ -10,7 +10,7 @@
     <style>
         /* Reset and Basic Styles */
         body, html {
-            margin: 0;
+            margin: 0; 
             padding: 0;
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: #121212;
@@ -116,11 +116,11 @@
     </style>
 </head>
 <body>
-    <div class="container">
+        <div class="container">
         <div class="register-card">
             <h1 class="page-title">Create Account</h1>
-            
-            {% if error %}
+                
+                {% if error %}
             <div class="error-message">{{ error }}</div>
             {% endif %}
             
@@ -130,34 +130,34 @@
                     <input type="text" id="username" name="username" class="form-input" value="{{ username }}" required>
                 </div>
                 
-                <div class="form-group">
+                    <div class="form-group">
                     <label class="form-label" for="email">Email</label>
                     <input type="email" id="email" name="email" class="form-input" required>
-                </div>
-                
-                <div class="form-group">
+                    </div>
+                    
+                    <div class="form-group">
                     <label class="form-label" for="password">Password</label>
                     <input type="password" id="password" name="password" class="form-input" required>
-                </div>
-                
-                <div class="form-group">
+                    </div>
+                    
+                    <div class="form-group">
                     <label class="form-label" for="role">Role</label>
                     <select id="role" name="role" class="form-input" required onchange="toggleSchoolDropdown()">
-                        <option value="student" {% if role == 'student' %}selected{% endif %}>Student</option>
-                        <option value="teacher" {% if role == 'teacher' %}selected{% endif %}>Teacher</option>
-                    </select>
-                </div>
-                
+                            <option value="student" {% if role == 'student' %}selected{% endif %}>Student</option>
+                            <option value="teacher" {% if role == 'teacher' %}selected{% endif %}>Teacher</option>
+                        </select>
+                    </div>
+                    
                 <div class="form-group" id="school-group" style="display: none;">
                     <label class="form-label" for="school_id">School</label>
                     <select id="school_id" name="school_id" class="form-input">
-                        <option value="">Select a school</option>
-                        {% for school in schools %}
+                            <option value="">Select a school</option>
+                            {% for school in schools %}
                         <option value="{{ school._id }}">{{ school.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
                 <div class="form-group">
                     <p class="form-text" style="color: #c084fc;">Note: You need to either purchase a subscription or enter a valid demo code to register. If you don't have a demo code, you'll be redirected to the payment page.</p>
                 </div>
@@ -167,10 +167,10 @@
             
             <a href="{{ url_for('login') }}" class="back-link">← Back to Login</a>
         </div>
-    </div>
+        </div>
 
     <script>
-        function toggleSchoolDropdown() {
+    function toggleSchoolDropdown() {
             const roleSelect = document.getElementById('role');
             const schoolGroup = document.getElementById('school-group');
             const schoolSelect = document.getElementById('school_id');
@@ -178,14 +178,14 @@
             if (roleSelect.value === 'teacher') {
                 schoolGroup.style.display = 'block';
                 schoolSelect.required = true;
-            } else {
+        } else {
                 schoolGroup.style.display = 'none';
                 schoolSelect.required = false;
-            }
         }
+    }
         
         // Initialize on page load
-        document.addEventListener('DOMContentLoaded', toggleSchoolDropdown);
+    document.addEventListener('DOMContentLoaded', toggleSchoolDropdown);
     </script>
 </body>
 </html> 

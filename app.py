@@ -29,6 +29,7 @@ from flask_mail import Mail, Message
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail as SendGridMail
 import requests
+from openai import OpenAI
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -305,7 +306,7 @@ def register():
             demo_code = request.form.get('demo_code')
 
             if not role or role not in ['student', 'teacher']:
-                return render_template('register.html', error='Invalid role selected', username=username, schools=schools)
+                    return render_template('register.html', error='Invalid role selected', username=username, schools=schools)
 
             # Check if user has a valid demo code or subscription
             if not demo_code:
@@ -328,39 +329,39 @@ def register():
             )
 
             if role == 'teacher':
-                if not email or not re.match(r"[^@]+@[^@]+\.[^@]+", email):
-                    return render_template('register.html', error='Invalid email address', username=username, schools=schools)
-                if not school_id:
-                    return render_template('register.html', error='Please select a school.', username=username, role=role, schools=schools)
-                existing_email = mongo.db.users.find_one({"email": email})
-                if existing_email:
-                    return render_template('register.html', error='Email already registered', role=role, username=username, schools=schools)
-            
+                    if not email or not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+                        return render_template('register.html', error='Invalid email address', username=username, schools=schools)
+                    if not school_id:
+                        return render_template('register.html', error='Please select a school.', username=username, role=role, schools=schools)
+                    existing_email = mongo.db.users.find_one({"email": email})
+                    if existing_email:
+                        return render_template('register.html', error='Email already registered', role=role, username=username, schools=schools)
+                
             existing_user = get_user_by_username(username)
             if existing_user:
-                return render_template('register.html', error='Username already exists', role=role, username=username, schools=schools)
+                    return render_template('register.html', error='Username already exists', role=role, username=username, schools=schools)
 
             password_hash = generate_password_hash(password)
             if role == 'teacher':
-                teacher = {
-                    "username": username,
-                    "password_hash": password_hash,
-                    "role": role,
-                    "email": email,
-                    "email_verified": False,
-                    "verification_token": ''.join(random.choices(string.ascii_letters + string.digits, k=32)),
-                    "is_admin": False,
-                    "school_id": ObjectId(school_id) if school_id else None,
-                    "subscribed": False
-                }
-                mongo.db.pending_teachers.insert_one(teacher)
-                return render_template('register.html', error='Teacher account request sent! Waiting for admin approval.', schools=schools)
+                    teacher = {
+                        "username": username,
+                        "password_hash": password_hash,
+                        "role": role,
+                        "email": email,
+                        "email_verified": False,
+                        "verification_token": ''.join(random.choices(string.ascii_letters + string.digits, k=32)),
+                        "is_admin": False,
+                        "school_id": ObjectId(school_id) if school_id else None,
+                        "subscribed": False
+                    }
+                    mongo.db.pending_teachers.insert_one(teacher)
+                    return render_template('register.html', error='Teacher account request sent! Waiting for admin approval.', schools=schools)
             else:
-                user = create_user(username, password_hash, role, email, is_admin=False, school_id=school_id)
-                session['user_id'] = str(user.inserted_id)
-                session['username'] = username
-                session['role'] = role
-                flash('Registration successful! You can now join classes.', 'success')
+                    user = create_user(username, password_hash, role, email, is_admin=False, school_id=school_id)
+                    session['user_id'] = str(user.inserted_id)
+                    session['username'] = username
+                    session['role'] = role
+                    flash('Registration successful! You can now join classes.', 'success')
             return redirect(url_for('dashboard'))
         except Exception as e:
             import traceback
@@ -852,13 +853,13 @@ def admin():
     demo_code = request.args.get('demo_code')
     demo_code_expiry = request.args.get('demo_code_expiry')
     
-    return render_template('admin.html',
+    return render_template('admin.html', 
                          username=user['username'],
                          pro_users_count=pro_users_count,
                          enterprise_users_count=enterprise_users_count,
                          plus_users_count=plus_users_count,
-                         users=users,
-                         pending_teachers=pending_teachers,
+                         users=users, 
+                         pending_teachers=pending_teachers, 
                          global_prompt=global_prompt,
                          demo_code=demo_code,
                          demo_code_expiry=demo_code_expiry)
@@ -1203,8 +1204,43 @@ def deny_teacher(teacher_id):
     user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
     if not user or not user.get('is_admin'):
         return redirect(url_for('dashboard'))
-    mongo.db.pending_teachers.delete_one({"_id": ObjectId(teacher_id)})
-    return redirect(url_for('admin_dashboard'))
+    mongo.db.users.delete_one({"_id": ObjectId(teacher_id)})
+    return redirect(url_for('admin'))
+
+@app.route('/admin/credit_tokens', methods=['POST'])
+def credit_tokens():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    # Check if user is admin
+    admin = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
+    if not admin or not admin.get('is_admin'):
+        flash('Unauthorized access', 'error')
+        return redirect(url_for('dashboard'))
+    
+    try:
+        user_id = request.form.get('user_id')
+        token_amount = int(request.form.get('token_amount', 0))
+        
+        if not user_id or token_amount <= 0:
+            flash('Invalid token amount or user', 'error')
+            return redirect(url_for('admin'))
+        
+        # Update user's token balance
+        result = mongo.db.users.update_one(
+            {"_id": ObjectId(user_id)},
+            {"$inc": {"token_balance": token_amount}}
+        )
+        
+        if result.modified_count > 0:
+            flash(f'Successfully credited {token_amount} tokens to user', 'success')
+        else:
+            flash('Failed to credit tokens', 'error')
+            
+    except Exception as e:
+        flash(f'Error crediting tokens: {str(e)}', 'error')
+    
+    return redirect(url_for('admin'))
 
 @app.route('/buy', methods=['GET', 'POST'])
 def buy():
@@ -1671,7 +1707,7 @@ def chat():
 
 # OpenRouter configuration
 OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY')
-OPENROUTER_MODEL = "deepseek/deepseek-r1-distill-qwen-7b"
+OPENROUTER_MODEL = "google/gemini-2.5-flash-preview-05-20"
 OPENROUTER_SITE_URL = os.getenv('OPENROUTER_SITE_URL', 'https://thetasummary.com')
 OPENROUTER_SITE_TITLE = os.getenv('OPENROUTER_SITE_TITLE', 'ThetaSummary')
 
@@ -1741,15 +1777,11 @@ def chat_api():
         if not user:
             return jsonify({'status': 'error', 'message': 'User not found'}), 404
 
-        # Calculate estimated token usage
-        input_tokens = len(message.split()) * 1.3  # Approximate token count
-        estimated_output_tokens = input_tokens * 2  # Conservative estimate
-        
-        # Check if user has enough tokens
-        if user.get('token_balance', 0) < (input_tokens + estimated_output_tokens):
+        # Check if user has any tokens at all
+        if user.get('token_balance', 0) <= 0:
             return jsonify({
                 'status': 'error',
-                'message': 'Insufficient tokens. Please purchase more tokens to continue.',
+                'message': 'You have no tokens remaining. Please purchase more tokens to continue.',
                 'redirect': url_for('buy')
             }), 402
 
@@ -1775,14 +1807,36 @@ def chat_api():
         # Add context to the message if there are summaries
         full_message = f"Context from attached summaries:\n{context}\n\nUser message: {message}" if context else message
         
-        # Initialize Gemini model
-        gemini_model = genai.GenerativeModel('gemini-2.5-flash-preview-05-20')
-        gemini_response = gemini_model.generate_content(full_message)
-        ai_response = gemini_response.text
+        # Initialize OpenRouter client
+        client = OpenAI(
+            base_url="https://openrouter.ai/api/v1",
+            api_key=OPENROUTER_API_KEY
+        )
+        
+        # Call OpenRouter API with system prompt
+        completion = client.chat.completions.create(
+            extra_headers={
+                "HTTP-Referer": OPENROUTER_SITE_URL,
+                "X-Title": OPENROUTER_SITE_TITLE,
+            },
+            model=OPENROUTER_MODEL,
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are Theta, an AI assistant designed to help users with their educational needs. Use consistent LaTeX formatting when required for mathematical expressions. Your goal is to provide clear, accurate, and helpful responses while maintaining a professional and friendly tone."
+                },
+                {
+                    "role": "user",
+                    "content": full_message
+                }
+            ]
+        )
+        
+        ai_response = completion.choices[0].message.content
         
         # Calculate actual token usage
-        input_tokens = len(full_message.split()) * 1.3
-        output_tokens = len(ai_response.split()) * 1.3
+        input_tokens = completion.usage.prompt_tokens
+        output_tokens = completion.usage.completion_tokens
         
         # Update user's token balance and usage
         mongo.db.users.update_one(
