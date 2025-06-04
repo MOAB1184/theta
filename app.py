@@ -2254,30 +2254,36 @@ def recording_time_purchase_cancelled():
 def get_upload_url():
     try:
         data = request.get_json()
+        print("DEBUG: data received:", data)
         filename = data.get('filename')
         content_type = data.get('contentType')
         class_id = data.get('class_id')
-        
+        print(f"DEBUG: filename={filename}, content_type={content_type}, class_id={class_id}")
         if not all([filename, content_type, class_id]):
+            print("DEBUG: Missing required fields")
             return jsonify({'error': 'Missing required fields'}), 400
-            
-        # Generate a unique path for the blob
         path = f"recordings/{class_id}/{filename}"
-        
-        # Upload an empty file to get the blob URL (since put uploads directly)
-        result = put(path=path, data=b'', options={
-            "access": "public",
-            "token": os.getenv('BLOB_READ_WRITE_TOKEN')
-        })
-        
+        print(f"DEBUG: path={path}")
+        token = os.getenv('BLOB_READ_WRITE_TOKEN')
+        print(f"DEBUG: BLOB_READ_WRITE_TOKEN={token}")
+        try:
+            result = put(path=path, data=b'', options={
+                "access": "public",
+                "token": token
+            })
+            print(f"DEBUG: put result={result}")
+        except Exception as put_exc:
+            import traceback
+            print("ERROR: Exception during put:", traceback.format_exc())
+            return jsonify({'error': 'Exception during put', 'details': str(put_exc)}), 500
         return jsonify({
             'uploadUrl': result.get('url'),
             'blobUrl': result.get('url')
         })
-        
     except Exception as e:
-        print(f"Error generating upload URL: {str(e)}")
-        return jsonify({'error': 'Failed to generate upload URL'}), 500
+        import traceback
+        print("ERROR in /api/get-upload-url:", traceback.format_exc())
+        return jsonify({'error': 'Failed to generate upload URL', 'details': str(e)}), 500
 
 
 if __name__ == '__main__':
