@@ -304,29 +304,42 @@ def register():
             role = request.form.get('role')
             school_id = request.form.get('school_id') if role == 'teacher' else None
             demo_code = request.form.get('demo_code')
+            register_method = request.form.get('register_method', 'demo')
 
             if not role or role not in ['student', 'teacher']:
                 return render_template('register.html', error='Invalid role selected', username=username, schools=schools)
 
-            # Check if user has a valid demo code or subscription
-            if not demo_code:
-                return redirect(url_for('buy'))
-
-            # Validate demo code if provided
-            demo_code_obj = mongo.db.demo_codes.find_one({
-                "code": demo_code,
-                "used": False,
-                "expires_at": {"$gt": datetime.datetime.utcnow()}
-            })
-            
-            if not demo_code_obj:
-                return render_template('register.html', error='Invalid or expired demo code', username=username, role=role, schools=schools)
-            
-            # Mark demo code as used
-            mongo.db.demo_codes.update_one(
-                {"_id": demo_code_obj["_id"]},
-                {"$set": {"used": True}}
-            )
+            if register_method == 'plan':
+                # User claims to have purchased a plan, check for active subscription
+                if not email or not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+                    return render_template('register.html', error='Invalid email address', username=username, schools=schools)
+                paid_user = mongo.db.users.find_one({
+                    "email": email,
+                    "subscription_status": "active",
+                    "subscribed": True
+                })
+                if not paid_user:
+                    return render_template('register.html', error='No active subscription found for this email. Please purchase a plan first.', username=username, schools=schools)
+                # Optionally, you could log them in or allow them to set a password here
+                flash('Account already exists for this email. Please log in.', 'error')
+                return redirect(url_for('login'))
+            else:
+                # Demo code path
+                if not demo_code:
+                    return redirect(url_for('buy'))
+                # Validate demo code if provided
+                demo_code_obj = mongo.db.demo_codes.find_one({
+                    "code": demo_code,
+                    "used": False,
+                    "expires_at": {"$gt": datetime.datetime.utcnow()}
+                })
+                if not demo_code_obj:
+                    return render_template('register.html', error='Invalid or expired demo code', username=username, role=role, schools=schools)
+                # Mark demo code as used
+                mongo.db.demo_codes.update_one(
+                    {"_id": demo_code_obj["_id"]},
+                    {"$set": {"used": True}}
+                )
 
             if role == 'teacher':
                 if not email or not re.match(r"[^@]+@[^@]+\.[^@]+", email):
@@ -940,9 +953,15 @@ def admin():
     # Get global prompt
     global_prompt = get_global_prompt()
     
-    # Get demo code if it was just generated
-    demo_code = request.args.get('demo_code')
-    demo_code_expiry = request.args.get('demo_code_expiry')
+    # Get active demo code if it exists
+    active_demo_code = mongo.db.demo_codes.find_one({
+        "created_by": user['_id'],
+        "expires_at": {"$gt": datetime.datetime.utcnow()},
+        "used": False
+    })
+    
+    demo_code = active_demo_code['code'] if active_demo_code else None
+    demo_code_expiry = active_demo_code['expires_at'].strftime('%Y-%m-%d %H:%M:%S UTC') if active_demo_code else None
     
     return render_template('admin.html', 
                          username=user['username'],
@@ -1335,27 +1354,31 @@ def credit_tokens():
 
 @app.route('/buy', methods=['GET', 'POST'])
 def buy():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-    
-    user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
-    if not user:
-        return redirect(url_for('logout'))
-    
-    error = None
     if request.method == 'POST':
+        user = None
+        if 'user_id' in session:
+            user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
+            if not user:
+                return redirect(url_for('logout'))
+        error = None
         try:
             subscription_type = request.form.get('subscription_type')
             if not subscription_type or subscription_type not in ['plus', 'pro', 'enterprise']:
                 raise ValueError('Invalid subscription type')
-            
-            # Create Stripe checkout session
             prices = {
                 'plus': os.getenv('STRIPE_PLUS_PRICE_ID'),
                 'pro': os.getenv('STRIPE_PRO_PRICE_ID'),
                 'enterprise': os.getenv('STRIPE_ENTERPRISE_PRICE_ID')
             }
-            
+            # Use email from form if not logged in
+            email = request.form.get('email') if not user else user.get('email')
+            if not email or not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+                error = 'A valid email is required to purchase a plan.'
+                return render_template('buy.html', 
+                                     error=error,
+                                     username=session.get('username', ''),
+                                     current_subscription=None,
+                                     stripe_public_key=os.getenv('STRIPE_PUBLIC_KEY'))
             checkout_session = stripe.checkout.Session.create(
                 payment_method_types=['card'],
                 line_items=[{
@@ -1365,24 +1388,34 @@ def buy():
                 mode='subscription',
                 success_url=url_for('payment_success', _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
                 cancel_url=url_for('payment_cancelled', _external=True),
-                client_reference_id=str(user['_id']),
-                customer_email=user.get('email'),
+                client_reference_id=str(user['_id']) if user else None,
+                customer_email=email,
                 metadata={
-                    'user_id': str(user['_id']),
-                    'subscription_type': subscription_type
+                    'user_id': str(user['_id']) if user else '',
+                    'subscription_type': subscription_type,
+                    'email': email
                 }
             )
-            
             return redirect(checkout_session.url, code=303)
-            
         except Exception as e:
             error = str(e)
             logger.error(f"Error creating checkout session: {e}")
-    
+        return render_template('buy.html', 
+                             error=error,
+                             username=session.get('username', ''),
+                             current_subscription=None,
+                             stripe_public_key=os.getenv('STRIPE_PUBLIC_KEY'))
+    # GET request: allow anyone to view
+    username = session.get('username', '') if 'user_id' in session else ''
+    current_subscription = None
+    if 'user_id' in session:
+        user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
+        if user:
+            current_subscription = user.get('subscription_type', 'plus')
     return render_template('buy.html', 
-                         error=error,
-                         username=user['username'],
-                         current_subscription=user.get('subscription_type', 'plus'),
+                         error=None,
+                         username=username,
+                         current_subscription=current_subscription,
                          stripe_public_key=os.getenv('STRIPE_PUBLIC_KEY'))
 
 @app.route('/payment/success')
@@ -1936,7 +1969,7 @@ def chat_api():
         context = "\n\n".join(summaries_content) if summaries_content else ""
         
         # Add context to the message if there are summaries
-        full_message = f"""You are Theta, an AI assistant designed to help users with their educational needs. Use consistent LaTeX formatting when required for mathematical expressions. Your goal is to provide clear, accurate, and helpful responses while maintaining a professional and friendly tone.
+        full_message = f"""You are Theta, an AI assistant designed to help users with their educational needs. Absolutely every math expression, variable, or formula—no matter how short—must be wrapped in single dollar signs $...$ for inline math or double dollar signs $$...$$ for display math. Never use LaTeX for non-math text, and never leave a math expression unwrapped. Do not use LaTeX for explanations, italics, or regular text. Do not include any LaTeX document headers, environments, or preambles—just the math expression itself. Your goal is to provide clear, accurate, and helpful responses while maintaining a professional and friendly tone. Use consistent LaTeX formatting for all mathematical expressions.
 
 Context from attached summaries:
 {context}
@@ -2088,6 +2121,19 @@ def generate_demo_code():
         return redirect(url_for('dashboard'))
     
     try:
+        # Check for existing active demo code
+        existing_code = mongo.db.demo_codes.find_one({
+            "created_by": user['_id'],
+            "expires_at": {"$gt": datetime.datetime.utcnow()},
+            "used": False
+        })
+        
+        if existing_code:
+            flash('An active demo code already exists. Please wait for it to expire or be used.', 'error')
+            return redirect(url_for('admin', 
+                                  demo_code=existing_code['code'], 
+                                  demo_code_expiry=existing_code['expires_at'].strftime('%Y-%m-%d %H:%M:%S UTC')))
+        
         # Generate a random 8-character code
         demo_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
         expiry_date = datetime.datetime.utcnow() + datetime.timedelta(days=2)
@@ -2101,7 +2147,9 @@ def generate_demo_code():
             "used": False
         })
         
-        return redirect(url_for('admin', demo_code=demo_code, demo_code_expiry=expiry_date.strftime('%Y-%m-%d %H:%M:%S UTC')))
+        return redirect(url_for('admin', 
+                              demo_code=demo_code, 
+                              demo_code_expiry=expiry_date.strftime('%Y-%m-%d %H:%M:%S UTC')))
         
     except Exception as e:
         logger.error(f"Error generating demo code: {e}")

@@ -250,6 +250,9 @@
                     </ul>
                     <form action="{{ url_for('buy') }}" method="POST">
                         <input type="hidden" name="subscription_type" value="plus">
+                        {% if not username %}
+                        <input type="email" name="email" class="form-input" placeholder="Enter your email" required style="margin-bottom:10px;">
+                        {% endif %}
                         <button type="submit" class="btn btn-primary" {% if current_subscription == 'plus' %}disabled{% endif %}>
                             {% if current_subscription == 'plus' %}Current Plan{% else %}Select Plan{% endif %}
                         </button>
@@ -266,6 +269,9 @@
                     </ul>
                     <form action="{{ url_for('buy') }}" method="POST">
                         <input type="hidden" name="subscription_type" value="pro">
+                        {% if not username %}
+                        <input type="email" name="email" class="form-input" placeholder="Enter your email" required style="margin-bottom:10px;">
+                        {% endif %}
                         <button type="submit" class="btn btn-primary" {% if current_subscription == 'pro' %}disabled{% endif %}>
                             {% if current_subscription == 'pro' %}Current Plan{% else %}Select Plan{% endif %}
                         </button>

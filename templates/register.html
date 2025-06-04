@@ -113,6 +113,36 @@
         .back-link:hover {
             color: #ffffff;
         }
+        
+        .radio-group {
+            display: flex;
+            gap: 32px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .radio-group input[type="radio"] {
+            accent-color: #c084fc;
+            width: 18px;
+            height: 18px;
+            margin-right: 8px;
+            background: #242424;
+            border: 2px solid #c084fc;
+            border-radius: 50%;
+            outline: none;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        .radio-label {
+            color: #e0e0e0;
+            font-size: 1rem;
+            font-weight: 500;
+            margin-right: 24px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .radio-group input[type="radio"]:checked + .radio-label {
+            color: #c084fc;
+        }
     </style>
 </head>
 <body>
@@ -130,30 +160,37 @@
                     <input type="text" id="username" name="username" class="form-input" value="{{ username }}" required>
                 </div>
                 
-                    <div class="form-group">
-                    <label class="form-label" for="email">Email</label>
-                    <input type="email" id="email" name="email" class="form-input" required>
+                <div class="form-group">
+                    <label class="form-label">How would you like to register?</label>
+                    <div class="radio-group">
+                        <input type="radio" id="register_demo" name="register_method" value="demo" checked onchange="toggleRegisterMethod()">
+                        <label for="register_demo" class="radio-label">I have a demo code</label>
+                        <input type="radio" id="register_plan" name="register_method" value="plan" onchange="toggleRegisterMethod()">
+                        <label for="register_plan" class="radio-label">I have purchased a plan</label>
                     </div>
-                    
-                    <div class="form-group">
+                </div>
+                <div class="form-group" id="demo_code_group">
+                    <label class="form-label" for="demo_code">Demo Code</label>
+                    <input type="text" id="demo_code" name="demo_code" class="form-input" placeholder="Enter demo code">
+                </div>
+                <div class="form-group" id="email_group">
+                    <label class="form-label" for="email">Email</label>
+                    <input type="email" id="email" name="email" class="form-input" placeholder="Enter your email" required>
+                </div>
+                
+                <div class="form-group">
                     <label class="form-label" for="password">Password</label>
                     <input type="password" id="password" name="password" class="form-input" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label" for="demo_code">Demo Code (or purchase a plan)</label>
-                        <input type="text" id="demo_code" name="demo_code" class="form-input" placeholder="Enter demo code if you have one">
-                        <p class="form-text" style="color: #c084fc;">You need either a valid demo code or to purchase a subscription plan to register.</p>
-                    </div>
-                    
-                    <div class="form-group">
+                </div>
+                
+                <div class="form-group">
                     <label class="form-label" for="role">Role</label>
                     <select id="role" name="role" class="form-input" required onchange="toggleSchoolDropdown()">
                             <option value="student" {% if role == 'student' %}selected{% endif %}>Student</option>
                             <option value="teacher" {% if role == 'teacher' %}selected{% endif %}>Teacher</option>
                         </select>
-                    </div>
-                    
+                </div>
+                
                 <div class="form-group" id="school-group" style="display: none;">
                     <label class="form-label" for="school_id">School</label>
                     <select id="school_id" name="school_id" class="form-input">
@@ -162,8 +199,8 @@
                         <option value="{{ school._id }}">{{ school.name }}</option>
                             {% endfor %}
                         </select>
-                    </div>
-                    
+                </div>
+                
                 <div class="form-group">
                     <p class="form-text" style="color: #c084fc;">Note: You need to either purchase a subscription or enter a valid demo code to register. If you don't have a demo code, you'll be redirected to the payment page.</p>
                 </div>
@@ -190,8 +227,21 @@
         }
     }
         
+    function toggleRegisterMethod() {
+        const demoRadio = document.getElementById('register_demo');
+        const demoGroup = document.getElementById('demo_code_group');
+        if (demoRadio.checked) {
+            demoGroup.style.display = '';
+            document.getElementById('demo_code').required = true;
+        } else {
+            demoGroup.style.display = 'none';
+            document.getElementById('demo_code').required = false;
+        }
+    }
+        
         // Initialize on page load
     document.addEventListener('DOMContentLoaded', toggleSchoolDropdown);
+    window.onload = toggleRegisterMethod;
     </script>
 </body>
 </html> 
