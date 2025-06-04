@@ -47,6 +47,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'thetasummary-secret-key'
 app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(days=7)  # Sessions last 7 days
 app.config['SESSION_PERMANENT'] = True
+app.config['MAX_CONTENT_LENGTH'] = 1024 * 1024 * 1024 * 2  # 2GB in bytes
 
 # Email configuration
 app.config['MAIL_SERVER'] = 'smtp.sendgrid.net'
@@ -2219,6 +2220,89 @@ def promote_teacher(user_id):
         flash(f'Error promoting teacher: {str(e)}', 'error')
     
     return redirect(url_for('admin'))
+
+@app.route('/purchase_recording_time', methods=['POST'])
+def purchase_recording_time():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    try:
+        recording_hours = int(request.form.get('recording_hours', 0))
+        if recording_hours <= 0:
+            flash('Invalid recording hours amount', 'error')
+            return redirect(url_for('buy'))
+        
+        user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
+        if not user:
+            return redirect(url_for('logout'))
+        
+        # Calculate price (20 cents per hour)
+        price = recording_hours * 0.20
+        
+        # Create Stripe checkout session
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price_data': {
+                    'currency': 'usd',
+                    'product_data': {
+                        'name': f'{recording_hours} Hours of Recording Time',
+                        'description': 'Additional recording time for ThetaSummary'
+                    },
+                    'unit_amount': int(price * 100)  # Convert to cents
+                },
+                'quantity': 1
+            }],
+            mode='payment',
+            success_url=url_for('recording_time_purchase_success', _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
+            cancel_url=url_for('recording_time_purchase_cancelled', _external=True),
+            client_reference_id=str(user['_id']),
+            metadata={
+                'user_id': str(user['_id']),
+                'recording_hours': recording_hours
+            }
+        )
+        
+        return redirect(checkout_session.url, code=303)
+        
+    except Exception as e:
+        logger.error(f"Error creating recording time purchase session: {e}")
+        flash('Error processing recording time purchase', 'error')
+        return redirect(url_for('buy'))
+
+@app.route('/recording_time_purchase_success')
+def recording_time_purchase_success():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    try:
+        session_id = request.args.get('session_id')
+        checkout_session = stripe.checkout.Session.retrieve(session_id)
+        
+        if checkout_session.payment_status == 'paid':
+            user_id = checkout_session.metadata.get('user_id')
+            recording_hours = int(checkout_session.metadata.get('recording_hours', 0))
+            
+            # Update user's recording time balance
+            mongo.db.users.update_one(
+                {"_id": ObjectId(user_id)},
+                {"$inc": {"recording_time_balance": recording_hours}}
+            )
+            
+            flash('Recording time purchase successful!', 'success')
+        else:
+            flash('Payment not completed', 'error')
+            
+    except Exception as e:
+        logger.error(f"Error processing recording time purchase success: {e}")
+        flash('Error processing payment', 'error')
+    
+    return redirect(url_for('buy'))
+
+@app.route('/recording_time_purchase_cancelled')
+def recording_time_purchase_cancelled():
+    flash('Recording time purchase cancelled', 'info')
+    return redirect(url_for('buy'))
 
 if __name__ == '__main__':
     ensure_admin_and_school()

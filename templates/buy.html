@@ -208,6 +208,21 @@
             outline: none;
             border-color: #c084fc;
         }
+        
+        .form-input {
+            background: #242424;
+            border: 1px solid #404040;
+            border-radius: 4px;
+            padding: 8px 12px;
+            color: #ffffff;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #c084fc;
+        }
     </style>
 </head>
 <body>
@@ -225,7 +240,7 @@
     
     <main>
         <div class="container">
-            <h1 class="page-title">Upgrade Your Plan</h1>
+            <h1 class="page-title">Choose Your Plan</h1>
             
             {% if error %}
             <div class="error-message">{{ error }}</div>
@@ -261,7 +276,7 @@
                 
                 <div class="pricing-card {% if current_subscription == 'pro' %}current{% endif %}">
                     <h2 class="plan-name">Pro</h2>
-                    <div class="plan-price">$19.99<span>/month</span></div>
+                    <div class="plan-price">$20<span>/month</span></div>
                     <ul class="plan-features">
                         <li>150 summaries per month</li>
                         <li>Advanced AI summarization</li>
@@ -299,6 +314,17 @@
                     <input type="number" name="token_amount" class="token-amount-input" min="1" value="1" required>
                     <span style="color: #a0a0a0;">million tokens</span>
                     <button type="submit" class="btn btn-primary">Purchase Tokens</button>
+                </form>
+            </div>
+
+            <div class="token-purchase-section" style="margin-top: 20px;">
+                <h2>Purchase Recording Time</h2>
+                <p>Need more recording time? Purchase additional hours here.</p>
+                <p style="color: #c084fc; margin-bottom: 20px;">$0.20 per hour of recording</p>
+                <form action="{{ url_for('purchase_recording_time') }}" method="POST">
+                    <input type="number" name="recording_hours" class="token-amount-input" min="1" value="1" required>
+                    <span style="color: #a0a0a0;">hours of recording</span>
+                    <button type="submit" class="btn btn-primary">Purchase Hours</button>
                 </form>
             </div>
         </div>
