@@ -33,14 +33,6 @@ from openai import OpenAI
 from vercel_blob import put
 from functools import wraps
 
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'user_id' not in session:
-            return redirect(url_for('login'))
-        return f(*args, **kwargs)
-    return decorated_function
-
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -2278,6 +2270,14 @@ def get_upload_url():
     except Exception as e:
         print(f"Error generating upload URL: {str(e)}")
         return jsonify({'error': 'Failed to generate upload URL'}), 500
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 if __name__ == '__main__':
     ensure_admin_and_school()
