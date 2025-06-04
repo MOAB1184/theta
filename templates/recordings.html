@@ -881,122 +881,124 @@
                             throw new Error('No audio data recorded');
                         }
                         const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                        const reader = new FileReader();
-                        reader.onload = async function() {
+                        
+                        // Get upload URL from server
+                        const uploadResponse = await fetch('/api/get-upload-url', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                filename: `recording_${Date.now()}.webm`,
+                                contentType: audioBlob.type,
+                                class_id: classId
+                            })
+                        });
+
+                        if (!uploadResponse.ok) {
+                            throw new Error('Failed to get upload URL');
+                        }
+
+                        const { uploadUrl, blobUrl } = await uploadResponse.json();
+
+                        // Upload directly to Vercel Blob
+                        const uploadResult = await fetch(uploadUrl, {
+                            method: 'PUT',
+                            body: audioBlob,
+                            headers: {
+                                'Content-Type': audioBlob.type
+                            }
+                        });
+
+                        if (!uploadResult.ok) {
+                            throw new Error('Failed to upload to blob storage');
+                        }
+
+                        // Now send the blob URL to our server for processing
+                        const transcribeResponse = await fetch('/api/transcribe', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                blob_url: blobUrl,
+                                mime_type: audioBlob.type,
+                                class_id: classId
+                            }),
+                        });
+
+                        if (!transcribeResponse.ok) {
+                            const errorText = await transcribeResponse.text();
+                            throw new Error(`Server responded with ${transcribeResponse.status}: ${errorText}`);
+                        }
+
+                        const transcribeData = await transcribeResponse.json();
+                        if (transcribeData.status === 'success') {
+                            loadingSection.classList.add('hidden');
+                            statusDot.className = 'status-dot success';
+                            statusText.textContent = 'Transcription complete';
+                            // Create and show transcript card immediately
+                            const transcriptCard = document.createElement('div');
+                            transcriptCard.className = `result-card transcript-card`;
+                            transcriptCard.innerHTML = `
+                                <div class="card-header">
+                                    <h2 class="card-title">Transcript</h2>
+                                    <div class="header-actions">
+                                        <a href="/classes/{{ class_id }}" class="back-btn">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                                <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+                                            </svg>
+                                            Back to Class
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="card-content">${transcribeData.transcript}</div>
+                            `;
+                            newSummarySection.insertAdjacentElement('afterend', transcriptCard);
                             try {
-                            const base64AudioDataUrl = reader.result;
-                                if (!base64AudioDataUrl || typeof base64AudioDataUrl !== 'string') {
-                                    throw new Error('Failed to read audio data');
-                                }
-                            const base64Audio = base64AudioDataUrl.split(',')[1];
-                                if (!base64Audio) {
-                                    throw new Error('Invalid audio data format');
-                                }
-                                const newSummarySection = document.createElement('div');
-                                newSummarySection.className = 'result-card hidden';
-                                newSummarySection.innerHTML = document.getElementById('summary-section').innerHTML;
-                                resultsSection.insertBefore(newSummarySection, resultsSection.firstChild);
-                                resultsSection.classList.remove('hidden');
-                            statusText.textContent = 'Uploading and transcribing audio...';
-                            try {
-                                const transcribeResponse = await fetch('/api/transcribe', {
+                                const summarizeResponse = await fetch('/api/summarize', {
                                     method: 'POST',
                                     headers: {
                                         'Content-Type': 'application/json',
                                     },
                                     body: JSON.stringify({
-                                        audio_base64: base64Audio,
-                                            mime_type: audioBlob.type,
-                                            class_id: classId
+                                        transcript: transcribeData.transcript,
+                                        timestamp: transcribeData.timestamp,
+                                        class_id: classId
                                     }),
                                 });
-                                    if (!transcribeResponse.ok) {
-                                        const errorText = await transcribeResponse.text();
-                                        throw new Error(`Server responded with ${transcribeResponse.status}: ${errorText}`);
+                                    let summarizeData;
+                                    const contentType = summarizeResponse.headers.get('content-type');
+                                    if (contentType && contentType.includes('application/json')) {
+                                        summarizeData = await summarizeResponse.json();
+                                    } else {
+                                        const text = await summarizeResponse.text();
+                                        throw new Error('Server did not return JSON: ' + text);
                                     }
-                                const transcribeData = await transcribeResponse.json();
-                                if (transcribeData.status === 'success') {
-                                    loadingSection.classList.add('hidden');
-                                    statusDot.className = 'status-dot success';
-                                    statusText.textContent = 'Transcription complete';
-                                        // Create and show transcript card immediately
-                                        const transcriptCard = document.createElement('div');
-                                    transcriptCard.className = `result-card transcript-card`;
-                                        transcriptCard.innerHTML = `
-                                            <div class="card-header">
-                                                <h2 class="card-title">Transcript</h2>
-                                                <div class="header-actions">
-                                                    <a href="/classes/{{ class_id }}" class="back-btn">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                                                            <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
-                                                        </svg>
-                                                        Back to Class
-                                                    </a>
-                                                </div>
-                                            </div>
-                                            <div class="card-content">${transcribeData.transcript}</div>
-                                        `;
-                                        newSummarySection.insertAdjacentElement('afterend', transcriptCard);
-                                    try {
-                                        const summarizeResponse = await fetch('/api/summarize', {
-                                            method: 'POST',
-                                            headers: {
-                                                'Content-Type': 'application/json',
-                                            },
-                                            body: JSON.stringify({
-                                                transcript: transcribeData.transcript,
-                                                timestamp: transcribeData.timestamp,
-                                                class_id: classId
-                                            }),
-                                        });
-                                            let summarizeData;
-                                            const contentType = summarizeResponse.headers.get('content-type');
-                                            if (contentType && contentType.includes('application/json')) {
-                                                summarizeData = await summarizeResponse.json();
-                                            } else {
-                                                const text = await summarizeResponse.text();
-                                                throw new Error('Server did not return JSON: ' + text);
-                                            }
-                                        if (summarizeData.status === 'success') {
-                                                const taskId = summarizeData.task_id;
-                                                // Save to localStorage for persistence
-                                                saveOngoingTask(taskId, { started: Date.now() });
-                                                // Redirect to class view page with task_id
-                                                window.location.href = `/classes/${classId}?task_id=${taskId}`;
-                                        } else {
-                                            loadingSection.classList.add('hidden');
-                                            showError(summarizeData.message || 'Unknown error occurred during summarization');
-                                            statusDot.className = 'status-dot idle';
-                                            statusText.textContent = 'Error generating summary';
-                                        }
-                                    } catch (err) {
-                                        loadingSection.classList.add('hidden');
-                                        showError("Server error: " + (err.message || "Failed to generate summary"));
-                                        statusDot.className = 'status-dot idle';
-                                        statusText.textContent = 'Error generating summary';
-                                    }
+                                if (summarizeData.status === 'success') {
+                                        const taskId = summarizeData.task_id;
+                                        // Save to localStorage for persistence
+                                        saveOngoingTask(taskId, { started: Date.now() });
+                                        // Redirect to class view page with task_id
+                                        window.location.href = `/classes/${classId}?task_id=${taskId}`;
                                 } else {
                                     loadingSection.classList.add('hidden');
-                                    showError(transcribeData.message || 'Unknown error occurred during transcription');
+                                    showError(summarizeData.message || 'Unknown error occurred during summarization');
                                     statusDot.className = 'status-dot idle';
-                                    statusText.textContent = 'Error transcribing audio';
+                                    statusText.textContent = 'Error generating summary';
                                 }
                             } catch (err) {
                                 loadingSection.classList.add('hidden');
-                                showError("Server error: " + (err.message || "Failed to process audio"));
+                                showError("Server error: " + (err.message || "Failed to generate summary"));
                                 statusDot.className = 'status-dot idle';
-                                statusText.textContent = 'Error processing audio';
-                                console.error("Error communicating with server:", err);
+                                statusText.textContent = 'Error generating summary';
                             }
-                            } catch (err) {
-                                console.error("Error processing recording:", err);
-                                loadingSection.classList.add('hidden');
-                                showError("Failed to process recording. Please try again.");
-                                statusDot.className = 'status-dot idle';
-                                statusText.textContent = 'Error processing audio';
-                            }
-                        };
-                        reader.readAsDataURL(audioBlob);
+                        } else {
+                            loadingSection.classList.add('hidden');
+                            showError(transcribeData.message || 'Unknown error occurred during transcription');
+                            statusDot.className = 'status-dot idle';
+                            statusText.textContent = 'Error transcribing audio';
+                        }
                     } catch (err) {
                         console.error("Error processing recording:", err);
                         loadingSection.classList.add('hidden');

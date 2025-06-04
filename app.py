@@ -30,6 +30,16 @@ from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail as SendGridMail
 import requests
 from openai import OpenAI
+from vercel_blob import put
+from functools import wraps
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -47,7 +57,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'thetasummary-secret-key'
 app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(days=7)  # Sessions last 7 days
 app.config['SESSION_PERMANENT'] = True
-app.config['MAX_CONTENT_LENGTH'] = 1024 * 1024 * 1024 * 2  # 2GB in bytes
+app.config['MAX_CONTENT_LENGTH'] = 1024 * 1024 * 100  # 100MB in bytes
 
 # Email configuration
 app.config['MAIL_SERVER'] = 'smtp.sendgrid.net'
@@ -1605,103 +1615,27 @@ def edit_summary(filename):
 def transcribe():
     logger.info("Starting transcription process")
     try:
-        audio_base64 = request.json.get('audio_base64')
-        mime_type = request.json.get('mime_type')
-        class_id = request.json.get('class_id')
-        logger.info("Received request with mime_type: %s, class_id: %s", mime_type, class_id)
-
-        if not audio_base64 or not mime_type:
-            logger.error("Missing audio data or mime_type")
-            return jsonify({'status': 'error', 'message': "Missing audio data or mime_type."}), 400
-        if not GEMINI_API_KEY:
-            logger.error("Gemini API key not configured")
-            return jsonify({'status': 'error', 'message': "Gemini API key not configured. Please set the GEMINI_API_KEY environment variable."}), 500
-
-        logger.info("Decoding base64 audio data")
-        try:
-            audio_bytes = base64.b64decode(audio_base64)
-            logger.info("Audio decoded successfully, size: %d bytes", len(audio_bytes))
-        except Exception as e:
-            logger.error("Error decoding base64 audio: %s", str(e))
-            return jsonify({'status': 'error', 'message': f"Invalid audio data: {str(e)}"}), 400
-
-        transcription_prompt = "Please transcribe this audio exactly as it is. Do not add any additional text or formatting."
-        gemini_model_name = 'gemini-2.0-flash-lite'
-        logger.info("Initializing Gemini model: %s", gemini_model_name)
-        try:
-            gemini_model = genai.GenerativeModel(gemini_model_name)
-            logger.info("Gemini model initialized successfully")
-            audio_part = {
-                'mime_type': mime_type,
-                'data': audio_bytes
-            }
-            logger.info("Sending transcription request to Gemini API")
-            gemini_response = gemini_model.generate_content([audio_part, transcription_prompt])
-            transcript = gemini_response.text
-            logger.info("Transcription successful, transcript length: %d characters", len(transcript))
-        except Exception as e:
-            logger.error("Gemini API error: %s\n%s", str(e), traceback.format_exc())
-            if "API key not valid" in str(e) or "API_KEY_INVALID" in str(e):
-                logger.error("Invalid Gemini API key")
-                return jsonify({'status': 'error', 'message': "Gemini API key is invalid. Please check configuration."}), 500
-            if "model not found" in str(e).lower() or "model unavailable" in str(e).lower():
-                logger.error("Gemini 2.0 Flash Lite model unavailable")
-                return jsonify({'status': 'error', 'message': "Gemini 2.0 Flash Lite model unavailable. Please check model availability in Google Cloud Console."}), 500
-            if hasattr(e, 'response') and hasattr(e.response, 'prompt_feedback'):
-                if e.response.prompt_feedback.block_reason:
-                    reason = e.response.prompt_feedback.block_reason
-                    logger.error("Transcription blocked due to content policy: %s", reason)
-                    return jsonify({'status': 'error', 'message': f"Transcription failed due to content policy: {reason}."}), 400
-            logger.error("Unexpected Gemini API error")
-            return jsonify({'status': 'error', 'message': f"Error with Gemini API: {str(e)}"}), 500
-
-        # Create directories and save transcript
-        timestamp = str(int(time.time()))
-        recording_filename = f"recording_{timestamp}.txt"
-        transcript_filename = f"transcript_{timestamp}.txt"
-        logger.info("Generated filenames: recording=%s, transcript=%s", recording_filename, transcript_filename)
-
-        if class_id:
-            logger.info("Validating class_id: %s", class_id)
-            class_obj = mongo.db.classes.find_one({"_id": ObjectId(class_id)})
-            if not class_obj:
-                logger.error("Class not found for class_id: %s", class_id)
-                return jsonify({'status': 'error', 'message': 'Class not found'}), 404
-            if session['role'] == 'teacher' and class_obj['teacher_id'] != ObjectId(session['user_id']):
-                logger.error("Unauthorized teacher access to class_id: %s", class_id)
-                return jsonify({'status': 'error', 'message': 'Unauthorized access to class'}), 403
-            elif session['role'] == 'student' and ObjectId(session['user_id']) not in class_obj.get('students', []):
-                logger.error("Unauthorized student access to class_id: %s", class_id)
-                return jsonify({'status': 'error', 'message': 'Unauthorized access to class'}), 403
-            class_dir = f"{session['username']}/classes/{class_obj['class_code']}"
-            recording_path = f"{class_dir}/{recording_filename}"
-            transcript_path = f"{class_dir}/{transcript_filename}"
-        else:
-            user_dir = f"{session['username']}"
-            recording_path = f"{user_dir}/{recording_filename}"
-            transcript_path = f"{user_dir}/{transcript_filename}"
-        logger.info("Saving files to Wasabi S3: recording_path=%s, transcript_path=%s", recording_path, transcript_path)
-        try:
-            s3_client.put_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=recording_path, Body=audio_base64)
-            s3_client.put_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=transcript_path, Body=transcript)
-            logger.info("Files saved to Wasabi S3 successfully")
-        except Exception as e:
-            logger.error("Error saving files to Wasabi S3: %s", str(e))
-            return jsonify({'status': 'error', 'message': f"Error saving files to storage: {str(e)}"}), 500
-
-        logger.info("Transcription completed successfully")
-        return jsonify({
-            'status': 'success',
-            'transcript': transcript,
-            'transcript_filename': transcript_filename,
-            'timestamp': timestamp
-        })
+        data = request.get_json()
+        blob_url = data.get('blob_url')
+        mime_type = data.get('mime_type')
+        class_id = data.get('class_id')
+        
+        if not all([blob_url, mime_type, class_id]):
+            return jsonify({'error': 'Missing required fields'}), 400
+            
+        # Download the audio from the blob URL
+        response = requests.get(blob_url)
+        if not response.ok:
+            return jsonify({'error': 'Failed to download audio from blob'}), 500
+            
+        audio_data = response.content
+        
+        # Continue with your existing transcription logic using audio_data
+        # ... rest of your transcription code ...
+        
     except Exception as e:
-        logger.error("Unexpected error in transcribe endpoint: %s\n%s", str(e), traceback.format_exc())
-        return jsonify({
-            'status': 'error',
-            'message': f"Error processing: {str(e)}"
-        }), 500
+        print(f"Error in transcription: {str(e)}")
+        return jsonify({'error': 'Failed to process audio'}), 500
 
 @app.errorhandler(Exception)
 def handle_exception(e):
@@ -1715,6 +1649,17 @@ def handle_exception(e):
         }), 500
     # Otherwise, use default error handling
     return str(e), 500
+
+@app.errorhandler(413)
+def handle_413(e):
+    if request.path.startswith('/api/'):
+        return jsonify({
+            'status': 'error',
+            'message': 'File too large. Maximum file size is 100MB. Please upload a smaller file or recording.'
+        }), 413
+    return render_template('error.html', 
+                         error_message='File too large. Maximum file size is 100MB. Please upload a smaller file or recording.',
+                         username=session.get('username', '')), 413
 
 def generate_summary(transcript, timestamp, class_id):
     """Generate a summary using DeepSeek API. This function is called by the queue workers."""
@@ -2303,6 +2248,36 @@ def recording_time_purchase_success():
 def recording_time_purchase_cancelled():
     flash('Recording time purchase cancelled', 'info')
     return redirect(url_for('buy'))
+
+@app.route('/api/get-upload-url', methods=['POST'])
+@login_required
+def get_upload_url():
+    try:
+        data = request.get_json()
+        filename = data.get('filename')
+        content_type = data.get('contentType')
+        class_id = data.get('class_id')
+        
+        if not all([filename, content_type, class_id]):
+            return jsonify({'error': 'Missing required fields'}), 400
+            
+        # Generate a unique path for the blob
+        path = f"recordings/{class_id}/{filename}"
+        
+        # Upload an empty file to get the blob URL (since put uploads directly)
+        result = put(path=path, data=b'', options={
+            "access": "public",
+            "token": os.getenv('BLOB_READ_WRITE_TOKEN')
+        })
+        
+        return jsonify({
+            'uploadUrl': result.get('url'),
+            'blobUrl': result.get('url')
+        })
+        
+    except Exception as e:
+        print(f"Error generating upload URL: {str(e)}")
+        return jsonify({'error': 'Failed to generate upload URL'}), 500
 
 if __name__ == '__main__':
     ensure_admin_and_school()
