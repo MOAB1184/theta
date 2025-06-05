@@ -161,19 +161,6 @@
                 </div>
                 
                 <div class="form-group">
-                    <label class="form-label">How would you like to register?</label>
-                    <div class="radio-group">
-                        <input type="radio" id="register_demo" name="register_method" value="demo" checked onchange="toggleRegisterMethod()">
-                        <label for="register_demo" class="radio-label">I have a demo code</label>
-                        <input type="radio" id="register_plan" name="register_method" value="plan" onchange="toggleRegisterMethod()">
-                        <label for="register_plan" class="radio-label">I have purchased a plan</label>
-                    </div>
-                </div>
-                <div class="form-group" id="demo_code_group">
-                    <label class="form-label" for="demo_code">Demo Code</label>
-                    <input type="text" id="demo_code" name="demo_code" class="form-input" placeholder="Enter demo code">
-                </div>
-                <div class="form-group" id="email_group">
                     <label class="form-label" for="email">Email</label>
                     <input type="email" id="email" name="email" class="form-input" placeholder="Enter your email" required>
                 </div>
@@ -196,9 +183,23 @@
                     <select id="school_id" name="school_id" class="form-input">
                             <option value="">Select a school</option>
                             {% for school in schools %}
-                        <option value="{{ school._id }}">{{ school.name }}</option>
+                        <option value="{{ school._id }}">{{ school.name }} ({{ school.district }}, {{ school.state }})</option>
                             {% endfor %}
                         </select>
+                </div>
+                
+                <div class="form-group" id="payment-group" style="display: none;">
+                    <label class="form-label">How would you like to register?</label>
+                    <div class="radio-group">
+                        <input type="radio" id="register_demo" name="register_method" value="demo" checked onchange="toggleRegisterMethod()">
+                        <label for="register_demo" class="radio-label">I have a demo code</label>
+                        <input type="radio" id="register_plan" name="register_method" value="plan" onchange="toggleRegisterMethod()">
+                        <label for="register_plan" class="radio-label">I have purchased a plan</label>
+                    </div>
+                </div>
+                <div class="form-group" id="demo_code_group" style="display: none;">
+                    <label class="form-label" for="demo_code">Demo Code</label>
+                    <input type="text" id="demo_code" name="demo_code" class="form-input" placeholder="Enter demo code">
                 </div>
                 
                 <div class="form-group">
@@ -217,13 +218,21 @@
             const roleSelect = document.getElementById('role');
             const schoolGroup = document.getElementById('school-group');
             const schoolSelect = document.getElementById('school_id');
+            const paymentGroup = document.getElementById('payment-group');
+            const demoCodeGroup = document.getElementById('demo_code_group');
             
             if (roleSelect.value === 'teacher') {
                 schoolGroup.style.display = 'block';
                 schoolSelect.required = true;
+                paymentGroup.style.display = 'block';
+                demoCodeGroup.style.display = 'block';
+                document.getElementById('demo_code').required = true;
         } else {
                 schoolGroup.style.display = 'none';
                 schoolSelect.required = false;
+                paymentGroup.style.display = 'none';
+                demoCodeGroup.style.display = 'none';
+                document.getElementById('demo_code').required = false;
         }
     }
         
