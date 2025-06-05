@@ -380,13 +380,13 @@ def register():
                     session['role'] = role
                 
                 # Send verification email
-                verification_url = url_for('verify_email', token=user.verification_token, _external=True)
-                email_template = render_template('email/verify_email.html',
+            verification_url = url_for('verify_email', token=user.verification_token, _external=True)
+            email_template = render_template('email/verify_email.html',
                                               username=username,
                                               verification_url=verification_url)
-                send_email(email, 'Verify your ThetaSummary account', email_template)
+            send_email(email, 'Verify your ThetaSummary account', email_template)
                 
-                flash('Registration successful! Please check your email to verify your account.', 'success')
+            flash('Registration successful! Please check your email to verify your account.', 'success')
             return redirect(url_for('dashboard'))
         except Exception as e:
             import traceback
@@ -1361,11 +1361,11 @@ def buy():
     if request.method == 'POST':
         user = None
         if 'user_id' in session:
-    user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
+            user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
     if not user:
         return redirect(url_for('logout'))
     error = None
-        try:
+    try:
             subscription_type = request.form.get('subscription_type')
             if not subscription_type or subscription_type not in ['plus', 'pro', 'enterprise']:
                 raise ValueError('Invalid subscription type')
@@ -1401,7 +1401,7 @@ def buy():
                 }
             )
             return redirect(checkout_session.url, code=303)
-        except Exception as e:
+    except Exception as e:
             error = str(e)
             logger.error(f"Error creating checkout session: {e}")
     return render_template('buy.html', 
@@ -1612,9 +1612,9 @@ rq_queue = Queue(connection=redis_conn)
 def transcribe():
     user_id = session.get('user_id')
     username = session.get('username')
-        audio_base64 = request.json.get('audio_base64')
-        mime_type = request.json.get('mime_type')
-        class_id = request.json.get('class_id')
+    audio_base64 = request.json.get('audio_base64')
+    mime_type = request.json.get('mime_type')
+    class_id = request.json.get('class_id')
     # Enqueue job
     job = rq_queue.enqueue(process_transcription_job, audio_base64, mime_type, class_id, str(user_id), username)
     return jsonify({'status': 'queued', 'job_id': job.get_id()})
@@ -1766,7 +1766,7 @@ def api_class_summaries(class_id):
                     summaries.append({'filename': filename, 'content': content, 'date': date_str, 'timestamp': timestamp})
         # Sort summaries by timestamp, latest first
         summaries.sort(key=lambda x: x['timestamp'], reverse=True)
-        except Exception as e:
+    except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
     return jsonify({'status': 'success', 'summaries': summaries})
 
