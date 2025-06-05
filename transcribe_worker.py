@@ -1,6 +1,5 @@
 import os
 from rq import Worker, Queue
-from rq.connection import Connection
 import redis
 from transcription_tasks import process_transcription_job
 
@@ -13,6 +12,5 @@ redis_url = os.getenv('REDIS_URL', 'redis://localhost:6379')
 conn = redis.from_url(redis_url)
 
 if __name__ == '__main__':
-    with Connection(conn):
-        worker = Worker(list(map(str, listen)))
-        worker.work() 
+    worker = Worker(list(map(str, listen)), connection=conn)
+    worker.work() 
