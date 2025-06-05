@@ -2254,35 +2254,45 @@ def recording_time_purchase_cancelled():
 def get_upload_url():
     try:
         data = request.get_json()
-        print("DEBUG: data received:", data)
+        logger.info(f"DEBUG: data received: {data}")
         filename = data.get('filename')
         content_type = data.get('contentType')
         class_id = data.get('class_id')
-        print(f"DEBUG: filename={filename}, content_type={content_type}, class_id={class_id}")
+        logger.info(f"DEBUG: filename={filename}, content_type={content_type}, class_id={class_id}")
         if not all([filename, content_type, class_id]):
-            print("DEBUG: Missing required fields")
+            logger.info("DEBUG: Missing required fields")
             return jsonify({'error': 'Missing required fields'}), 400
         path = f"recordings/{class_id}/{filename}"
-        print(f"DEBUG: path={path}")
+        logger.info(f"DEBUG: path={path}")
         token = os.getenv('BLOB_READ_WRITE_TOKEN')
-        print(f"DEBUG: BLOB_READ_WRITE_TOKEN={token}")
+        logger.info(f"DEBUG: BLOB_READ_WRITE_TOKEN={token}")
         try:
-            result = put(path=path, data=b'', options={
-                "access": "public",
-                "token": token
-            })
-            print(f"DEBUG: put result={result}")
+            api_url = "https://api.vercel.com/v2/blob/upload-url"
+            headers = {
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json"
+            }
+            data = {
+                "pathname": path,
+                "contentType": content_type
+            }
+            logger.info(f"DEBUG: Making POST to {api_url} with data={data}")
+            resp = requests.post(api_url, headers=headers, json=data)
+            logger.info(f"DEBUG: Vercel Blob API response status={resp.status_code}, body={resp.text}")
+            resp.raise_for_status()
+            blob = resp.json()
+            logger.info(f"DEBUG: uploadUrl={blob.get('url')}, blobUrl={blob.get('blob', {}).get('url')}")
         except Exception as put_exc:
             import traceback
-            print("ERROR: Exception during put:", traceback.format_exc())
-            return jsonify({'error': 'Exception during put', 'details': str(put_exc)}), 500
+            logger.error("ERROR: Exception during REST upload-url: %s", traceback.format_exc())
+            return jsonify({'error': 'Exception during upload-url', 'details': str(put_exc)}), 500
         return jsonify({
-            'uploadUrl': result.get('url'),
-            'blobUrl': result.get('url')
+            'uploadUrl': blob.get('url'),
+            'blobUrl': blob.get('blob', {}).get('url')
         })
     except Exception as e:
         import traceback
-        print("ERROR in /api/get-upload-url:", traceback.format_exc())
+        logger.error("ERROR in /api/get-upload-url: %s", traceback.format_exc())
         return jsonify({'error': 'Failed to generate upload URL', 'details': str(e)}), 500
 
 

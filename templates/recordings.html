@@ -883,7 +883,7 @@
                         const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
                         
                         // Get upload URL from server
-                        const uploadResponse = await fetch('/api/get-upload-url', {
+                        const uploadResponse = await fetch('/api/blob-upload-url', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
