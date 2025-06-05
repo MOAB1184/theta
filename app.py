@@ -311,7 +311,7 @@ def register():
             register_method = request.form.get('register_method', 'demo')
 
             if not role or role not in ['student', 'teacher']:
-                return render_template('register.html', error='Invalid role selected', username=username, schools=schools)
+                    return render_template('register.html', error='Invalid role selected', username=username, schools=schools)
 
             if register_method == 'plan':
                 # User claims to have purchased a plan, check for active subscription
@@ -346,38 +346,38 @@ def register():
                 )
 
             if role == 'teacher':
-                if not email or not re.match(r"[^@]+@[^@]+\.[^@]+", email):
-                    return render_template('register.html', error='Invalid email address', username=username, schools=schools)
-                if not school_id:
-                    return render_template('register.html', error='Please select a school.', username=username, role=role, schools=schools)
-                existing_email = mongo.db.users.find_one({"email": email})
-                if existing_email:
-                    return render_template('register.html', error='Email already registered', role=role, username=username, schools=schools)
-            
+                    if not email or not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+                        return render_template('register.html', error='Invalid email address', username=username, schools=schools)
+                    if not school_id:
+                        return render_template('register.html', error='Please select a school.', username=username, role=role, schools=schools)
+                    existing_email = mongo.db.users.find_one({"email": email})
+                    if existing_email:
+                        return render_template('register.html', error='Email already registered', role=role, username=username, schools=schools)
+                
             existing_user = get_user_by_username(username)
             if existing_user:
-                return render_template('register.html', error='Username already exists', role=role, username=username, schools=schools)
+                    return render_template('register.html', error='Username already exists', role=role, username=username, schools=schools)
 
             password_hash = generate_password_hash(password)
             if role == 'teacher':
-                teacher = {
-                    "username": username,
-                    "password_hash": password_hash,
-                    "role": role,
-                    "email": email,
-                    "email_verified": False,
-                    "verification_token": ''.join(random.choices(string.ascii_letters + string.digits, k=32)),
-                    "is_admin": False,
-                    "school_id": ObjectId(school_id) if school_id else None,
-                    "subscribed": False
-                }
-                mongo.db.pending_teachers.insert_one(teacher)
-                return render_template('register.html', error='Teacher account request sent! Waiting for admin approval.', schools=schools)
+                    teacher = {
+                        "username": username,
+                        "password_hash": password_hash,
+                        "role": role,
+                        "email": email,
+                        "email_verified": False,
+                        "verification_token": ''.join(random.choices(string.ascii_letters + string.digits, k=32)),
+                        "is_admin": False,
+                        "school_id": ObjectId(school_id) if school_id else None,
+                        "subscribed": False
+                    }
+                    mongo.db.pending_teachers.insert_one(teacher)
+                    return render_template('register.html', error='Teacher account request sent! Waiting for admin approval.', schools=schools)
             else:
-                user = create_user(username, password_hash, role, email, is_admin=False, school_id=school_id)
-                session['user_id'] = str(user.inserted_id)
-                session['username'] = username
-                session['role'] = role
+                    user = create_user(username, password_hash, role, email, is_admin=False, school_id=school_id)
+                    session['user_id'] = str(user.inserted_id)
+                    session['username'] = username
+                    session['role'] = role
                 
                 # Send verification email
                 verification_url = url_for('verify_email', token=user.verification_token, _external=True)
@@ -1361,10 +1361,10 @@ def buy():
     if request.method == 'POST':
         user = None
         if 'user_id' in session:
-            user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
-            if not user:
-                return redirect(url_for('logout'))
-        error = None
+    user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
+    if not user:
+        return redirect(url_for('logout'))
+    error = None
         try:
             subscription_type = request.form.get('subscription_type')
             if not subscription_type or subscription_type not in ['plus', 'pro', 'enterprise']:
@@ -1404,8 +1404,8 @@ def buy():
         except Exception as e:
             error = str(e)
             logger.error(f"Error creating checkout session: {e}")
-        return render_template('buy.html', 
-                             error=error,
+    return render_template('buy.html', 
+                         error=error,
                              username=session.get('username', ''),
                              current_subscription=None,
                              stripe_public_key=os.getenv('STRIPE_PUBLIC_KEY'))
@@ -1612,9 +1612,9 @@ rq_queue = Queue(connection=redis_conn)
 def transcribe():
     user_id = session.get('user_id')
     username = session.get('username')
-    audio_base64 = request.json.get('audio_base64')
-    mime_type = request.json.get('mime_type')
-    class_id = request.json.get('class_id')
+        audio_base64 = request.json.get('audio_base64')
+        mime_type = request.json.get('mime_type')
+        class_id = request.json.get('class_id')
     # Enqueue job
     job = rq_queue.enqueue(process_transcription_job, audio_base64, mime_type, class_id, str(user_id), username)
     return jsonify({'status': 'queued', 'job_id': job.get_id()})
@@ -1766,7 +1766,7 @@ def api_class_summaries(class_id):
                     summaries.append({'filename': filename, 'content': content, 'date': date_str, 'timestamp': timestamp})
         # Sort summaries by timestamp, latest first
         summaries.sort(key=lambda x: x['timestamp'], reverse=True)
-    except Exception as e:
+        except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
     return jsonify({'status': 'success', 'summaries': summaries})
 

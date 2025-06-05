@@ -22,3 +22,5 @@ sendgrid
 flask-mail
 gunicorn
 rq
+pydub
+imageio[ffmpeg]
