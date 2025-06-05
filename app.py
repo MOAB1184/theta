@@ -1609,9 +1609,23 @@ def transcribe():
     audio_base64 = request.json.get('audio_base64')
     mime_type = request.json.get('mime_type')
     class_id = request.json.get('class_id')
-    # Enqueue job
-    job = rq_queue.enqueue(process_transcription_job, audio_base64, mime_type, class_id, str(user_id), username)
-    return jsonify({'status': 'queued', 'job_id': job.get_id()})
+    # Synchronous Gemini transcription
+    import base64
+    import google.generativeai as genai
+    GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
+    if not GEMINI_API_KEY:
+        return jsonify({'status': 'error', 'message': 'Gemini API key not configured.'}), 500
+    genai.configure(api_key=GEMINI_API_KEY)
+    try:
+        audio_bytes = base64.b64decode(audio_base64)
+        transcription_prompt = 'Please transcribe this audio exactly as it is. Do not add any additional text or formatting.'
+        gemini_model = genai.GenerativeModel('gemini-2.0-flash-lite')
+        audio_part = {'mime_type': mime_type, 'data': audio_bytes}
+        response = gemini_model.generate_content([audio_part, transcription_prompt])
+        transcript = response.text
+        return jsonify({'status': 'success', 'transcript': transcript})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
 
 @app.errorhandler(Exception)
 def handle_exception(e):
