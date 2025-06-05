@@ -31,8 +31,6 @@ from sendgrid.helpers.mail import Mail as SendGridMail
 import requests
 from openai import OpenAI
 from rq import Queue
-import redis
-from transcription_tasks import process_transcription_job
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
