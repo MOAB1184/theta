@@ -1,6 +1,0 @@
-{
-  "dependencies": {
-    "@vercel/blob": "^1.1.1",
-    "mongodb": "^6.16.0"
-  }
-}
