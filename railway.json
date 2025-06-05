@@ -6,7 +6,7 @@
     "deploy": {
       "runtime": "V2",
       "numReplicas": 1,
-      "startCommand": "python app.py",
+      "startCommand": "python3 app.py",
       "sleepApplication": false,
       "multiRegionConfig": {
         "us-west2": {
