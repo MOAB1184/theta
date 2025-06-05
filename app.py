@@ -1604,10 +1604,6 @@ def edit_summary(filename):
             continue
     return '', 404
 
-redis_url = os.getenv('REDIS_URL', 'redis://localhost:6379')
-redis_conn = redis.from_url(redis_url)
-rq_queue = Queue(connection=redis_conn)
-
 @app.route('/api/transcribe', methods=['POST'])
 def transcribe():
     user_id = session.get('user_id')
@@ -1618,20 +1614,6 @@ def transcribe():
     # Enqueue job
     job = rq_queue.enqueue(process_transcription_job, audio_base64, mime_type, class_id, str(user_id), username)
     return jsonify({'status': 'queued', 'job_id': job.get_id()})
-
-@app.route('/api/task_status')
-def task_status():
-    job_id = request.args.get('job_id')
-    if not job_id:
-        return jsonify({'status': 'error', 'message': 'Missing job_id'}), 400
-    from pymongo import MongoClient
-    client = MongoClient(os.getenv('MONGO_URI'))
-    db = client[os.getenv('MONGO_DBNAME')]
-    jobs_col = db.jobs
-    job_doc = jobs_col.find_one({'_id': ObjectId(job_id)})
-    if not job_doc:
-        return jsonify({'status': 'pending'})
-    return jsonify({'status': job_doc.get('status', 'pending'), 'result': job_doc})
 
 @app.errorhandler(Exception)
 def handle_exception(e):

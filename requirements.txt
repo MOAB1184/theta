@@ -16,10 +16,7 @@ pymongo
 fastapi
 uvicorn
 celery
-redis
 python-multipart
 sendgrid
 flask-mail
-rq
-pydub
 imageio[ffmpeg]
