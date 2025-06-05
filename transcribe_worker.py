@@ -1,5 +1,6 @@
 import os
-from rq import Worker, Queue, Connection
+from rq import Worker, Queue
+from rq.connections import Connection
 import redis
 from transcription_tasks import process_transcription_job
 
