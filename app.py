@@ -30,6 +30,9 @@ from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail as SendGridMail
 import requests
 from openai import OpenAI
+from rq import Queue
+import redis
+from transcription_tasks import process_transcription_job
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -1601,107 +1604,34 @@ def edit_summary(filename):
             continue
     return '', 404
 
+redis_url = os.getenv('REDIS_URL', 'redis://localhost:6379')
+redis_conn = redis.from_url(redis_url)
+rq_queue = Queue(connection=redis_conn)
+
 @app.route('/api/transcribe', methods=['POST'])
 def transcribe():
-    logger.info("Starting transcription process")
-    try:
-        audio_base64 = request.json.get('audio_base64')
-        mime_type = request.json.get('mime_type')
-        class_id = request.json.get('class_id')
-        logger.info("Received request with mime_type: %s, class_id: %s", mime_type, class_id)
+    user_id = session.get('user_id')
+    username = session.get('username')
+    audio_base64 = request.json.get('audio_base64')
+    mime_type = request.json.get('mime_type')
+    class_id = request.json.get('class_id')
+    # Enqueue job
+    job = rq_queue.enqueue(process_transcription_job, audio_base64, mime_type, class_id, str(user_id), username)
+    return jsonify({'status': 'queued', 'job_id': job.get_id()})
 
-        if not audio_base64 or not mime_type:
-            logger.error("Missing audio data or mime_type")
-            return jsonify({'status': 'error', 'message': "Missing audio data or mime_type."}), 400
-        if not GEMINI_API_KEY:
-            logger.error("Gemini API key not configured")
-            return jsonify({'status': 'error', 'message': "Gemini API key not configured. Please set the GEMINI_API_KEY environment variable."}), 500
-
-        logger.info("Decoding base64 audio data")
-        try:
-            audio_bytes = base64.b64decode(audio_base64)
-            logger.info("Audio decoded successfully, size: %d bytes", len(audio_bytes))
-        except Exception as e:
-            logger.error("Error decoding base64 audio: %s", str(e))
-            return jsonify({'status': 'error', 'message': f"Invalid audio data: {str(e)}"}), 400
-
-        transcription_prompt = "Please transcribe this audio exactly as it is. Do not add any additional text or formatting."
-        gemini_model_name = 'gemini-2.0-flash-lite'
-        logger.info("Initializing Gemini model: %s", gemini_model_name)
-        try:
-            gemini_model = genai.GenerativeModel(gemini_model_name)
-            logger.info("Gemini model initialized successfully")
-            audio_part = {
-                'mime_type': mime_type,
-                'data': audio_bytes
-            }
-            logger.info("Sending transcription request to Gemini API")
-            gemini_response = gemini_model.generate_content([audio_part, transcription_prompt])
-            transcript = gemini_response.text
-            logger.info("Transcription successful, transcript length: %d characters", len(transcript))
-        except Exception as e:
-            logger.error("Gemini API error: %s\n%s", str(e), traceback.format_exc())
-            if "API key not valid" in str(e) or "API_KEY_INVALID" in str(e):
-                logger.error("Invalid Gemini API key")
-                return jsonify({'status': 'error', 'message': "Gemini API key is invalid. Please check configuration."}), 500
-            if "model not found" in str(e).lower() or "model unavailable" in str(e).lower():
-                logger.error("Gemini 2.0 Flash Lite model unavailable")
-                return jsonify({'status': 'error', 'message': "Gemini 2.0 Flash Lite model unavailable. Please check model availability in Google Cloud Console."}), 500
-            if hasattr(e, 'response') and hasattr(e.response, 'prompt_feedback'):
-                if e.response.prompt_feedback.block_reason:
-                    reason = e.response.prompt_feedback.block_reason
-                    logger.error("Transcription blocked due to content policy: %s", reason)
-                    return jsonify({'status': 'error', 'message': f"Transcription failed due to content policy: {reason}."}), 400
-            logger.error("Unexpected Gemini API error")
-            return jsonify({'status': 'error', 'message': f"Error with Gemini API: {str(e)}"}), 500
-
-        # Create directories and save transcript
-        timestamp = str(int(time.time()))
-        recording_filename = f"recording_{timestamp}.txt"
-        transcript_filename = f"transcript_{timestamp}.txt"
-        logger.info("Generated filenames: recording=%s, transcript=%s", recording_filename, transcript_filename)
-
-        if class_id:
-            logger.info("Validating class_id: %s", class_id)
-            class_obj = mongo.db.classes.find_one({"_id": ObjectId(class_id)})
-            if not class_obj:
-                logger.error("Class not found for class_id: %s", class_id)
-                return jsonify({'status': 'error', 'message': 'Class not found'}), 404
-            if session['role'] == 'teacher' and class_obj['teacher_id'] != ObjectId(session['user_id']):
-                logger.error("Unauthorized teacher access to class_id: %s", class_id)
-                return jsonify({'status': 'error', 'message': 'Unauthorized access to class'}), 403
-            elif session['role'] == 'student' and ObjectId(session['user_id']) not in class_obj.get('students', []):
-                logger.error("Unauthorized student access to class_id: %s", class_id)
-                return jsonify({'status': 'error', 'message': 'Unauthorized access to class'}), 403
-            class_dir = f"{session['username']}/classes/{class_obj['class_code']}"
-            recording_path = f"{class_dir}/{recording_filename}"
-            transcript_path = f"{class_dir}/{transcript_filename}"
-        else:
-            user_dir = f"{session['username']}"
-            recording_path = f"{user_dir}/{recording_filename}"
-            transcript_path = f"{user_dir}/{transcript_filename}"
-        logger.info("Saving files to Wasabi S3: recording_path=%s, transcript_path=%s", recording_path, transcript_path)
-        try:
-            s3_client.put_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=recording_path, Body=audio_base64)
-            s3_client.put_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=transcript_path, Body=transcript)
-            logger.info("Files saved to Wasabi S3 successfully")
-        except Exception as e:
-            logger.error("Error saving files to Wasabi S3: %s", str(e))
-            return jsonify({'status': 'error', 'message': f"Error saving files to storage: {str(e)}"}), 500
-
-        logger.info("Transcription completed successfully")
-        return jsonify({
-            'status': 'success',
-            'transcript': transcript,
-            'transcript_filename': transcript_filename,
-            'timestamp': timestamp
-        })
-    except Exception as e:
-        logger.error("Unexpected error in transcribe endpoint: %s\n%s", str(e), traceback.format_exc())
-        return jsonify({
-            'status': 'error',
-            'message': f"Error processing: {str(e)}"
-        }), 500
+@app.route('/api/task_status')
+def task_status():
+    job_id = request.args.get('job_id')
+    if not job_id:
+        return jsonify({'status': 'error', 'message': 'Missing job_id'}), 400
+    from pymongo import MongoClient
+    client = MongoClient(os.getenv('MONGO_URI'))
+    db = client[os.getenv('MONGO_DBNAME')]
+    jobs_col = db.jobs
+    job_doc = jobs_col.find_one({'_id': ObjectId(job_id)})
+    if not job_doc:
+        return jsonify({'status': 'pending'})
+    return jsonify({'status': job_doc.get('status', 'pending'), 'result': job_doc})
 
 @app.errorhandler(Exception)
 def handle_exception(e):

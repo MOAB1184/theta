@@ -678,9 +678,10 @@
 
                 // Check secure context
                 if (!window.isSecureContext) {
-                    showError('Audio recording is only available in a secure context (HTTPS or localhost).');
+                    showError('Audio recording requires a secure connection (HTTPS). Please ensure you are using HTTPS or contact your administrator.');
                     recordBtn.disabled = true;
                     stopBtn.disabled = true;
+                    console.error('Not in secure context. Current protocol:', window.location.protocol);
                 }
 
                 // Update timer function
