@@ -271,7 +271,7 @@ def create_user(username, password_hash, role, email=None, is_admin=False, schoo
         "is_approved": is_approved if role == 'teacher' else True,  # Auto-approve students
         "teacher_type": "enterprise" if school_id else "personal" if role == 'teacher' else None,
         "subscription_type": None,
-        "created_at": datetime.datetime.utcnow()
+        "created_at": datetime.datetime.now(datetime.timezone.utc)
     }
     
     # Create user directly in users collection
@@ -547,7 +547,7 @@ def summaries():
                 date_str = 'Unknown date'
                 try:
                     timestamp = int(timestamp_str)
-                    date_obj = datetime.datetime.fromtimestamp(timestamp)
+                    date_obj = datetime.datetime.fromtimestamp(timestamp, datetime.timezone.utc)
                     date_str = date_obj.strftime('%Y-%m-%d %I:%M %p')
                 except ValueError:
                     logger.error(f"Could not parse timestamp: {timestamp_str} for file {filename}")
@@ -586,7 +586,7 @@ def summaries():
                     date_str = 'Unknown date'
                     try:
                         timestamp = int(timestamp_str)
-                        date_obj = datetime.datetime.fromtimestamp(timestamp)
+                        date_obj = datetime.datetime.fromtimestamp(timestamp, datetime.timezone.utc)
                         date_str = date_obj.strftime('%Y-%m-%d %I:%M %p')
                     except ValueError:
                         logger.error(f"Could not parse timestamp: {timestamp_str} for file {filename}")
@@ -614,7 +614,7 @@ def summarize():
             return jsonify({'status': 'error', 'message': 'No transcript provided'}), 400
 
         transcript = data['transcript']
-        timestamp = data.get('timestamp', datetime.datetime.now().strftime('%Y%m%d_%H%M%S'))
+        timestamp = data.get('timestamp', datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%d_%H%M%S'))
         class_id = data.get('class_id')
 
         if not class_id:
@@ -634,8 +634,8 @@ def summarize():
         subscription_type = user.get('subscription_type', 'plus')
 
         # Count summaries for today and this month
-        today = datetime.datetime.utcnow().date()
-        month_start = datetime.datetime(today.year, today.month, 1)
+        today = datetime.datetime.now(datetime.timezone.utc).date()
+        month_start = datetime.datetime(today.year, today.month, 1, tzinfo=datetime.timezone.utc)
         
         # Get all summaries for the user's classes
         summaries_today = 0
@@ -662,8 +662,8 @@ def summarize():
                             filename = key.split('/')[-1]
                             try:
                                 summary_timestamp = int(filename.split('_')[1].split('.')[0])
-                                summary_date = datetime.datetime.fromtimestamp(summary_timestamp).date()
-                                summary_datetime = datetime.datetime.fromtimestamp(summary_timestamp)
+                                summary_date = datetime.datetime.fromtimestamp(summary_timestamp, datetime.timezone.utc).date()
+                                summary_datetime = datetime.datetime.fromtimestamp(summary_timestamp, datetime.timezone.utc)
                                 
                                 if summary_date == today:
                                     summaries_today += 1
@@ -809,7 +809,7 @@ def view_summary(filename):
         # Extract timestamp from filename
         try:
             summary_timestamp = int(filename.split('_')[1].split('.')[0])
-            summary_date = datetime.datetime.utcfromtimestamp(summary_timestamp).isoformat()
+            summary_date = datetime.datetime.fromtimestamp(summary_timestamp, datetime.timezone.utc).isoformat()
         except Exception:
             summary_date = ''
         return render_template('view_summary.html', 
@@ -847,7 +847,7 @@ def view_summary(filename):
             # Extract timestamp from filename
             try:
                 summary_timestamp = int(filename.split('_')[1].split('.')[0])
-                summary_date = datetime.datetime.utcfromtimestamp(summary_timestamp).isoformat()
+                summary_date = datetime.datetime.fromtimestamp(summary_timestamp, datetime.timezone.utc).isoformat()
             except Exception:
                 summary_date = ''
             return render_template('view_summary.html', 
@@ -947,7 +947,7 @@ def admin():
     # Get active demo code if it exists
     active_demo_code = mongo.db.demo_codes.find_one({
         "created_by": user['_id'],
-        "expires_at": {"$gt": datetime.datetime.utcnow()},
+        "expires_at": {"$gt": datetime.datetime.now(datetime.timezone.utc)},
         "used": False
     })
     
@@ -1055,7 +1055,7 @@ def view_class(class_id):
                     timestamp_str = filename.split('_')[1].split('.')[0]
                     try:
                         timestamp = int(timestamp_str)
-                        date_obj = datetime.datetime.fromtimestamp(timestamp)
+                        date_obj = datetime.datetime.fromtimestamp(timestamp, datetime.timezone.utc)
                         date_str = date_obj.strftime('%Y-%m-%d %I:%M %p')
                     except Exception:
                         date_str = 'Unknown date'
@@ -1452,7 +1452,7 @@ def payment_success():
                 "$set": {
                     "subscription_type": subscription_type,
                     "subscription_status": "active",
-                    "subscription_start": datetime.datetime.utcnow(),
+                    "subscription_start": datetime.datetime.now(datetime.timezone.utc),
                     "subscription_id": subscription_id,
                     "subscribed": True,
                     "plan_limits": plan_limits[subscription_type]
@@ -1683,7 +1683,7 @@ def generate_summary(transcript, timestamp, class_id):
         {"_id": ObjectId(class_id)},
         {"$addToSet": {"summaries": {
             "filename": summary_filename,
-            "created_at": datetime.datetime.fromtimestamp(int(timestamp)),
+            "created_at": datetime.datetime.now(datetime.timezone.utc),
             "approved": False
         }}}
     )
@@ -1741,7 +1741,7 @@ def api_class_summaries(class_id):
                     # Only include approved summaries
                     if filename not in approved_summaries:
                         continue
-                    # Try to get created_at from DB
+                    # Use created_at from DB or fallback to now
                     summary_db = next((s for s in class_obj.get('summaries', []) if s['filename'] == filename), None)
                     if summary_db and 'created_at' in summary_db:
                         date_obj = summary_db['created_at']
@@ -1749,9 +1749,9 @@ def api_class_summaries(class_id):
                             try:
                                 date_obj = datetime.datetime.fromisoformat(date_obj)
                             except Exception:
-                                date_obj = datetime.datetime.now()
+                                date_obj = datetime.datetime.now(datetime.timezone.utc)
                     else:
-                        date_obj = datetime.datetime.now()
+                        date_obj = datetime.datetime.now(datetime.timezone.utc)
                     date_str = date_obj.strftime('%Y-%m-%d %I:%M %p') if date_obj else 'Unknown date'
                     timestamp = int(date_obj.timestamp()) if date_obj else 0
                     # Get preview (first 200 chars)
@@ -1825,7 +1825,7 @@ def get_summaries():
                     # Only include approved summaries
                     if filename not in approved_summaries:
                         continue
-                    # Try to get created_at from DB
+                    # Use created_at from DB or fallback to now
                     summary_db = next((s for s in class_obj.get('summaries', []) if s['filename'] == filename), None)
                     if summary_db and 'created_at' in summary_db:
                         date_obj = summary_db['created_at']
@@ -1833,9 +1833,9 @@ def get_summaries():
                             try:
                                 date_obj = datetime.datetime.fromisoformat(date_obj)
                             except Exception:
-                                date_obj = datetime.datetime.now()
+                                date_obj = datetime.datetime.now(datetime.timezone.utc)
                     else:
-                        date_obj = datetime.datetime.now()
+                        date_obj = datetime.datetime.now(datetime.timezone.utc)
                     date_str = date_obj.strftime('%Y-%m-%d %I:%M %p') if date_obj else 'Unknown date'
                     timestamp = int(date_obj.timestamp()) if date_obj else 0
                     # Get preview (first 200 chars)
@@ -2056,7 +2056,7 @@ def generate_demo_code():
         # Check for existing active demo code
         existing_code = mongo.db.demo_codes.find_one({
             "created_by": user['_id'],
-            "expires_at": {"$gt": datetime.datetime.utcnow()},
+            "expires_at": {"$gt": datetime.datetime.now(datetime.timezone.utc)},
             "used": False
         })
         
@@ -2068,13 +2068,13 @@ def generate_demo_code():
         
         # Generate a random 8-character code
         demo_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
-        expiry_date = datetime.datetime.utcnow() + datetime.timedelta(days=2)
+        expiry_date = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=2)
         
         # Store the demo code
         mongo.db.demo_codes.insert_one({
             "code": demo_code,
             "created_by": user['_id'],
-            "created_at": datetime.datetime.utcnow(),
+            "created_at": datetime.datetime.now(datetime.timezone.utc),
             "expires_at": expiry_date,
             "used": False
         })
@@ -2135,7 +2135,7 @@ def promote_teacher(user_id):
                 "$set": {
                     "subscription_type": subscription_type,
                     "subscription_status": "active",
-                    "subscription_start": datetime.datetime.utcnow(),
+                    "subscription_start": datetime.datetime.now(datetime.timezone.utc),
                     "subscribed": True,
                     "plan_limits": plan_limits[subscription_type]
                 }
