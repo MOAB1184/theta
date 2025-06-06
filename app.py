@@ -1052,14 +1052,19 @@ def view_class(class_id):
                 key = obj['Key']
                 if key.startswith(f"{class_dir}/summary_"):
                     filename = key.split('/')[-1]
-                    timestamp_str = filename.split('_')[1].split('.')[0]
-                    try:
-                        timestamp = int(timestamp_str)
-                        date_obj = datetime.datetime.fromtimestamp(timestamp, datetime.timezone.utc)
-                        date_str = date_obj.strftime('%Y-%m-%d %I:%M %p')
-                    except Exception:
-                        date_str = 'Unknown date'
-                        timestamp = 0
+                    # Use created_at from DB if available
+                    summary_db = next((s for s in class_obj.get('summaries', []) if s['filename'] == filename), None)
+                    if summary_db and 'created_at' in summary_db:
+                        date_obj = summary_db['created_at']
+                        if isinstance(date_obj, str):
+                            try:
+                                date_obj = datetime.datetime.fromisoformat(date_obj)
+                            except Exception:
+                                date_obj = datetime.datetime.now(datetime.timezone.utc)
+                    else:
+                        date_obj = datetime.datetime.now(datetime.timezone.utc)
+                    date_str = date_obj.strftime('%Y-%m-%d %I:%M %p') if date_obj else 'Unknown date'
+                    timestamp = int(date_obj.timestamp()) if date_obj else 0
                     all_summaries.append({
                         'filename': filename,
                         'created_at': date_str,
