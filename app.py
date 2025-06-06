@@ -1741,10 +1741,19 @@ def api_class_summaries(class_id):
                     # Only include approved summaries
                     if filename not in approved_summaries:
                         continue
-                    # Use current server time for date and timestamp
-                    date_obj = datetime.datetime.now()
-                    date_str = date_obj.strftime('%Y-%m-%d %I:%M %p')
-                    timestamp = int(date_obj.timestamp())
+                    # Try to get created_at from DB
+                    summary_db = next((s for s in class_obj.get('summaries', []) if s['filename'] == filename), None)
+                    if summary_db and 'created_at' in summary_db:
+                        date_obj = summary_db['created_at']
+                        if isinstance(date_obj, str):
+                            try:
+                                date_obj = datetime.datetime.fromisoformat(date_obj)
+                            except Exception:
+                                date_obj = datetime.datetime.now()
+                    else:
+                        date_obj = datetime.datetime.now()
+                    date_str = date_obj.strftime('%Y-%m-%d %I:%M %p') if date_obj else 'Unknown date'
+                    timestamp = int(date_obj.timestamp()) if date_obj else 0
                     # Get preview (first 200 chars)
                     try:
                         file_obj = s3_client.get_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=key)
@@ -1816,10 +1825,19 @@ def get_summaries():
                     # Only include approved summaries
                     if filename not in approved_summaries:
                         continue
-                    # Use current server time for date and timestamp
-                    date_obj = datetime.datetime.now()
-                    date_str = date_obj.strftime('%Y-%m-%d %I:%M %p')
-                    timestamp = int(date_obj.timestamp())
+                    # Try to get created_at from DB
+                    summary_db = next((s for s in class_obj.get('summaries', []) if s['filename'] == filename), None)
+                    if summary_db and 'created_at' in summary_db:
+                        date_obj = summary_db['created_at']
+                        if isinstance(date_obj, str):
+                            try:
+                                date_obj = datetime.datetime.fromisoformat(date_obj)
+                            except Exception:
+                                date_obj = datetime.datetime.now()
+                    else:
+                        date_obj = datetime.datetime.now()
+                    date_str = date_obj.strftime('%Y-%m-%d %I:%M %p') if date_obj else 'Unknown date'
+                    timestamp = int(date_obj.timestamp()) if date_obj else 0
                     # Get preview (first 200 chars)
                     try:
                         file_obj = s3_client.get_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=key)
