@@ -843,8 +843,8 @@
                             const item = document.createElement('div');
                             item.className = 'summary-item';
                             item.innerHTML = `
-                                <h4 class="summary-title">${summary.title || summary.filename}</h4>
-                                <div class="summary-date">${summary.date}</div>
+                                <div class="summary-date" style="font-weight: bold; color: #fff; font-size: 1.1em; margin-bottom: 2px; margin-top: 0;">${summary.date}</div>
+                                <div class="summary-title" style="color: #a0a0a0; font-size: 1em; margin-top: 2px;">${summary.title || summary.filename}</div>
                             `;
                             item.onclick = () => attachSummary(summary.filename);
                             summaryList.appendChild(item);

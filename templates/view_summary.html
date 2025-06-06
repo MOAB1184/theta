@@ -441,7 +441,12 @@
                 </div>
                 <div class="summary-header">
                     <div>
-                        <h2 class="summary-title">{{ filename }}</h2>
+                        <div class="summary-date" style="font-weight: bold; font-size: 1.1em;">
+                            <span id="summary-date">{{ summary_date if summary_date else '' }}</span>
+                        </div>
+                        <div class="summary-title" style="color: #a0a0a0; font-size: 1em; margin-top: 2px;">
+                            {{ filename }}
+                        </div>
                     </div>
                     <div class="summary-actions">
                         <a href="{{ url_for('view_class', class_id=class_id) }}" class="back-btn">
@@ -627,6 +632,20 @@
                 showError('An error occurred while loading the page. Check the console for details.');
             }
         });
+    </script>
+    <script>
+    // If summary_date is a UTC string or timestamp, convert to local time
+    window.addEventListener('DOMContentLoaded', function() {
+        var dateElem = document.getElementById('summary-date');
+        if (dateElem && dateElem.textContent) {
+            // Try to parse as ISO or timestamp
+            var dateStr = dateElem.textContent.trim();
+            var dateObj = new Date(dateStr);
+            if (!isNaN(dateObj.getTime())) {
+                dateElem.textContent = dateObj.toLocaleString();
+            }
+        }
+    });
     </script>
 </body>
 </html>

@@ -807,6 +807,12 @@ def view_summary(filename):
         response = s3_client.get_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=user_file_path)
         content = response['Body'].read().decode('utf-8')
         logger.info(f"Found file at user path: {user_file_path}")
+        # Extract timestamp from filename
+        try:
+            summary_timestamp = int(filename.split('_')[1].split('.')[0])
+            summary_date = datetime.datetime.utcfromtimestamp(summary_timestamp).isoformat()
+        except Exception:
+            summary_date = ''
         return render_template('view_summary.html', 
                              content=content, 
                              filename=filename,
@@ -814,7 +820,8 @@ def view_summary(filename):
                              username=user['username'],
                              user_role=user['role'],
                              classes=list(mongo.db.classes.find({'teacher_id': user['_id']})) if user['role'] == 'teacher' else [],
-                             class_id=None)
+                             class_id=None,
+                             summary_date=summary_date)
     except ClientError as e:
         logger.info(f"Not found at user path: {e}")
 
@@ -838,6 +845,12 @@ def view_summary(filename):
             response = s3_client.get_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=class_file_path)
             content = response['Body'].read().decode('utf-8')
             logger.info(f"Found file at class path: {class_file_path}")
+            # Extract timestamp from filename
+            try:
+                summary_timestamp = int(filename.split('_')[1].split('.')[0])
+                summary_date = datetime.datetime.utcfromtimestamp(summary_timestamp).isoformat()
+            except Exception:
+                summary_date = ''
             return render_template('view_summary.html', 
                                  content=content, 
                                  filename=filename,
@@ -845,7 +858,8 @@ def view_summary(filename):
                                  username=user['username'],
                                  user_role=user['role'],
                                  classes=list(mongo.db.classes.find({'teacher_id': user['_id']})) if user['role'] == 'teacher' else [],
-                                 class_id=str(class_obj['_id']))
+                                 class_id=str(class_obj['_id']),
+                                 summary_date=summary_date)
         except ClientError as e:
             logger.info(f"Not found at class path: {e}")
             continue
@@ -1279,11 +1293,11 @@ def approve_teacher(teacher_id):
         return redirect(url_for('dashboard'))
     teacher = mongo.db.pending_teachers.find_one({"_id": ObjectId(teacher_id)})
     if not teacher:
-        return redirect(url_for('admin_dashboard'))
+        return redirect(url_for('admin'))
     # Move teacher to users collection
     mongo.db.users.insert_one(teacher)
     mongo.db.pending_teachers.delete_one({"_id": ObjectId(teacher_id)})
-    return redirect(url_for('admin_dashboard'))
+    return redirect(url_for('admin'))
 
 @app.route('/admin/deny_teacher/<teacher_id>', methods=['POST'])
 def deny_teacher(teacher_id):
@@ -1750,10 +1764,10 @@ def toggle_theta(user_id):
         return redirect(url_for('dashboard'))
     target = mongo.db.users.find_one({"_id": ObjectId(user_id)})
     if not target or target.get('role') != 'teacher':
-        return redirect(url_for('admin_dashboard'))
+        return redirect(url_for('admin'))
     enabled = not target.get('talk_to_theta_enabled', False)
     mongo.db.users.update_one({"_id": ObjectId(user_id)}, {"$set": {"talk_to_theta_enabled": enabled}})
-    return redirect(url_for('admin_dashboard'))
+    return redirect(url_for('admin'))
 
 @app.route('/chat')
 def chat():
