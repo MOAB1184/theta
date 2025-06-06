@@ -210,27 +210,27 @@
                 
                 {% if error %}
             <div class="error-message">{{ error }}</div>
-            {% endif %}
-            
+                {% endif %}
+                
             <form method="POST" action="{{ url_for('register') }}">
-                <div class="form-group">
+                    <div class="form-group">
                     <label class="form-label" for="username">Username</label>
                     <input type="text" id="username" name="username" class="form-input" value="{{ username }}" required>
-                </div>
+                    </div>
                 <div class="form-group" id="email-group" style="display:none;">
                     <label class="form-label" for="email">Email</label>
                     <input type="email" id="email" name="email" class="form-input" placeholder="Enter your email" required>
-                </div>
-                <div class="form-group">
+                    </div>
+                    <div class="form-group">
                     <label class="form-label" for="password">Password</label>
                     <input type="password" id="password" name="password" class="form-input" required>
-                </div>
-                <div class="form-group">
+                    </div>
+                    <div class="form-group">
                     <label class="form-label" for="role">Role</label>
                     <select id="role" name="role" class="form-input" required onchange="toggleRoleOptions()">
-                        <option value="student" {% if role == 'student' %}selected{% endif %}>Student</option>
-                        <option value="teacher" {% if role == 'teacher' %}selected{% endif %}>Teacher</option>
-                    </select>
+                            <option value="student" {% if role == 'student' %}selected{% endif %}>Student</option>
+                            <option value="teacher" {% if role == 'teacher' %}selected{% endif %}>Teacher</option>
+                        </select>
                 </div>
                 <!-- Teacher Type (Enterprise/Personal) -->
                 <div class="form-group" id="teacher-type-group" style="display:none;">
@@ -246,11 +246,11 @@
                 <div class="form-group" id="school-group" style="display:none;">
                     <label class="form-label" for="school_id">School</label>
                     <select id="school_id" name="school_id" class="form-input">
-                        <option value="">Select a school</option>
-                        {% for school in schools %}
+                            <option value="">Select a school</option>
+                            {% for school in schools %}
                         <option value="{{ school._id }}">{{ school.name }} ({{ school.district }}, {{ school.state }})</option>
-                        {% endfor %}
-                    </select>
+                            {% endfor %}
+                        </select>
                 </div>
                 <!-- School Code (Enterprise Only, after school selected) -->
                 <div class="form-group" id="school-code-group" style="display:none;">
@@ -285,9 +285,9 @@
                 <div class="form-group" id="student-note" style="display:none;">
                     <p class="form-text" style="color: #c084fc;">Students: Only your username and password are required. Your teacher will provide a class code after you register.</p>
                 </div>
-                <button type="submit" class="btn btn-primary">Create Account</button>
-            </form>
-            
+                    <button type="submit" class="btn btn-primary">Create Account</button>
+                </form>
+                
             <a href="{{ url_for('login') }}" class="back-link">← Back to Login</a>
         </div>
         </div>
@@ -377,8 +377,8 @@
                 option.style.display = '';
             } else {
                 option.style.display = 'none';
-            }
         }
+    }
     }
 
     // Initialize the form state

@@ -316,9 +316,8 @@ def register():
             if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
                 return render_template('register.html', error='Invalid email format', username=username, role=role)
 
-        password_hash = generate_password_hash(password)
-        
-        if role == 'teacher':
+            password_hash = generate_password_hash(password)
+
             if teacher_type == 'enterprise':
                 if not school_id:
                     return render_template('register.html', error='Please select a school', username=username, role=role)
@@ -353,6 +352,7 @@ def register():
                 else:
                     return render_template('register.html', error='Invalid payment method', username=username, role=role)
         else:  # student
+            password_hash = generate_password_hash(password)
             user = create_user(username, password_hash, role)
 
         # Set session and redirect to dashboard
@@ -360,7 +360,6 @@ def register():
         session['username'] = username
         session['role'] = role
         session['is_admin'] = False
-        
         return redirect(url_for('dashboard'))
 
     # GET request - show registration form
@@ -1671,7 +1670,13 @@ def generate_summary(transcript, timestamp, class_id):
     summary_path = f"{class_dir}/{summary_filename}"
     
     logger.info(f"Trying to save summary to S3 at: {summary_path}")
-    s3_client.put_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=summary_path, Body=summary)
+    logger.info(f"Type of summary: {type(summary)}, repr: {repr(summary)[:100]}")
+    encoded_summary = summary.encode('utf-8') if isinstance(summary, str) else summary
+    if not isinstance(encoded_summary, (bytes, bytearray)):
+        logger.error(f"Summary Body is not bytes: {type(encoded_summary)}")
+        raise Exception(f"Summary Body is not bytes: {type(encoded_summary)}")
+    logger.info(f"Uploading to S3: Bucket={os.getenv('WASABI_BUCKET_NAME')}, Key={summary_path}, Body type={type(encoded_summary)}")
+    s3_client.put_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=summary_path, Body=encoded_summary)
     
     # Store the correct timestamp as created_at
     mongo.db.classes.update_one(
@@ -1733,22 +1738,20 @@ def api_class_summaries(class_id):
                 key = obj['Key']
                 if key.startswith(f"{class_dir}/summary_"):
                     filename = key.split('/')[-1]
-                    # Parse date from filename
-                    try:
-                        timestamp_str = filename.split('_')[1].split('.')[0]
-                        timestamp = int(timestamp_str)
-                        date_obj = datetime.datetime.fromtimestamp(timestamp)
-                        date_str = date_obj.strftime('%Y-%m-%d %I:%M %p')
-                    except Exception:
-                        date_str = 'Unknown date'
-                        timestamp = 0
-                    # Get content (first 2000 chars for performance)
+                    # Only include approved summaries
+                    if filename not in approved_summaries:
+                        continue
+                    # Use current server time for date and timestamp
+                    date_obj = datetime.datetime.now()
+                    date_str = date_obj.strftime('%Y-%m-%d %I:%M %p')
+                    timestamp = int(date_obj.timestamp())
+                    # Get preview (first 200 chars)
                     try:
                         file_obj = s3_client.get_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=key)
-                        content = file_obj['Body'].read(2000).decode('utf-8')
+                        preview = file_obj['Body'].read(200).decode('utf-8')
                     except Exception:
-                        content = '[Error loading summary]'
-                    summaries.append({'filename': filename, 'content': content, 'date': date_str, 'timestamp': timestamp})
+                        preview = '[Error loading summary]'
+                    summaries.append({'filename': filename, 'title': filename, 'date': date_str, 'timestamp': timestamp, 'preview': preview})
         # Sort summaries by timestamp, latest first
         summaries.sort(key=lambda x: x['timestamp'], reverse=True)
     except Exception as e:
@@ -1813,15 +1816,10 @@ def get_summaries():
                     # Only include approved summaries
                     if filename not in approved_summaries:
                         continue
-                    # Parse date from filename
-                    try:
-                        timestamp_str = filename.split('_')[1].split('.')[0]
-                        timestamp = int(timestamp_str)
-                        date_obj = datetime.datetime.fromtimestamp(timestamp)
-                        date_str = date_obj.strftime('%Y-%m-%d %I:%M %p')
-                    except Exception:
-                        date_str = 'Unknown date'
-                        timestamp = 0
+                    # Use current server time for date and timestamp
+                    date_obj = datetime.datetime.now()
+                    date_str = date_obj.strftime('%Y-%m-%d %I:%M %p')
+                    timestamp = int(date_obj.timestamp())
                     # Get preview (first 200 chars)
                     try:
                         file_obj = s3_client.get_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=key)
