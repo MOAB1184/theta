@@ -258,24 +258,25 @@ logger.info("MongoDB database: %s", mongo.db)
 def get_user_by_username(username):
     return mongo.db.users.find_one({"username": username})
 
-def create_user(username, password_hash, role, email, is_admin=False, school_id=None):
+def create_user(username, password_hash, role, email=None, is_admin=False, school_id=None, is_approved=False):
     user = {
         "username": username,
         "password_hash": password_hash,
         "role": role,
         "email": email,
-        "email_verified": False,
-        "verification_token": ''.join(random.choices(string.ascii_letters + string.digits, k=32)),
+        "email_verified": True,  # Set to True by default
         "is_admin": is_admin,
         "school_id": ObjectId(school_id) if school_id else None,
         "subscribed": False,
-        "subscription_type": "plus",
-        "subscription_start": None,
-        "subscription_end": None,
-        "subscription_status": "inactive",
-        "talk_to_theta_enabled": False
+        "is_approved": is_approved if role == 'teacher' else True,  # Auto-approve students
+        "teacher_type": "enterprise" if school_id else "personal" if role == 'teacher' else None,
+        "subscription_type": None,
+        "created_at": datetime.datetime.utcnow()
     }
-    return mongo.db.users.insert_one(user)
+    
+    # Create user directly in users collection
+    result = mongo.db.users.insert_one(user)
+    return result
 
 def get_school_by_id(school_id):
     return mongo.db.schools.find_one({"_id": ObjectId(school_id)})
@@ -293,104 +294,62 @@ STRIPE_WEBHOOK_SECRET = os.getenv('STRIPE_WEBHOOK_SECRET')
 # Authentication routes using MongoDB
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    if 'user_id' in session:
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        role = request.form.get('role')
+        email = request.form.get('email')
+        teacher_type = request.form.get('teacher_type')
+        school_id = request.form.get('school_id')
+        personal_plan = request.form.get('personal_plan')
+        personal_method = request.form.get('personal_method')
+        demo_code = request.form.get('demo_code')
+
+        # Check if username already exists
+        if get_user_by_username(username):
+            return render_template('register.html', error='Username already exists', username=username, role=role)
+
+        # Validate email for teachers
+        if role == 'teacher':
+            if not email:
+                return render_template('register.html', error='Email is required for teachers', username=username, role=role)
+            if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+                return render_template('register.html', error='Invalid email format', username=username, role=role)
+
+        # Create user with appropriate role and settings
+        password_hash = generate_password_hash(password)
+        
+        if role == 'teacher':
+            if teacher_type == 'enterprise':
+                if not school_id:
+                    return render_template('register.html', error='Please select a school', username=username, role=role)
+                user = create_user(username, password_hash, role, email, school_id=school_id)
+            else:  # personal
+                if not personal_plan:
+                    return render_template('register.html', error='Please select a plan', username=username, role=role)
+                if not personal_method:
+                    return render_template('register.html', error='Please select a payment method', username=username, role=role)
+                
+                if personal_method == 'code':
+                    if not demo_code:
+                        return render_template('register.html', error='Please enter a demo code', username=username, role=role)
+                    # Verify demo code here if needed
+                
+                user = create_user(username, password_hash, role, email, is_approved=True)  # Auto-approve teachers
+        else:  # student
+            user = create_user(username, password_hash, role)
+
+        # Set session and redirect to dashboard
+        session['user_id'] = str(user.inserted_id)
+        session['username'] = username
+        session['role'] = role
+        session['is_admin'] = False
+        
         return redirect(url_for('dashboard'))
 
+    # GET request - show registration form
     schools = get_all_schools()
-
-    if request.method == 'POST':
-        try:
-            username = request.form.get('username')
-            password = request.form.get('password')
-            email = request.form.get('email')
-            role = request.form.get('role')
-            school_id = request.form.get('school_id') if role == 'teacher' else None
-            demo_code = request.form.get('demo_code')
-            register_method = request.form.get('register_method', 'demo')
-
-            if not role or role not in ['student', 'teacher']:
-                    return render_template('register.html', error='Invalid role selected', username=username, schools=schools)
-
-            if register_method == 'plan':
-                # User claims to have purchased a plan, check for active subscription
-                if not email or not re.match(r"[^@]+@[^@]+\.[^@]+", email):
-                    return render_template('register.html', error='Invalid email address', username=username, schools=schools)
-                paid_user = mongo.db.users.find_one({
-                    "email": email,
-                    "subscription_status": "active",
-                    "subscribed": True
-                })
-                if not paid_user:
-                    return render_template('register.html', error='No active subscription found for this email. Please purchase a plan first.', username=username, schools=schools)
-                # Optionally, you could log them in or allow them to set a password here
-                flash('Account already exists for this email. Please log in.', 'error')
-                return redirect(url_for('login'))
-            else:
-                # Demo code path
-                if not demo_code:
-                    return redirect(url_for('buy'))
-                # Validate demo code if provided
-                demo_code_obj = mongo.db.demo_codes.find_one({
-                    "code": demo_code,
-                    "used": False,
-                    "expires_at": {"$gt": datetime.datetime.utcnow()}
-                })
-                if not demo_code_obj:
-                    return render_template('register.html', error='Invalid or expired demo code', username=username, role=role, schools=schools)
-                # Mark demo code as used
-                mongo.db.demo_codes.update_one(
-                    {"_id": demo_code_obj["_id"]},
-                    {"$set": {"used": True}}
-                )
-
-            if role == 'teacher':
-                    if not email or not re.match(r"[^@]+@[^@]+\.[^@]+", email):
-                        return render_template('register.html', error='Invalid email address', username=username, schools=schools)
-                    if not school_id:
-                        return render_template('register.html', error='Please select a school.', username=username, role=role, schools=schools)
-                    existing_email = mongo.db.users.find_one({"email": email})
-                    if existing_email:
-                        return render_template('register.html', error='Email already registered', role=role, username=username, schools=schools)
-                
-            existing_user = get_user_by_username(username)
-            if existing_user:
-                    return render_template('register.html', error='Username already exists', role=role, username=username, schools=schools)
-
-            password_hash = generate_password_hash(password)
-            if role == 'teacher':
-                    teacher = {
-                        "username": username,
-                        "password_hash": password_hash,
-                        "role": role,
-                        "email": email,
-                        "email_verified": False,
-                        "verification_token": ''.join(random.choices(string.ascii_letters + string.digits, k=32)),
-                        "is_admin": False,
-                        "school_id": ObjectId(school_id) if school_id else None,
-                        "subscribed": False
-                    }
-                    mongo.db.pending_teachers.insert_one(teacher)
-                    return render_template('register.html', error='Teacher account request sent! Waiting for admin approval.', schools=schools)
-            else:
-                    user = create_user(username, password_hash, role, email, is_admin=False, school_id=school_id)
-                    session['user_id'] = str(user.inserted_id)
-                    session['username'] = username
-                    session['role'] = role
-                
-                # Send verification email
-            verification_url = url_for('verify_email', token=user.verification_token, _external=True)
-            email_template = render_template('email/verify_email.html',
-                                              username=username,
-                                              verification_url=verification_url)
-            send_email(email, 'Verify your ThetaSummary account', email_template)
-                
-            flash('Registration successful! Please check your email to verify your account.', 'success')
-            return redirect(url_for('dashboard'))
-        except Exception as e:
-            import traceback
-            error_message = f"REGISTER ERROR: {e}<br><pre>{traceback.format_exc()}</pre>"
-            return render_template('register.html', error=error_message, username=request.form.get('username'), role=request.form.get('role'), schools=schools)
-    return render_template('register.html', role='student', schools=schools)
+    return render_template('register.html', schools=schools)
 
 def send_email(to_email, subject, html_content):
     try:
@@ -408,20 +367,25 @@ def send_email(to_email, subject, html_content):
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if 'user_id' in session:
-        return redirect(url_for('dashboard'))
-
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
+        
         user = get_user_by_username(username)
         if user and check_password_hash(user['password_hash'], password):
+            # Check if teacher is approved
+            if user['role'] == 'teacher' and not user.get('is_approved', False):
+                return render_template('login.html', error='Your account is pending approval. Please wait for admin approval.')
+            
             session['user_id'] = str(user['_id'])
             session['username'] = user['username']
             session['role'] = user['role']
+            session['is_admin'] = user.get('is_admin', False)
+            
             return redirect(url_for('dashboard'))
-        else:
-            return render_template('login.html', error='Invalid username or password', username=username)
+        
+        return render_template('login.html', error='Invalid username or password')
+    
     return render_template('login.html')
 
 @app.route('/logout')
@@ -1614,18 +1578,18 @@ def transcribe():
     import google.generativeai as genai
     GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
     if not GEMINI_API_KEY:
-        return jsonify({'status': 'error', 'message': 'Gemini API key not configured.'}), 500
+            return jsonify({'status': 'error', 'message': 'Gemini API key not configured.'}), 500
     genai.configure(api_key=GEMINI_API_KEY)
     try:
-        audio_bytes = base64.b64decode(audio_base64)
-        transcription_prompt = 'Please transcribe this audio exactly as it is. Do not add any additional text or formatting.'
-        gemini_model = genai.GenerativeModel('gemini-2.0-flash-lite')
-        audio_part = {'mime_type': mime_type, 'data': audio_bytes}
-        response = gemini_model.generate_content([audio_part, transcription_prompt])
-        transcript = response.text
-        return jsonify({'status': 'success', 'transcript': transcript})
+            audio_bytes = base64.b64decode(audio_base64)
+            transcription_prompt = 'Please transcribe this audio exactly as it is. Do not add any additional text or formatting.'
+            gemini_model = genai.GenerativeModel('gemini-2.0-flash-lite')
+            audio_part = {'mime_type': mime_type, 'data': audio_bytes}
+            response = gemini_model.generate_content([audio_part, transcription_prompt])
+            transcript = response.text
+            return jsonify({'status': 'success', 'transcript': transcript})
     except Exception as e:
-        return jsonify({'status': 'error', 'message': str(e)}), 500
+            return jsonify({'status': 'error', 'message': str(e)}), 500
 
 @app.errorhandler(Exception)
 def handle_exception(e):

@@ -78,18 +78,30 @@
             display: inline-block;
             width: 100%;
             padding: 12px 24px;
-            background: #c084fc;
+            background: #1a1a1a;
             color: #ffffff;
-            border: none;
+            border: 1px solid #333;
             border-radius: 8px;
             font-size: 1rem;
             font-weight: 500;
             cursor: pointer;
-            transition: background-color 0.3s ease;
+            transition: all 0.3s ease;
         }
         
         .btn:hover {
+            background: #242424;
+            border-color: #c084fc;
+            color: #c084fc;
+        }
+
+        .btn-primary {
+            background: #c084fc;
+            border: none;
+        }
+        
+        .btn-primary:hover {
             background: #a855f7;
+            color: #ffffff;
         }
         
         .error-message {
@@ -159,54 +171,72 @@
                     <label class="form-label" for="username">Username</label>
                     <input type="text" id="username" name="username" class="form-input" value="{{ username }}" required>
                 </div>
-                
-                <div class="form-group">
+                <div class="form-group" id="email-group" style="display:none;">
                     <label class="form-label" for="email">Email</label>
                     <input type="email" id="email" name="email" class="form-input" placeholder="Enter your email" required>
                 </div>
-                
                 <div class="form-group">
                     <label class="form-label" for="password">Password</label>
                     <input type="password" id="password" name="password" class="form-input" required>
                 </div>
-                
                 <div class="form-group">
                     <label class="form-label" for="role">Role</label>
-                    <select id="role" name="role" class="form-input" required onchange="toggleSchoolDropdown()">
-                            <option value="student" {% if role == 'student' %}selected{% endif %}>Student</option>
-                            <option value="teacher" {% if role == 'teacher' %}selected{% endif %}>Teacher</option>
-                        </select>
+                    <select id="role" name="role" class="form-input" required onchange="toggleRoleOptions()">
+                        <option value="student" {% if role == 'student' %}selected{% endif %}>Student</option>
+                        <option value="teacher" {% if role == 'teacher' %}selected{% endif %}>Teacher</option>
+                    </select>
                 </div>
-                
-                <div class="form-group" id="school-group" style="display: none;">
-                    <label class="form-label" for="school_id">School</label>
-                    <select id="school_id" name="school_id" class="form-input">
-                            <option value="">Select a school</option>
-                            {% for school in schools %}
-                        <option value="{{ school._id }}">{{ school.name }} ({{ school.district }}, {{ school.state }})</option>
-                            {% endfor %}
-                        </select>
-                </div>
-                
-                <div class="form-group" id="payment-group" style="display: none;">
-                    <label class="form-label">How would you like to register?</label>
+                <!-- Teacher Type (Enterprise/Personal) -->
+                <div class="form-group" id="teacher-type-group" style="display:none;">
+                    <label class="form-label">Teacher Type</label>
                     <div class="radio-group">
-                        <input type="radio" id="register_demo" name="register_method" value="demo" checked onchange="toggleRegisterMethod()">
-                        <label for="register_demo" class="radio-label">I have a demo code</label>
-                        <input type="radio" id="register_plan" name="register_method" value="plan" onchange="toggleRegisterMethod()">
-                        <label for="register_plan" class="radio-label">I have purchased a plan</label>
+                        <input type="radio" id="teacher_enterprise" name="teacher_type" value="enterprise" onchange="toggleTeacherType()">
+                        <label for="teacher_enterprise" class="radio-label">Enterprise</label>
+                        <input type="radio" id="teacher_personal" name="teacher_type" value="personal" onchange="toggleTeacherType()">
+                        <label for="teacher_personal" class="radio-label">Personal</label>
                     </div>
                 </div>
-                <div class="form-group" id="demo_code_group" style="display: none;">
-                    <label class="form-label" for="demo_code">Demo Code</label>
-                    <input type="text" id="demo_code" name="demo_code" class="form-input" placeholder="Enter demo code">
+                <!-- School Search and Dropdown (Enterprise Only) -->
+                <div class="form-group" id="school-group" style="display:none;">
+                    <label class="form-label" for="school_search">Search School</label>
+                    <input type="text" id="school_search" class="form-input" placeholder="Type to search schools..." onkeyup="filterSchools()">
+                    <label class="form-label" for="school_id">School</label>
+                    <select id="school_id" name="school_id" class="form-input">
+                        <option value="">Select a school</option>
+                        {% for school in schools %}
+                        <option value="{{ school._id }}">{{ school.name }} ({{ school.district }}, {{ school.state }})</option>
+                        {% endfor %}
+                    </select>
                 </div>
-                
-                <div class="form-group">
-                    <p class="form-text" style="color: #c084fc;">Note: You need to either purchase a subscription or enter a valid demo code to register. If you don't have a demo code, you'll be redirected to the payment page.</p>
+                <!-- Personal Plan (Plus/Pro) -->
+                <div class="form-group" id="personal-plan-group" style="display:none;">
+                    <label class="form-label">Choose Plan</label>
+                    <div class="radio-group">
+                        <input type="radio" id="plan_plus" name="personal_plan" value="plus" onchange="togglePersonalPlan()">
+                        <label for="plan_plus" class="radio-label">Plus</label>
+                        <input type="radio" id="plan_pro" name="personal_plan" value="pro" onchange="togglePersonalPlan()">
+                        <label for="plan_pro" class="radio-label">Pro</label>
+                    </div>
                 </div>
-                
-                <button type="submit" class="btn">Create Account</button>
+                <!-- Payment or Code Option (Personal Only) -->
+                <div class="form-group" id="personal-method-group" style="display:none;">
+                    <label class="form-label">How would you like to activate your plan?</label>
+                    <div class="radio-group">
+                        <input type="radio" id="personal_payment" name="personal_method" value="payment" onchange="togglePersonalMethod()">
+                        <label for="personal_payment" class="radio-label">Pay with Card</label>
+                        <input type="radio" id="personal_code" name="personal_method" value="code" onchange="togglePersonalMethod()">
+                        <label for="personal_code" class="radio-label">I have a code</label>
+                    </div>
+                </div>
+                <!-- Demo Code (Personal Only, if code selected) -->
+                <div class="form-group" id="demo_code_group" style="display:none;">
+                    <label class="form-label" for="demo_code">Demo/Activation Code</label>
+                    <input type="text" id="demo_code" name="demo_code" class="form-input" placeholder="Enter code">
+                </div>
+                <div class="form-group" id="student-note" style="display:none;">
+                    <p class="form-text" style="color: #c084fc;">Students: Only your username and password are required. Your teacher will provide a class code after you register.</p>
+                </div>
+                <button type="submit" class="btn btn-primary">Create Account</button>
             </form>
             
             <a href="{{ url_for('login') }}" class="back-link">← Back to Login</a>
@@ -214,43 +244,96 @@
         </div>
 
     <script>
-    function toggleSchoolDropdown() {
-            const roleSelect = document.getElementById('role');
-            const schoolGroup = document.getElementById('school-group');
-            const schoolSelect = document.getElementById('school_id');
-            const paymentGroup = document.getElementById('payment-group');
-            const demoCodeGroup = document.getElementById('demo_code_group');
-            
-            if (roleSelect.value === 'teacher') {
-                schoolGroup.style.display = 'block';
-                schoolSelect.required = true;
-                paymentGroup.style.display = 'block';
-                demoCodeGroup.style.display = 'block';
-                document.getElementById('demo_code').required = true;
+    function toggleRoleOptions() {
+        const role = document.getElementById('role').value;
+        const teacherTypeGroup = document.getElementById('teacher-type-group');
+        const schoolGroup = document.getElementById('school-group');
+        const personalPlanGroup = document.getElementById('personal-plan-group');
+        const personalMethodGroup = document.getElementById('personal-method-group');
+        const demoCodeGroup = document.getElementById('demo_code_group');
+        const emailGroup = document.getElementById('email-group');
+        const studentNote = document.getElementById('student-note');
+        
+        if (role === 'teacher') {
+            teacherTypeGroup.style.display = '';
+            emailGroup.style.display = '';
+            studentNote.style.display = 'none';
+            // Default to hide all subgroups
+            schoolGroup.style.display = 'none';
+            personalPlanGroup.style.display = 'none';
+            personalMethodGroup.style.display = 'none';
+            demoCodeGroup.style.display = 'none';
         } else {
-                schoolGroup.style.display = 'none';
-                schoolSelect.required = false;
-                paymentGroup.style.display = 'none';
-                demoCodeGroup.style.display = 'none';
-                document.getElementById('demo_code').required = false;
+            teacherTypeGroup.style.display = 'none';
+            schoolGroup.style.display = 'none';
+            personalPlanGroup.style.display = 'none';
+            personalMethodGroup.style.display = 'none';
+            demoCodeGroup.style.display = 'none';
+            emailGroup.style.display = 'none';
+            studentNote.style.display = '';
         }
     }
-        
-    function toggleRegisterMethod() {
-        const demoRadio = document.getElementById('register_demo');
-        const demoGroup = document.getElementById('demo_code_group');
-        if (demoRadio.checked) {
-            demoGroup.style.display = '';
-            document.getElementById('demo_code').required = true;
-        } else {
-            demoGroup.style.display = 'none';
-            document.getElementById('demo_code').required = false;
+
+    function toggleTeacherType() {
+        const teacherType = document.querySelector('input[name="teacher_type"]:checked')?.value;
+        const schoolGroup = document.getElementById('school-group');
+        const personalPlanGroup = document.getElementById('personal-plan-group');
+        const personalMethodGroup = document.getElementById('personal-method-group');
+        const demoCodeGroup = document.getElementById('demo_code_group');
+
+        if (teacherType === 'enterprise') {
+            schoolGroup.style.display = '';
+            personalPlanGroup.style.display = 'none';
+            personalMethodGroup.style.display = 'none';
+            demoCodeGroup.style.display = 'none';
+        } else if (teacherType === 'personal') {
+            schoolGroup.style.display = 'none';
+            personalPlanGroup.style.display = '';
+            personalMethodGroup.style.display = 'none';
+            demoCodeGroup.style.display = 'none';
         }
     }
+
+    function togglePersonalPlan() {
+        const personalMethodGroup = document.getElementById('personal-method-group');
+        const demoCodeGroup = document.getElementById('demo_code_group');
         
-        // Initialize on page load
-    document.addEventListener('DOMContentLoaded', toggleSchoolDropdown);
-    window.onload = toggleRegisterMethod;
+        if (document.querySelector('input[name="personal_plan"]:checked')) {
+            personalMethodGroup.style.display = '';
+        } else {
+            personalMethodGroup.style.display = 'none';
+            demoCodeGroup.style.display = 'none';
+        }
+    }
+
+    function togglePersonalMethod() {
+        const demoCodeGroup = document.getElementById('demo_code_group');
+        const method = document.querySelector('input[name="personal_method"]:checked')?.value;
+        
+        if (method === 'code') {
+            demoCodeGroup.style.display = '';
+        } else {
+            demoCodeGroup.style.display = 'none';
+        }
+    }
+
+    function filterSchools() {
+        const input = document.getElementById('school_search').value.toLowerCase();
+        const select = document.getElementById('school_id');
+        for (let i = 0; i < select.options.length; i++) {
+            const option = select.options[i];
+            if (option.text.toLowerCase().includes(input) || option.value === '') {
+                option.style.display = '';
+            } else {
+                option.style.display = 'none';
+            }
+        }
+    }
+
+    // Initialize the form state
+    document.addEventListener('DOMContentLoaded', function() {
+        toggleRoleOptions();
+    });
     </script>
 </body>
 </html> 
