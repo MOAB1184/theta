@@ -316,7 +316,6 @@ def register():
             if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
                 return render_template('register.html', error='Invalid email format', username=username, role=role)
 
-        # Create user with appropriate role and settings
         password_hash = generate_password_hash(password)
         
         if role == 'teacher':
@@ -329,13 +328,30 @@ def register():
                     return render_template('register.html', error='Please select a plan', username=username, role=role)
                 if not personal_method:
                     return render_template('register.html', error='Please select a payment method', username=username, role=role)
-                
                 if personal_method == 'code':
                     if not demo_code:
                         return render_template('register.html', error='Please enter a demo code', username=username, role=role)
                     # Verify demo code here if needed
-                
-                user = create_user(username, password_hash, role, email, is_approved=True)  # Auto-approve teachers
+                    user = create_user(username, password_hash, role, email, is_approved=True)
+                elif personal_method == 'payment':
+                    # Check if email is already associated with a paid account
+                    paid_user = mongo.db.users.find_one({
+                        "email": email,
+                        "role": "teacher",
+                        "subscribed": True
+                    })
+                    if paid_user:
+                        user = create_user(username, password_hash, role, email, is_approved=True)
+                        session['user_id'] = str(user.inserted_id)
+                        session['username'] = username
+                        session['role'] = role
+                        session['is_admin'] = False
+                        return redirect(url_for('dashboard'))
+                    else:
+                        # Redirect to /buy with plan and email
+                        return redirect(url_for('buy', plan=personal_plan, email=email, username=username))
+                else:
+                    return render_template('register.html', error='Invalid payment method', username=username, role=role)
         else:  # student
             user = create_user(username, password_hash, role)
 
@@ -373,15 +389,11 @@ def login():
         
         user = get_user_by_username(username)
         if user and check_password_hash(user['password_hash'], password):
-            # Check if teacher is approved
-            if user['role'] == 'teacher' and not user.get('is_approved', False):
-                return render_template('login.html', error='Your account is pending approval. Please wait for admin approval.')
-            
+            # REMOVE admin approval check for teachers
             session['user_id'] = str(user['_id'])
             session['username'] = user['username']
             session['role'] = user['role']
             session['is_admin'] = user.get('is_admin', False)
-            
             return redirect(url_for('dashboard'))
         
         return render_template('login.html', error='Invalid username or password')
@@ -1647,11 +1659,12 @@ def generate_summary(transcript, timestamp, class_id):
     logger.info(f"Trying to save summary to S3 at: {summary_path}")
     s3_client.put_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=summary_path, Body=summary)
     
+    # Store the correct timestamp as created_at
     mongo.db.classes.update_one(
         {"_id": ObjectId(class_id)},
         {"$addToSet": {"summaries": {
             "filename": summary_filename,
-            "created_at": datetime.datetime.utcnow(),
+            "created_at": datetime.datetime.fromtimestamp(int(timestamp)),
             "approved": False
         }}}
     )

@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <style>
         /* Reset and Basic Styles */
         body, html {
@@ -155,6 +156,51 @@
         .radio-group input[type="radio"]:checked + .radio-label {
             color: #c084fc;
         }
+        /* Select2 dark theme overrides */
+        .select2-container--default .select2-selection--single {
+            background-color: #242424;
+            border: 1px solid #333;
+            color: #fff;
+            border-radius: 8px;
+            min-height: 48px;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            color: #fff;
+            line-height: 48px;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 48px;
+            right: 10px;
+        }
+        .select2-dropdown {
+            background-color: #242424;
+            color: #fff;
+            border: 1px solid #333;
+        }
+        .select2-results__option {
+            background-color: #242424;
+            color: #fff;
+        }
+        .select2-results__option--highlighted {
+            background-color: #c084fc !important;
+            color: #fff;
+        }
+        .select2-results__option[aria-selected=true] {
+            background-color: #a855f7 !important;
+            color: #fff;
+        }
+        .select2-container--default .select2-selection--single:focus {
+            border-color: #c084fc;
+        }
+        /* Make the Select2 search bar dark */
+        .select2-search__field {
+            background-color: #181818 !important;
+            color: #fff !important;
+            border: 1px solid #333 !important;
+        }
+        .select2-search__field::placeholder {
+            color: #aaa !important;
+        }
     </style>
 </head>
 <body>
@@ -198,8 +244,6 @@
                 </div>
                 <!-- School Search and Dropdown (Enterprise Only) -->
                 <div class="form-group" id="school-group" style="display:none;">
-                    <label class="form-label" for="school_search">Search School</label>
-                    <input type="text" id="school_search" class="form-input" placeholder="Type to search schools..." onkeyup="filterSchools()">
                     <label class="form-label" for="school_id">School</label>
                     <select id="school_id" name="school_id" class="form-input">
                         <option value="">Select a school</option>
@@ -207,6 +251,11 @@
                         <option value="{{ school._id }}">{{ school.name }} ({{ school.district }}, {{ school.state }})</option>
                         {% endfor %}
                     </select>
+                </div>
+                <!-- School Code (Enterprise Only, after school selected) -->
+                <div class="form-group" id="school-code-group" style="display:none;">
+                    <label class="form-label" for="school_code">School Code</label>
+                    <input type="text" id="school_code" name="school_code" class="form-input" placeholder="Enter your school code">
                 </div>
                 <!-- Personal Plan (Plus/Pro) -->
                 <div class="form-group" id="personal-plan-group" style="display:none;">
@@ -243,6 +292,8 @@
         </div>
         </div>
 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
     function toggleRoleOptions() {
         const role = document.getElementById('role').value;
@@ -333,6 +384,33 @@
     // Initialize the form state
     document.addEventListener('DOMContentLoaded', function() {
         toggleRoleOptions();
+    });
+
+    $(document).ready(function() {
+        $('#school_id').select2({
+            width: '100%',
+            placeholder: 'Select a school',
+            allowClear: false,
+            dropdownParent: $('#school-group')
+        });
+        // Show school code field only for enterprise teachers after school is selected
+        $('#school_id').on('change', function() {
+            const teacherType = document.querySelector('input[name="teacher_type"]:checked')?.value;
+            if (teacherType === 'enterprise' && $(this).val()) {
+                $('#school-code-group').show();
+            } else {
+                $('#school-code-group').hide();
+            }
+        });
+        // Also hide school code if teacher type changes
+        $('input[name="teacher_type"]').on('change', function() {
+            const teacherType = this.value;
+            if (teacherType !== 'enterprise') {
+                $('#school-code-group').hide();
+            } else if ($('#school_id').val()) {
+                $('#school-code-group').show();
+            }
+        });
     });
     </script>
 </body>
