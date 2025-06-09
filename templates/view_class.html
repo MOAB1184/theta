@@ -475,7 +475,7 @@
                             <span><span class="stat-icon">📄</span>{{ summary_count }} Summaries</span>
                         </div>
                         {% if user_role == 'teacher' %}
-                        <a href="/recordings?class_id={{ class_obj._id }}" class="btn btn-primary">🎤 Record Audio</a>
+                        <a href="/recordings?class_id={{ class_obj._id }}" class="btn btn-primary" id="record-audio-btn" {% if out_of_summaries %}disabled style="opacity:0.5;cursor:not-allowed;"{% endif %}>🎤 Record Audio</a>
                         {% endif %}
                     </div>
                     
@@ -556,6 +556,11 @@
                         </div>
                         {% endfor %}
                     </div>
+                    {% elif processing_summaries and processing_summaries|length > 0 %}
+                    <div class="loading-state">
+                        <div class="loading-spinner"></div>
+                        <p>Summary is being processed. This may take a few minutes. You can leave this page and come back later.</p>
+                    </div>
                     {% else %}
                     <div class="empty-state">
                         <p>No summaries have been created for this class yet.</p>
@@ -573,6 +578,18 @@
             <p>Summary will be processed and uploaded soon...</p>
         </div>
     </template>
+    
+    <!-- Modal for out of summaries -->
+    <div id="outOfSummariesModal" style="display:none;position:fixed;z-index:9999;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,0.6);align-items:center;justify-content:center;">
+      <div style="background:#232323;padding:32px 28px;border-radius:10px;max-width:400px;margin:auto;text-align:center;box-shadow:0 4px 24px #0008;">
+        <h2 style="color:#ff4f4f;margin-bottom:18px;">Out of Summaries</h2>
+        <p style="color:#fff;font-size:1.1rem;margin-bottom:12px;">You have reached your {{ subscription_type|capitalize }} plan summary limit for the {% if subscription_type=='plus' %}day{% else %}month{% endif %}.</p>
+        {% if summary_limit_resets_at %}
+        <p style="color:#a0a0a0;font-size:1rem;">Limit resets at:<br><b>{{ summary_limit_resets_at }}</b></p>
+        {% endif %}
+        <button onclick="document.getElementById('outOfSummariesModal').style.display='none'" style="margin-top:18px;padding:10px 24px;background:#2563eb;color:#fff;border:none;border-radius:6px;font-size:1rem;cursor:pointer;">OK</button>
+      </div>
+    </div>
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -824,6 +841,16 @@
                     el.textContent = formatDate(ts);
                 }
             });
+
+            var recordBtn = document.getElementById('record-audio-btn');
+            {% if out_of_summaries %}
+            if (recordBtn) {
+                recordBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    document.getElementById('outOfSummariesModal').style.display = 'flex';
+                });
+            }
+            {% endif %}
         });
     </script>
     

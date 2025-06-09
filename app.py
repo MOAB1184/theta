@@ -31,6 +31,8 @@ from sendgrid.helpers.mail import Mail as SendGridMail
 import requests
 from openai import OpenAI
 from rq import Queue
+from zoneinfo import ZoneInfo
+from datetime import timedelta
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -469,9 +471,11 @@ def dashboard():
     plan_limits = user.get('plan_limits', {})
     subscription_type = user.get('subscription_type', 'plus')
     
-    # Count summaries for today and this month
-    today = datetime.datetime.now(datetime.timezone.utc).date()
-    month_start = datetime.datetime(today.year, today.month, 1, tzinfo=datetime.timezone.utc)
+    # Count summaries for today and this month (in Pacific time)
+    pacific_tz = datetime.timezone(datetime.timedelta(hours=-7))  # PDT
+    now = datetime.datetime.now(pacific_tz)
+    today = now.date()
+    month_start = datetime.datetime(now.year, now.month, 1, tzinfo=pacific_tz)
     
     summaries_today = 0
     summaries_month = 0
@@ -488,6 +492,8 @@ def dashboard():
                 # Make naive datetimes timezone-aware (UTC)
                 if created_at.tzinfo is None:
                     created_at = created_at.replace(tzinfo=datetime.timezone.utc)
+                # Convert to Pacific time
+                created_at = created_at.astimezone(pacific_tz)
                 if created_at.date() == today:
                     summaries_today += 1
                 if created_at >= month_start:
@@ -499,7 +505,8 @@ def dashboard():
                          plan_limits=plan_limits,
                          subscription_type=subscription_type,
                          summaries_today=summaries_today if subscription_type == 'plus' else summaries_month,
-                         username=user['username'])
+                         username=user['username'],
+                         is_admin=user.get('is_admin', False))
 
 @app.route('/recordings')
 def recordings():
@@ -813,12 +820,35 @@ def view_summary(filename):
         response = s3_client.get_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=user_file_path)
         content = response['Body'].read().decode('utf-8')
         logger.info(f"Found file at user path: {user_file_path}")
-        # Extract timestamp from filename
-        try:
-            summary_timestamp = int(filename.split('_')[1].split('.')[0])
-            summary_date = datetime.datetime.fromtimestamp(summary_timestamp, datetime.timezone.utc).isoformat()
-        except Exception:
-            summary_date = ''
+        # Try to get created_at from DB
+        summary_date = ''
+        pacific_tz = ZoneInfo('America/Los_Angeles')
+        # Search all classes for this summary
+        found = False
+        for class_obj in mongo.db.classes.find({"teacher_id": user['_id']}):
+            summary_db = next((s for s in class_obj.get('summaries', []) if s['filename'] == filename), None)
+            if summary_db and 'created_at' in summary_db:
+                date_obj = summary_db['created_at']
+                if isinstance(date_obj, str):
+                    try:
+                        date_obj = datetime.datetime.fromisoformat(date_obj)
+                    except Exception:
+                        date_obj = None
+                if date_obj:
+                    if date_obj.tzinfo is None:
+                        date_obj = date_obj.replace(tzinfo=datetime.timezone.utc)
+                    date_obj = date_obj.astimezone(pacific_tz)
+                    summary_date = date_obj.strftime('%Y-%m-%d %I:%M %p')
+                    found = True
+                    break
+        if not found:
+            # Fallback to timestamp from filename
+            try:
+                summary_timestamp = int(filename.split('_')[1].split('.')[0])
+                date_obj = datetime.datetime.fromtimestamp(summary_timestamp, datetime.timezone.utc).astimezone(pacific_tz)
+                summary_date = date_obj.strftime('%Y-%m-%d %I:%M %p')
+            except Exception:
+                summary_date = ''
         return render_template('view_summary.html', 
                              content=content, 
                              filename=filename,
@@ -837,26 +867,41 @@ def view_summary(filename):
         {"students": user['_id']}
     ]}
     classes = mongo.db.classes.find(class_query)
-    
     for class_obj in classes:
         teacher = mongo.db.users.find_one({"_id": class_obj['teacher_id']})
         if not teacher:
             continue
-            
         class_dir = f"{teacher['username']}/classes/{class_obj['class_code']}"
         class_file_path = f"{class_dir}/{filename}"
         logger.info(f"Trying class path: {class_file_path}")
-        
         try:
             response = s3_client.get_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=class_file_path)
             content = response['Body'].read().decode('utf-8')
             logger.info(f"Found file at class path: {class_file_path}")
-            # Extract timestamp from filename
-            try:
-                summary_timestamp = int(filename.split('_')[1].split('.')[0])
-                summary_date = datetime.datetime.fromtimestamp(summary_timestamp, datetime.timezone.utc).isoformat()
-            except Exception:
-                summary_date = ''
+            # Try to get created_at from DB
+            summary_date = ''
+            pacific_tz = ZoneInfo('America/Los_Angeles')
+            summary_db = next((s for s in class_obj.get('summaries', []) if s['filename'] == filename), None)
+            if summary_db and 'created_at' in summary_db:
+                date_obj = summary_db['created_at']
+                if isinstance(date_obj, str):
+                    try:
+                        date_obj = datetime.datetime.fromisoformat(date_obj)
+                    except Exception:
+                        date_obj = None
+                if date_obj:
+                    if date_obj.tzinfo is None:
+                        date_obj = date_obj.replace(tzinfo=datetime.timezone.utc)
+                    date_obj = date_obj.astimezone(pacific_tz)
+                    summary_date = date_obj.strftime('%Y-%m-%d %I:%M %p')
+            else:
+                # Fallback to timestamp from filename
+                try:
+                    summary_timestamp = int(filename.split('_')[1].split('.')[0])
+                    date_obj = datetime.datetime.fromtimestamp(summary_timestamp, datetime.timezone.utc).astimezone(pacific_tz)
+                    summary_date = date_obj.strftime('%Y-%m-%d %I:%M %p')
+                except Exception:
+                    summary_date = ''
             return render_template('view_summary.html', 
                                  content=content, 
                                  filename=filename,
@@ -869,7 +914,6 @@ def view_summary(filename):
         except ClientError as e:
             logger.info(f"Not found at class path: {e}")
             continue
-            
     logger.info(f"File not found in any location: {filename}")
     return "File not found or access denied.", 404
 
@@ -1068,13 +1112,16 @@ def view_class(class_id):
                                 date_obj = datetime.datetime.fromisoformat(date_obj)
                             except Exception:
                                 date_obj = None
+                        # Convert to America/Los_Angeles timezone
+                        if date_obj and date_obj.tzinfo is not None:
+                            date_obj = date_obj.astimezone(ZoneInfo('America/Los_Angeles'))
+                        elif date_obj:
+                            date_obj = date_obj.replace(tzinfo=datetime.timezone.utc).astimezone(ZoneInfo('America/Los_Angeles'))
                     else:
                         date_obj = None
-                    
                     # Only format the date if we have a valid date_obj
                     date_str = date_obj.strftime('%Y-%m-%d %I:%M %p') if date_obj else 'Unknown date'
                     timestamp = int(date_obj.timestamp()) if date_obj else 0
-                    
                     all_summaries.append({
                         'filename': filename,
                         'created_at': date_str,
@@ -1121,6 +1168,54 @@ def view_class(class_id):
         talk_to_theta_enabled = user.get('talk_to_theta_enabled', False)
     else:
         talk_to_theta_enabled = teacher.get('talk_to_theta_enabled', False)
+    # --- Add processing_summaries placeholder (empty list for now) ---
+    processing_summaries = []  # TODO: Replace with real in-progress summary tracking
+
+    # --- Summary limit logic ---
+    plan_limits = user.get('plan_limits', {})
+    subscription_type = user.get('subscription_type', 'plus')
+    pacific_tz = ZoneInfo('America/Los_Angeles')
+    now = datetime.datetime.now(pacific_tz)
+    today = now.date()
+    month_start = datetime.datetime(now.year, now.month, 1, tzinfo=pacific_tz)
+    # Count summaries for today and this month
+    summaries_today = 0
+    summaries_month = 0
+    for class_obj2 in mongo.db.classes.find({'teacher_id': user['_id']}):
+        for summary in class_obj2.get('summaries', []):
+            if 'created_at' in summary:
+                created_at = summary['created_at']
+                if isinstance(created_at, str):
+                    try:
+                        created_at = datetime.datetime.fromisoformat(created_at)
+                    except Exception:
+                        continue
+                if created_at.tzinfo is None:
+                    created_at = created_at.replace(tzinfo=datetime.timezone.utc)
+                created_at = created_at.astimezone(pacific_tz)
+                if created_at.date() == today:
+                    summaries_today += 1
+                if created_at >= month_start:
+                    summaries_month += 1
+    out_of_summaries = False
+    summary_limit_resets_at = None
+    if subscription_type == 'plus':
+        if summaries_today >= plan_limits.get('summaries_per_day', 2):
+            out_of_summaries = True
+            # Reset at midnight Pacific
+            tomorrow = now + timedelta(days=1)
+            reset_time = datetime.datetime.combine(tomorrow.date(), datetime.time.min, tzinfo=pacific_tz)
+            summary_limit_resets_at = reset_time.strftime('%Y-%m-%d %I:%M %p %Z')
+    else:
+        if summaries_month >= plan_limits.get('summaries_per_month', 60):
+            out_of_summaries = True
+            # Reset at first of next month Pacific
+            if now.month == 12:
+                next_month = datetime.datetime(now.year + 1, 1, 1, tzinfo=pacific_tz)
+            else:
+                next_month = datetime.datetime(now.year, now.month + 1, 1, tzinfo=pacific_tz)
+            summary_limit_resets_at = next_month.strftime('%Y-%m-%d %I:%M %p %Z')
+
     return render_template('view_class.html', 
                          class_obj=class_obj,
                          user_role=user['role'],
@@ -1134,7 +1229,10 @@ def view_class(class_id):
                          summary_count=summary_count,
                          student_count=student_count,
                          classes=sidebar_classes if user['role'] == 'teacher' else [],
-                         talk_to_theta_enabled=talk_to_theta_enabled)
+                         talk_to_theta_enabled=talk_to_theta_enabled,
+                         processing_summaries=processing_summaries,
+                         out_of_summaries=out_of_summaries,
+                         summary_limit_resets_at=summary_limit_resets_at)
 
 @app.route('/classes/<class_id>/enroll', methods=['POST'])
 def enroll_in_class(class_id):
@@ -1360,11 +1458,15 @@ def credit_tokens():
 
 @app.route('/buy', methods=['GET', 'POST'])
 def buy():
-    user = None
-    if 'user_id' in session:
-        user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
-    error = None
     if request.method == 'POST':
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+            
+        user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
+        if not user:
+            return redirect(url_for('logout'))
+            
+        error = None
         try:
             subscription_type = request.form.get('subscription_type')
             if not subscription_type or subscription_type not in ['plus', 'pro', 'enterprise']:
@@ -1404,16 +1506,19 @@ def buy():
         except Exception as e:
             error = str(e)
             logger.error(f"Error creating checkout session: {e}")
-        return render_template('buy.html', 
-                             error=error,
-                             username=session.get('username', ''),
-                             current_subscription=None,
-                             stripe_public_key=os.getenv('STRIPE_PUBLIC_KEY'))
+            return render_template('buy.html', 
+                                 error=error,
+                                 username=session.get('username', ''),
+                                 current_subscription=None,
+                                 stripe_public_key=os.getenv('STRIPE_PUBLIC_KEY'))
+    
     # GET request: allow anyone to view
     username = session.get('username', '') if 'user_id' in session else ''
     current_subscription = None
-    if user:
-        current_subscription = user.get('subscription_type', 'plus')
+    if 'user_id' in session:
+        user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
+        if user:
+            current_subscription = user.get('subscription_type', 'plus')
     return render_template('buy.html', 
                          error=None,
                          username=username,
@@ -1978,14 +2083,15 @@ def purchase_tokens():
         return redirect(url_for('login'))
     
     try:
+        # Get user first
+        user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
+        if not user:
+            return redirect(url_for('logout'))
+            
         token_amount = int(request.form.get('token_amount', 0))
         if token_amount <= 0:
             flash('Invalid token amount', 'error')
             return redirect(url_for('buy'))
-        
-        user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
-        if not user:
-            return redirect(url_for('logout'))
         
         # Calculate price based on user's subscription type
         if user.get('subscription_type') in ['plus', 'pro']:
@@ -2037,6 +2143,12 @@ def token_purchase_success():
             user_id = checkout_session.metadata.get('user_id')
             token_amount = int(checkout_session.metadata.get('token_amount', 0))
             
+            # Get user first to verify they exist
+            user = mongo.db.users.find_one({"_id": ObjectId(user_id)})
+            if not user:
+                flash('User not found', 'error')
+                return redirect(url_for('dashboard'))
+            
             # Update user's token balance
             mongo.db.users.update_one(
                 {"_id": ObjectId(user_id)},
@@ -2051,7 +2163,7 @@ def token_purchase_success():
         logger.error(f"Error processing token purchase success: {e}")
         flash('Error processing payment', 'error')
     
-    return redirect(url_for('admin'))
+    return redirect(url_for('dashboard'))
 
 @app.route('/token_purchase_cancelled')
 def token_purchase_cancelled():

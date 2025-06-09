@@ -1062,7 +1062,7 @@
                 // Use KaTeX auto-render with more comprehensive delimiters
                 if (typeof renderMathInElement !== 'undefined') {
                     renderMathInElement(element, {
-                        delimiters: [
+                                                delimiters: [
                             {left: '$$', right: '$$', display: true},
                             {left: '$', right: '$', display: false},
                             {left: '\\(', right: '\\)', display: false},
@@ -1158,7 +1158,7 @@
                     if (data.status === 'success') {
                         addMessage(data.response, 'bot');
                         saveChat();
-                    } else {
+                                    } else {
                         if (data.show_popup) {
                             showTokenPopup();
                         }
