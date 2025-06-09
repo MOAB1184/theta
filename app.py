@@ -330,8 +330,31 @@ def register():
                 if personal_method == 'code':
                     if not demo_code:
                         return render_template('register.html', error='Please enter a demo code', username=username, role=role)
-                    # Verify demo code here if needed
+                    
+                    # Verify demo code
+                    demo_code_obj = mongo.db.demo_codes.find_one({
+                        "code": demo_code,
+                        "expires_at": {"$gt": datetime.datetime.now(datetime.timezone.utc)},
+                        "used": False
+                    })
+                    
+                    if not demo_code_obj:
+                        return render_template('register.html', error='Invalid or expired demo code', username=username, role=role)
+                    
+                    # Create user with 1M tokens
                     user = create_user(username, password_hash, role, email, is_approved=True)
+                    
+                    # Add 1M tokens
+                    mongo.db.users.update_one(
+                        {"_id": user.inserted_id},
+                        {"$inc": {"token_balance": 1000000}}
+                    )
+                    
+                    # Mark demo code as used
+                    mongo.db.demo_codes.update_one(
+                        {"_id": demo_code_obj["_id"]},
+                        {"$set": {"used": True}}
+                    )
                 elif personal_method == 'payment':
                     # Check if email is already associated with a paid account
                     paid_user = mongo.db.users.find_one({
@@ -341,6 +364,12 @@ def register():
                     })
                     if paid_user:
                         user = create_user(username, password_hash, role, email, is_approved=True)
+                        # Add 1M tokens for Pro users
+                        if personal_plan == 'pro':
+                            mongo.db.users.update_one(
+                                {"_id": user.inserted_id},
+                                {"$inc": {"token_balance": 1000000}}
+                            )
                         session['user_id'] = str(user.inserted_id)
                         session['username'] = username
                         session['role'] = role
@@ -422,77 +451,55 @@ def dashboard():
     user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
     if not user:
         return redirect(url_for('logout'))
-    users = list(mongo.db.users.find())
-    class_data = []
+    
+    # Get user's classes
     if user['role'] == 'teacher':
         classes = list(mongo.db.classes.find({"teacher_id": user['_id']}))
-        for class_obj in classes:
-            class_code = class_obj.get('class_code')
-            class_dir = f"{user['username']}/classes/{class_code}"
-            summary_count = 0
-            recording_count = 0
-            transcript_count = 0
-            try:
-                response = s3_client.list_objects_v2(Bucket=os.getenv('WASABI_BUCKET_NAME'), Prefix=class_dir)
-                if 'Contents' in response:
-                    for obj in response['Contents']:
-                        key = obj['Key']
-                        if key.endswith('.txt'):
-                            if 'summary_' in key:
-                                summary_count += 1
-                            elif 'recording_' in key:
-                                recording_count += 1
-                            elif 'transcript_' in key:
-                                transcript_count += 1
-            except Exception as e:
-                logger.error(f"Error counting files for class {class_code}: {e}")
-            class_obj['summary_count'] = summary_count
-            class_obj['recording_count'] = recording_count
-            class_obj['transcript_count'] = transcript_count
-            class_data.append(class_obj)
-        return render_template('dashboard.html', 
-                             classes=class_data, 
-                             user_role=user['role'], 
-                             is_admin=user.get('is_admin', False),
-                             username=user['username'],
-                             users=users)
     else:
-        # Students see only their enrolled classes
         enrolled_class_ids = user.get('enrolled_classes', [])
         classes = list(mongo.db.classes.find({"_id": {"$in": enrolled_class_ids}})) if enrolled_class_ids else []
-        for class_obj in classes:
-            class_code = class_obj.get('class_code')
-            teacher = mongo.db.users.find_one({"_id": class_obj['teacher_id']})
-            if not teacher:
-                continue
-            class_dir = f"{teacher['username']}/classes/{class_code}"
-            summary_count = 0
-            recording_count = 0
-            transcript_count = 0
-            try:
-                response = s3_client.list_objects_v2(Bucket=os.getenv('WASABI_BUCKET_NAME'), Prefix=class_dir)
-                if 'Contents' in response:
-                    for obj in response['Contents']:
-                        key = obj['Key']
-                        if key.endswith('.txt'):
-                            if 'summary_' in key:
-                                summary_count += 1
-                            elif 'recording_' in key:
-                                recording_count += 1
-                            elif 'transcript_' in key:
-                                transcript_count += 1
-            except Exception as e:
-                logger.error(f"Error counting files for class {class_code}: {e}")
-            class_obj['summary_count'] = summary_count
-            class_obj['recording_count'] = recording_count
-            class_obj['transcript_count'] = transcript_count
-            class_data.append(class_obj)
-        return render_template('dashboard.html', 
-                             classes=class_data, 
-                             user_role=user['role'], 
-                             is_admin=user.get('is_admin', False),
-                             username=user['username'],
-                             users=users)
+    
+    # Get summary counts for each class
+    for class_obj in classes:
+        class_obj['summary_count'] = len(class_obj.get('summaries', []))
+        class_obj['recording_count'] = len(class_obj.get('recordings', []))
+        class_obj['transcript_count'] = len(class_obj.get('transcripts', []))
+    
+    # Get summary limits and usage
+    plan_limits = user.get('plan_limits', {})
+    subscription_type = user.get('subscription_type', 'plus')
+    
+    # Count summaries for today and this month
+    today = datetime.datetime.now(datetime.timezone.utc).date()
+    month_start = datetime.datetime(today.year, today.month, 1, tzinfo=datetime.timezone.utc)
+    
+    summaries_today = 0
+    summaries_month = 0
+    
+    for class_obj in classes:
+        for summary in class_obj.get('summaries', []):
+            if 'created_at' in summary:
+                created_at = summary['created_at']
+                if isinstance(created_at, str):
+                    try:
+                        created_at = datetime.datetime.fromisoformat(created_at)
+                    except Exception:
+                        continue
+                # Make naive datetimes timezone-aware (UTC)
+                if created_at.tzinfo is None:
+                    created_at = created_at.replace(tzinfo=datetime.timezone.utc)
+                if created_at.date() == today:
+                    summaries_today += 1
+                if created_at >= month_start:
+                    summaries_month += 1
+    
+    return render_template('dashboard.html', 
+                         classes=classes, 
+                         user_role=user['role'],
+                         plan_limits=plan_limits,
+                         subscription_type=subscription_type,
+                         summaries_today=summaries_today if subscription_type == 'plus' else summaries_month,
+                         username=user['username'])
 
 @app.route('/recordings')
 def recordings():
@@ -1060,11 +1067,14 @@ def view_class(class_id):
                             try:
                                 date_obj = datetime.datetime.fromisoformat(date_obj)
                             except Exception:
-                                date_obj = datetime.datetime.now(datetime.timezone.utc)
+                                date_obj = None
                     else:
-                        date_obj = datetime.datetime.now(datetime.timezone.utc)
+                        date_obj = None
+                    
+                    # Only format the date if we have a valid date_obj
                     date_str = date_obj.strftime('%Y-%m-%d %I:%M %p') if date_obj else 'Unknown date'
                     timestamp = int(date_obj.timestamp()) if date_obj else 0
+                    
                     all_summaries.append({
                         'filename': filename,
                         'created_at': date_str,
@@ -1350,14 +1360,12 @@ def credit_tokens():
 
 @app.route('/buy', methods=['GET', 'POST'])
 def buy():
-    if request.method == 'POST':
-        user = None
-        if 'user_id' in session:
-            user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
-    if not user:
-        return redirect(url_for('logout'))
+    user = None
+    if 'user_id' in session:
+        user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
     error = None
-    try:
+    if request.method == 'POST':
+        try:
             subscription_type = request.form.get('subscription_type')
             if not subscription_type or subscription_type not in ['plus', 'pro', 'enterprise']:
                 raise ValueError('Invalid subscription type')
@@ -1393,21 +1401,19 @@ def buy():
                 }
             )
             return redirect(checkout_session.url, code=303)
-    except Exception as e:
+        except Exception as e:
             error = str(e)
             logger.error(f"Error creating checkout session: {e}")
-    return render_template('buy.html', 
-                         error=error,
+        return render_template('buy.html', 
+                             error=error,
                              username=session.get('username', ''),
                              current_subscription=None,
                              stripe_public_key=os.getenv('STRIPE_PUBLIC_KEY'))
     # GET request: allow anyone to view
     username = session.get('username', '') if 'user_id' in session else ''
     current_subscription = None
-    if 'user_id' in session:
-        user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
-        if user:
-            current_subscription = user.get('subscription_type', 'plus')
+    if user:
+        current_subscription = user.get('subscription_type', 'plus')
     return render_template('buy.html', 
                          error=None,
                          username=username,
@@ -1640,6 +1646,9 @@ def generate_summary(transcript, timestamp, class_id):
     if not DEEPSEEK_API_KEY:
         raise Exception("DeepSeek API key not configured")
         
+    # Create the timestamp once and use it consistently
+    created_at = datetime.datetime.now(datetime.timezone.utc)
+    
     summarization_prompt_template = get_global_prompt()
     if not summarization_prompt_template.strip().endswith("Transcript:"):
         full_summarization_prompt = summarization_prompt_template + "\n\nTranscript:\n" + transcript
@@ -1683,12 +1692,12 @@ def generate_summary(transcript, timestamp, class_id):
     logger.info(f"Uploading to S3: Bucket={os.getenv('WASABI_BUCKET_NAME')}, Key={summary_path}, Body type={type(encoded_summary)}")
     s3_client.put_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=summary_path, Body=encoded_summary)
     
-    # Store the correct timestamp as created_at
+    # Store the summary with the original created_at timestamp
     mongo.db.classes.update_one(
         {"_id": ObjectId(class_id)},
         {"$addToSet": {"summaries": {
             "filename": summary_filename,
-            "created_at": datetime.datetime.now(datetime.timezone.utc),
+            "created_at": created_at,  # Use the timestamp we created at the start
             "approved": False
         }}}
     )
@@ -1878,7 +1887,8 @@ def chat_api():
             return jsonify({
                 'status': 'error',
                 'message': 'You have no tokens remaining. Please purchase more tokens to continue.',
-                'redirect': url_for('buy')
+                'redirect': url_for('buy'),
+                'show_popup': True
             }), 402
 
         # Fetch summary content from Wasabi S3

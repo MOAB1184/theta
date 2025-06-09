@@ -680,6 +680,49 @@
                 justify-content: flex-start;
             }
         }
+
+        /* Add popup styles */
+        .token-popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #1a1a1a;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .token-popup h3 {
+            color: #ffffff;
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+
+        .token-popup p {
+            color: #a0a0a0;
+            margin-bottom: 24px;
+        }
+
+        .token-popup .btn {
+            margin: 0 8px;
+        }
+
+        .token-popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 999;
+        }
     </style>
 </head>
 <body>
@@ -743,6 +786,14 @@
                 <div class="summary-list" id="summary-list"></div>
     </div>
         </div>
+    </div>
+    <!-- Add popup HTML -->
+    <div class="token-popup-overlay" id="token-popup-overlay"></div>
+    <div class="token-popup" id="token-popup">
+        <h3>Out of Tokens</h3>
+        <p>You have no tokens remaining. Would you like to purchase more tokens to continue using the chatbot?</p>
+        <button class="btn btn-primary" onclick="window.location.href='/buy'">Buy Tokens</button>
+        <button class="btn btn-secondary" onclick="closeTokenPopup()">Close</button>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
     <script>
@@ -1069,7 +1120,18 @@
                 if (indicator) indicator.remove();
             }
 
-            // Send message function
+            // Add popup functions
+            function showTokenPopup() {
+                document.getElementById('token-popup').style.display = 'block';
+                document.getElementById('token-popup-overlay').style.display = 'block';
+            }
+
+            function closeTokenPopup() {
+                document.getElementById('token-popup').style.display = 'none';
+                document.getElementById('token-popup-overlay').style.display = 'none';
+            }
+
+            // Modify the sendMessage function to handle token errors
             async function sendMessage() {
                 const message = userInput.value.trim();
                 if (!message) return;
@@ -1096,7 +1158,10 @@
                     if (data.status === 'success') {
                         addMessage(data.response, 'bot');
                         saveChat();
-                                    } else {
+                    } else {
+                        if (data.show_popup) {
+                            showTokenPopup();
+                        }
                         addMessage('Sorry, I encountered an error. Please try again.', 'bot');
                     }
                 } catch (error) {
