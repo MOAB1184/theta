@@ -891,11 +891,23 @@
                     if (data.status === 'success') {
                         summaryList.innerHTML = '';
                         data.summaries.forEach(summary => {
+                            // Try to extract the title from the summary content
+                            let title = summary.title || '';
+                            if (!title && summary.preview) {
+                                const titleMatch = summary.preview.match(/Title:\s*(.*)/i);
+                                if (titleMatch) title = titleMatch[1].trim();
+                            }
+                            // Format the date as MM/DD/YY
+                            let dateStr = '';
+                            if (summary.date) {
+                                const d = new Date(summary.date);
+                                dateStr = `${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getDate().toString().padStart(2,'0')}/${d.getFullYear().toString().slice(-2)}`;
+                            }
                             const item = document.createElement('div');
                             item.className = 'summary-item';
                             item.innerHTML = `
-                                <div class="summary-date" style="font-weight: bold; color: #fff; font-size: 1.1em; margin-bottom: 2px; margin-top: 0;">${summary.date}</div>
-                                <div class="summary-title" style="color: #a0a0a0; font-size: 1em; margin-top: 2px;">${summary.title || summary.filename}</div>
+                                <div class="summary-title" style="color:#fff;font-size:1.1em;font-weight:bold;">${title || 'Untitled Summary'}</div>
+                                <div class="summary-date" style="color:#8e9297;font-size:0.9em;margin-top:2px;">${dateStr}</div>
                             `;
                             item.onclick = () => attachSummary(summary.filename);
                             summaryList.appendChild(item);

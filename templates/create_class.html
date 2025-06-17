@@ -342,10 +342,14 @@
                 </button>
                 <h1 class="page-title">Create New Class</h1>
                 <div class="user-menu">
-                    <button class="user-button">
-                        <div class="user-avatar">{{ username[0].upper() }}</div>
+                    <button class="user-button" onclick="toggleUserDropdown()">
                         <span>{{ username }}</span>
+                        <div class="user-avatar" style="margin-left:15px;">{{ username[0].upper() }}</div>
                     </button>
+                    <div class="user-dropdown" id="userDropdown" style="display:none;position:absolute;top:100%;right:0;z-index:1000;background:#1a1a1a;border-radius:8px;box-shadow:0 4px 15px rgba(0,0,0,0.3);min-width:200px;margin-top:8px;">
+                        <a href="/settings" class="user-dropdown-item" style="display:block;padding:12px 16px;color:#e0e0e0;text-decoration:none;">Settings</a>
+                        <a href="/logout" class="user-dropdown-item" style="display:block;padding:12px 16px;color:#e0e0e0;text-decoration:none;">Logout</a>
+                    </div>
                 </div>
             </header>
             
@@ -409,6 +413,18 @@
             // Initial setup and resize handling
             window.addEventListener('resize', handleResize);
             handleResize();
+        });
+
+        function toggleUserDropdown() {
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        }
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('userDropdown');
+            const userButton = document.querySelector('.user-button');
+            if (!userButton.contains(event.target) && !dropdown.contains(event.target)) {
+                dropdown.style.display = 'none';
+            }
         });
     </script>
     

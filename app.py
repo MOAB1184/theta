@@ -98,12 +98,26 @@ if GEMINI_API_KEY:
 else:
     logger.warning("GEMINI_API_KEY not set")
 
+# Configure DeepSeek
 DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
 DEEPSEEK_URL = os.getenv('DEEPSEEK_URL', 'https://api.deepseek.com/v1')
 DEEPSEEK_MODEL = os.getenv('DEEPSEEK_MODEL', 'deepseek-reasoner')
 
+if not DEEPSEEK_API_KEY:
+    logger.warning("DEEPSEEK_API_KEY not set")
+
 # Base Prompt that handles subject detection and formatting
 BASE_PROMPT = """
+Please summarize this class transcript in about 600 words. Be concise and focus on the most important points.
+
+At the top of your response, generate a clear, descriptive title for the class or session. Format your output as follows:
+
+Title: (your generated title here)
+Summary: (your generated summary here, using the template below)
+
+Do not include the brackets or parentheses in your output. The title should be a concise phrase that captures the main topic or theme of the class.
+
+""" + """
 Please summarize this class transcript according to the appropriate template below:
 
 FOR MATHEMATICS:
@@ -261,12 +275,16 @@ def get_user_by_username(username):
     return mongo.db.users.find_one({"username": username})
 
 def create_user(username, password_hash, role, email=None, is_admin=False, school_id=None, is_approved=False):
+    # Generate verification token
+    verification_token = ''.join(random.choices(string.ascii_letters + string.digits, k=32))
+    
     user = {
         "username": username,
         "password_hash": password_hash,
         "role": role,
         "email": email,
-        "email_verified": True,  # Set to True by default
+        "email_verified": False,  # Set to False by default
+        "verification_token": verification_token,
         "is_admin": is_admin,
         "school_id": ObjectId(school_id) if school_id else None,
         "subscribed": False,
@@ -278,6 +296,15 @@ def create_user(username, password_hash, role, email=None, is_admin=False, schoo
     
     # Create user directly in users collection
     result = mongo.db.users.insert_one(user)
+    
+    # Send verification email if email is provided
+    if email:
+        verification_url = url_for('verify_email', token=verification_token, _external=True)
+        email_template = render_template('email/verify_email.html',
+                                      username=username,
+                                      verification_url=verification_url)
+        send_email(email, 'Verify your ThetaSummary account', email_template)
+    
     return result
 
 def get_school_by_id(school_id):
@@ -418,15 +445,20 @@ def login():
         password = request.form.get('password')
         
         user = get_user_by_username(username)
+        
         if user and check_password_hash(user['password_hash'], password):
-            # REMOVE admin approval check for teachers
+            # Check if email verification is required and not completed
+            if user.get('email') and not user.get('email_verified'):
+                flash('Please verify your email address before logging in. Check your inbox for the verification link.', 'warning')
+                return render_template('login.html', error='Email verification required')
+            
             session['user_id'] = str(user['_id'])
             session['username'] = user['username']
             session['role'] = user['role']
             session['is_admin'] = user.get('is_admin', False)
             return redirect(url_for('dashboard'))
-        
-        return render_template('login.html', error='Invalid username or password')
+        else:
+            return render_template('login.html', error='Invalid username or password')
     
     return render_template('login.html')
 
@@ -1762,63 +1794,72 @@ def generate_summary(transcript, timestamp, class_id):
         
     logger.info("Using DeepSeek for summarization...")
     try:
-        deepseek_client = openai.OpenAI(api_key=DEEPSEEK_API_KEY, base_url=DEEPSEEK_URL)
-        summary_resp = deepseek_client.chat.completions.create(
-            model=DEEPSEEK_MODEL,
-            messages=[{"role": "user", "content": full_summarization_prompt}],
-            stream=False
+        headers = {
+            "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
+            "Content-Type": "application/json"
+        }
+        
+        data = {
+            "model": DEEPSEEK_MODEL,
+            "messages": [{"role": "user", "content": full_summarization_prompt}],
+            "stream": False
+        }
+        
+        logger.info(f"Making request to {DEEPSEEK_URL}/chat/completions")
+        response = requests.post(
+            f"{DEEPSEEK_URL}/chat/completions",
+            headers=headers,
+            json=data,
+            timeout=300
         )
-        summary = summary_resp.choices[0].message.content
+        
+        if response.status_code != 200:
+            error_msg = f"API request failed with status {response.status_code}: {response.text}"
+            logger.error(error_msg)
+            raise Exception(error_msg)
+            
+        result = response.json()
+        summary = result['choices'][0]['message']['content']
         logger.info(f"[SUMMARY] Finished summarization for class_id={class_id}, timestamp={timestamp}")
+
+        # --- Save summary to Wasabi S3 and update MongoDB ---
+        summary_filename = f"summary_{timestamp}.txt"
+        class_obj = mongo.db.classes.find_one({"_id": ObjectId(class_id)})
+        if not class_obj:
+            raise Exception('Class not found')
+        teacher = mongo.db.users.find_one({"_id": class_obj['teacher_id']})
+        class_dir = f"{teacher['username']}/classes/{class_obj['class_code']}"
+        summary_path = f"{class_dir}/{summary_filename}"
+        logger.info(f"Uploading summary to S3: {summary_path}")
+        encoded_summary = summary.encode('utf-8') if isinstance(summary, str) else summary
+        s3_client.put_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=summary_path, Body=encoded_summary)
+        # Store the summary with the original created_at timestamp
+        mongo.db.classes.update_one(
+            {"_id": ObjectId(class_id)},
+            {"$addToSet": {"summaries": {
+                "filename": summary_filename,
+                    "created_at": created_at,
+                "approved": False
+            }}}
+        )
+            # Optionally, send email notification to teacher
+        if teacher.get('email') and teacher.get('email_verified') and teacher.get('email_notifications_enabled', False):
+            email_template = render_template('email/summary_complete.html',
+                                        username=teacher['username'],
+                                        class_name=class_obj['name'],
+                                        summary_url=url_for('view_summary', filename=summary_filename, _external=True))
+            send_email(teacher['email'], 'Your summary is ready!', email_template)
+        return {
+            'summary': summary,
+            'summary_filename': summary_filename
+        }
+        
     except Exception as e:
         logger.error(f"[SUMMARY] Summarization failed for class_id={class_id}, timestamp={timestamp}: {e}")
         logger.error(f"DeepSeek API error: {e}")
         if "authenticate" in str(e).lower() or "authorization" in str(e).lower():
             raise Exception("DeepSeek API key is invalid")
         raise Exception(f"Error with DeepSeek API: {str(e)}")
-        
-    summary_filename = f"summary_{timestamp}.txt"
-    summary_path = None
-    
-    class_obj = mongo.db.classes.find_one({"_id": ObjectId(class_id)})
-    if not class_obj:
-        raise Exception('Class not found')
-        
-    teacher = mongo.db.users.find_one({"_id": class_obj['teacher_id']})
-    class_dir = f"{teacher['username']}/classes/{class_obj['class_code']}"
-    summary_path = f"{class_dir}/{summary_filename}"
-    
-    logger.info(f"Trying to save summary to S3 at: {summary_path}")
-    logger.info(f"Type of summary: {type(summary)}, repr: {repr(summary)[:100]}")
-    encoded_summary = summary.encode('utf-8') if isinstance(summary, str) else summary
-    if not isinstance(encoded_summary, (bytes, bytearray)):
-        logger.error(f"Summary Body is not bytes: {type(encoded_summary)}")
-        raise Exception(f"Summary Body is not bytes: {type(encoded_summary)}")
-    logger.info(f"Uploading to S3: Bucket={os.getenv('WASABI_BUCKET_NAME')}, Key={summary_path}, Body type={type(encoded_summary)}")
-    s3_client.put_object(Bucket=os.getenv('WASABI_BUCKET_NAME'), Key=summary_path, Body=encoded_summary)
-    
-    # Store the summary with the original created_at timestamp
-    mongo.db.classes.update_one(
-        {"_id": ObjectId(class_id)},
-        {"$addToSet": {"summaries": {
-            "filename": summary_filename,
-            "created_at": created_at,  # Use the timestamp we created at the start
-            "approved": False
-        }}}
-    )
-    
-    # Send email notification
-    if teacher.get('email') and teacher.get('email_verified'):
-        email_template = render_template('email/summary_complete.html',
-                                      username=teacher['username'],
-                                      class_name=class_obj['name'],
-                                      summary_url=url_for('view_summary', filename=summary_filename, _external=True))
-        send_email(teacher['email'], 'Your summary is ready!', email_template)
-    
-    return {
-        'summary': summary,
-        'summary_filename': summary_filename
-    }
 
 @app.route('/verify-email/<token>')
 def verify_email(token):
@@ -2028,33 +2069,31 @@ Context from attached summaries:
 
 User message: {message}"""
         
-        # Initialize OpenRouter client
-        client = OpenAI(
-            base_url="https://openrouter.ai/api/v1",
-            api_key=OPENROUTER_API_KEY
-        )
-        
-        # Call OpenRouter API
-        completion = client.chat.completions.create(
-            extra_headers={
+        # Use direct HTTP request to OpenRouter API
+        headers = {
+            "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+            "Content-Type": "application/json",
                 "HTTP-Referer": OPENROUTER_SITE_URL,
-                "X-Title": OPENROUTER_SITE_TITLE,
-            },
-            model=OPENROUTER_MODEL,
-            messages=[
-                {
-                    "role": "user",
-                    "content": full_message
-                }
-            ]
+            "X-Title": OPENROUTER_SITE_TITLE
+        }
+        data = {
+            "model": OPENROUTER_MODEL,
+            "messages": [{"role": "user", "content": full_message}],
+            "stream": False
+        }
+        response = requests.post(
+            "https://openrouter.ai/api/v1/chat/completions",
+            headers=headers,
+            json=data,
+            timeout=60
         )
-        
-        ai_response = completion.choices[0].message.content
-        
-        # Calculate actual token usage
-        input_tokens = completion.usage.prompt_tokens
-        output_tokens = completion.usage.completion_tokens
-        
+        if response.status_code != 200:
+            logger.error(f"OpenRouter API error: {response.status_code} {response.text}")
+            return jsonify({'status': 'error', 'message': f'OpenRouter API error: {response.text}'}), 500
+        result = response.json()
+        ai_response = result['choices'][0]['message']['content']
+        input_tokens = result.get('usage', {}).get('prompt_tokens', 0)
+        output_tokens = result.get('usage', {}).get('completion_tokens', 0)
         # Update user's token balance and usage
         mongo.db.users.update_one(
             {'_id': ObjectId(session['user_id'])},
@@ -2066,7 +2105,6 @@ User message: {message}"""
                 }
             }
         )
-        
         return jsonify({'status': 'success', 'response': ai_response})
     except Exception as e:
         logger.error(f"Error in chat API: {str(e)}")
@@ -2361,6 +2399,73 @@ def recording_time_purchase_success():
 def recording_time_purchase_cancelled():
     flash('Recording time purchase cancelled', 'info')
     return redirect(url_for('buy'))
+
+@app.route('/settings')
+def settings():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
+    if not user:
+        return redirect(url_for('logout'))
+    
+    return render_template('settings.html',
+                         username=user['username'],
+                         user_role=user['role'],
+                         subscription_type=user.get('subscription_type', 'plus'),
+                         plan_limits=user.get('plan_limits', {}),
+                         is_admin=user.get('is_admin', False))
+
+@app.route('/resend-verification', methods=['POST'])
+def resend_verification():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])})
+    if not user or not user.get('email'):
+        flash('No email address found for your account.', 'error')
+        return redirect(url_for('dashboard'))
+    
+    if user.get('email_verified'):
+        flash('Your email is already verified.', 'info')
+        return redirect(url_for('dashboard'))
+    
+    # Generate new verification token
+    verification_token = ''.join(random.choices(string.ascii_letters + string.digits, k=32))
+    
+    # Update user with new token
+    mongo.db.users.update_one(
+        {"_id": user["_id"]},
+        {"$set": {"verification_token": verification_token}}
+    )
+    
+    # Send new verification email
+    verification_url = url_for('verify_email', token=verification_token, _external=True)
+    email_template = render_template('email/verify_email.html',
+                                  username=user['username'],
+                                  verification_url=verification_url)
+    send_email(user['email'], 'Verify your ThetaSummary account', email_template)
+    
+    flash('Verification email has been resent. Please check your inbox.', 'success')
+    return redirect(url_for('dashboard'))
+
+# --- Email Notification Preference API ---
+from flask import jsonify
+
+@app.route('/api/user/email_notifications', methods=['GET'])
+def get_email_notifications():
+    if 'user_id' not in session:
+        return jsonify({'status': 'error', 'message': 'Not logged in'}), 401
+    user = mongo.db.users.find_one({'_id': ObjectId(session['user_id'])})
+    enabled = user.get('email_notifications_enabled', False)
+    return jsonify({'status': 'success', 'enabled': enabled})
+
+@app.route('/api/user/email_notifications', methods=['POST'])
+def set_email_notifications():
+    if 'user_id' not in session:
+        return jsonify({'status': 'error', 'message': 'Not logged in'}), 401
+    enabled = request.json.get('enabled', False)
+    mongo.db.users.update_one({'_id': ObjectId(session['user_id'])}, {'$set': {'email_notifications_enabled': enabled}})
+    return jsonify({'status': 'success', 'enabled': enabled})
 
 if __name__ == '__main__':
     ensure_admin_and_school()

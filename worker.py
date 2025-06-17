@@ -7,6 +7,7 @@ from datetime import datetime
 import google.generativeai as genai
 import openai
 import base64
+import requests
 
 load_dotenv()
 
@@ -17,7 +18,7 @@ client = MongoClient(mongo_uri)
 db = client['theta_summary']
 jobs_col = db['jobs']
 
-JOBS_DIR = os.path.abspath('jobs')
+JOBS_DIR = os.getenv('JOBS_DIR', os.path.abspath('jobs'))
 
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
 DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
@@ -26,6 +27,9 @@ DEEPSEEK_MODEL = os.getenv('DEEPSEEK_MODEL', 'deepseek-reasoner')
 
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
+
+if not DEEPSEEK_API_KEY:
+    print("Warning: DEEPSEEK_API_KEY not set")
 
 def log_job(job_id, message):
     job = jobs_col.find_one({'job_id': job_id})
@@ -63,13 +67,32 @@ def process_job(job_id):
         log_job(job_id, 'Transcription complete')
         # 2. Summarize with DeepSeek
         prompt = "Please summarize this transcript for a student. Transcript: " + transcript
-        deepseek_client = openai.OpenAI(api_key=DEEPSEEK_API_KEY, base_url=DEEPSEEK_URL)
-        summary_resp = deepseek_client.chat.completions.create(
-            model=DEEPSEEK_MODEL,
-            messages=[{"role": "user", "content": prompt}],
-            stream=False
+        headers = {
+            "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
+            "Content-Type": "application/json"
+        }
+        
+        data = {
+            "model": DEEPSEEK_MODEL,
+            "messages": [{"role": "user", "content": prompt}],
+            "stream": False
+        }
+        
+        print(f"Making request to {DEEPSEEK_URL}/chat/completions")
+        response = requests.post(
+            f"{DEEPSEEK_URL}/chat/completions",
+            headers=headers,
+            json=data,
+            timeout=300
         )
-        summary = summary_resp.choices[0].message.content
+        
+        if response.status_code != 200:
+            error_msg = f"API request failed with status {response.status_code}: {response.text}"
+            print(error_msg)
+            raise Exception(error_msg)
+            
+        result = response.json()
+        summary = result['choices'][0]['message']['content']
         with open(summary_path, 'w', encoding='utf-8') as f:
             f.write(summary)
         log_job(job_id, 'Summarization complete')

@@ -169,6 +169,7 @@
             cursor: pointer;
             display: flex;
             align-items: center;
+            gap: 15px;
         }
         .user-avatar {
             width: 35px;
@@ -178,7 +179,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-right: 10px;
+            margin-left: 15px;
             font-weight: bold;
         }
         
@@ -187,24 +188,24 @@
             background: #1a1a1a;
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.18);
-            padding: 28px 24px;
+            padding: 15px 15px;
         }
         .summary-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 12px;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 6px;
         }
         .summary-title {
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             color: #4f8cff;
             margin: 0;
         }
         .summary-actions {
             display: flex;
-            gap: 12px;
+            gap: 8px;
             align-items: center;
         }
         .back-btn, .summary-action-btn {
@@ -221,41 +222,28 @@
             text-decoration: underline;
         }
         .summary-content {
-            font-size: 1.05rem;
+            font-size: 1rem;
             color: #e0e0e0;
-            line-height: 1.8;
+            line-height: 1.6;
+            margin-bottom: 12px;
         }
-        .summary-content h1 {
-            font-size: 1.8rem;
-            color: #ffffff;
-            margin: 20px 0 10px;
-        }
-        .summary-content h2 {
-            font-size: 1.4rem;
-            color: #ffffff;
-            margin: 20px 0 10px;
-        }
+        .summary-content h1,
+        .summary-content h2,
         .summary-content h3 {
-            font-size: 1.2rem;
-            color: #e0e0e0;
-            margin: 15px 0 8px;
-        }
-        .summary-content strong {
-            font-weight: 700;
-            color: #ffffff;
-        }
-        .summary-content em {
-            font-style: italic;
-            color: #e0e0e0;
+            margin-top: 8px;
+            margin-bottom: 6px;
         }
         .summary-content p {
-            margin-bottom: 15px;
+            margin: 4px 0 4px 0;
         }
-        .summary-content ul, .summary-content ol {
-            margin: 10px 0 10px 20px;
+        .summary-content ul,
+        .summary-content ol {
+            margin-top: 4px;
+            margin-bottom: 4px;
+            padding-left: 1.2em;
         }
         .summary-content li {
-            margin-bottom: 8px;
+            margin-bottom: 2px;
         }
         .error-message {
             background: #ff4f4f;
@@ -346,6 +334,21 @@
             padding: 2px 4px;
             border-radius: 3px;
         }
+        .card-content.latex-content {
+            font-size: 16px;
+            line-height: 1.35;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .card-content.latex-content p {
+            margin-bottom: 10px;
+        }
+        .card-content.latex-content ul, .card-content.latex-content ol {
+            margin: 12px 0 12px 32px;
+        }
+        .card-content.latex-content li {
+            margin-bottom: 8px;
+        }
     </style>
 </head>
 <body>
@@ -427,45 +430,36 @@
                 </button>
                 <h1 class="page-title">View Summary</h1>
                 <div class="user-menu">
-                    <button class="user-button">
-                        <div class="user-avatar">{{ username[0].upper() }}</div>
+                    <button class="user-button" onclick="toggleUserDropdown()">
                         <span>{{ username }}</span>
+                        <div class="user-avatar">{{ username[0].upper() }}</div>
                     </button>
+                    <div class="user-dropdown" id="userDropdown" style="display:none;position:absolute;top:100%;right:0;z-index:1000;background:#1a1a1a;border-radius:8px;box-shadow:0 4px 15px rgba(0,0,0,0.3);min-width:200px;margin-top:8px;">
+                        <a href="/settings" class="user-dropdown-item" style="display:block;padding:12px 16px;color:#e0e0e0;text-decoration:none;">Settings</a>
+                        <a href="/logout" class="user-dropdown-item" style="display:block;padding:12px 16px;color:#e0e0e0;text-decoration:none;">Logout</a>
+                    </div>
                 </div>
             </header>
             
-            <div class="summary-container">
-                <div class="error-message hidden" id="error-message"></div>
-                <div class="loading hidden" id="loading">
-                    <div class="spinner"></div>
-                </div>
-                <div class="summary-header">
+            <div class="result-card" style="margin: 0 auto; max-width: 900px;">
+                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; margin-bottom: 18px; padding-bottom: 12px;">
                     <div>
-                        <div class="summary-date" style="font-weight: bold; font-size: 1.1em;">
-                            <span id="summary-date">{{ summary_date if summary_date else '' }}</span>
-                        </div>
-                        <div class="summary-title" style="color: #a0a0a0; font-size: 1em; margin-top: 2px;">
-                            {{ filename }}
-                        </div>
+                        <div class="card-title" id="summary-title" style="font-size: 1.5rem; color: #fff; margin-bottom: 4px;">Summary</div>
+                        <div style="color: #a0a0a0; font-size: 1em;">{{ summary_date if summary_date else '' }}</div>
+                        <div style="color: #a0a0a0; font-size: 0.95em; margin-top: 2px;">{{ filename }}</div>
                     </div>
-                    <div class="summary-actions">
-                        <a href="{{ url_for('view_class', class_id=class_id) }}" class="back-btn">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                                <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
-                            </svg>
+                    <div style="display: flex; gap: 10px;">
+                        <a href="{{ url_for('view_class', class_id=class_id) }}" class="btn" style="background:#242424;color:#e0e0e0;padding:8px 20px;border-radius:50px;font-size:15px;text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/></svg>
                             Back to Class
                         </a>
-                        <a href="{{ url_for('download_file', filename=filename) }}" class="summary-action-btn" id="download-btn">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
-                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
-                            </svg>
+                        <a href="{{ url_for('download_file', filename=filename) }}" class="download-btn" style="padding:8px 20px;background:#242424;color:#e0e0e0;border-radius:50px;font-size:15px;text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/></svg>
                             Download
                         </a>
                     </div>
                 </div>
-                
-                <div id="summary-content" class="latex-content"></div>
+                <div id="summary-content" class="card-content latex-content" style="font-size:16px;line-height:1.7;"></div>
                 <script type="application/json" id="summary-raw-content">{{ content|tojson }}</script>
                 <script>
                     // Show error message
@@ -543,12 +537,26 @@
                         return htmlContent;
                     }
 
+                    // Parse summary to extract title and summary
+                    function extractTitleAndSummary(rawContent) {
+                        // Look for 'Title:' and 'Summary:'
+                        const titleMatch = rawContent.match(/Title:\s*(.*)/i);
+                        const summaryMatch = rawContent.match(/Summary:\s*([\s\S]*)/i);
+                        const title = titleMatch ? titleMatch[1].trim() : '';
+                        const summary = summaryMatch ? summaryMatch[1].trim() : rawContent;
+                        return { title, summary };
+                    }
+
                     // Initialize content rendering
                     document.addEventListener('DOMContentLoaded', function() {
                         try {
                             const rawContent = JSON.parse(document.getElementById('summary-raw-content').textContent);
+                            const { title, summary } = extractTitleAndSummary(rawContent);
+                            // Set the title in the card
+                            document.getElementById('summary-title').textContent = title || 'Summary';
+                            // Render the summary content as before
                             const summaryContent = document.getElementById('summary-content');
-                            summaryContent.innerHTML = processContent(rawContent);
+                            summaryContent.innerHTML = processContent(summary);
                         } catch (err) {
                             console.error('Error processing content:', err);
                             showError('Failed to render summary content. Check the console for details.');
@@ -644,6 +652,19 @@
             if (!isNaN(dateObj.getTime())) {
                 dateElem.textContent = dateObj.toLocaleString();
             }
+            }
+        });
+    </script>
+    <script>
+    function toggleUserDropdown() {
+        const dropdown = document.getElementById('userDropdown');
+        dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+    }
+    document.addEventListener('click', function(event) {
+        const dropdown = document.getElementById('userDropdown');
+        const userButton = document.querySelector('.user-button');
+        if (!userButton.contains(event.target) && !dropdown.contains(event.target)) {
+            dropdown.style.display = 'none';
             }
         });
     </script>

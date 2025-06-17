@@ -227,13 +227,12 @@
 </head>
 <body>
     <header>
-        <div class="container">
-            <div class="header-content">
-                <a href="{{ url_for('dashboard') }}" class="logo">Theta<span>Summary</span></a>
-                <div class="user-actions">
+        <div class="container header-content" style="justify-content: center; gap: 32px;">
+            <a href="/dashboard" class="logo">Theta<span>Summary</span></a>
+            <div class="user-actions">
+                {% if username %}
                     <span class="username">{{ username }}</span>
-                    <a href="{{ url_for('logout') }}" class="btn btn-outline">Logout</a>
-                </div>
+                {% endif %}
             </div>
         </div>
     </header>

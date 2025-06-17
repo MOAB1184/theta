@@ -474,6 +474,18 @@
         #transcript-content {
             display: none;
         }
+        .loading-spinner {
+            border: 8px solid #222;
+            border-top: 8px solid #888;
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
     <!-- KaTeX CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css" crossorigin="anonymous">
@@ -556,10 +568,14 @@
             <header class="header">
                 <h1 class="page-title">Record Audio</h1>
                 <div class="user-menu">
-                    <button class="user-button">
-                        <div class="user-avatar">{{ username[0].upper() }}</div>
+                    <button class="user-button" onclick="toggleUserDropdown()">
                         <span>{{ username }}</span>
+                        <div class="user-avatar" style="margin-left:15px;">{{ username[0].upper() }}</div>
                     </button>
+                    <div class="user-dropdown" id="userDropdown" style="display:none;position:absolute;top:100%;right:0;z-index:1000;background:#1a1a1a;border-radius:8px;box-shadow:0 4px 15px rgba(0,0,0,0.3);min-width:200px;margin-top:8px;">
+                        <a href="/settings" class="user-dropdown-item" style="display:block;padding:12px 16px;color:#e0e0e0;text-decoration:none;">Settings</a>
+                        <a href="/logout" class="user-dropdown-item" style="display:block;padding:12px 16px;color:#e0e0e0;text-decoration:none;">Logout</a>
+                    </div>
                 </div>
             </header>
             
@@ -820,15 +836,16 @@
 
                 // Polling function for a summarize task
                 function pollSummarizeTask(taskId, meta) {
-                    // Show a loading card if not already present
                     let loadingCard = document.getElementById('loading-card-' + taskId);
                     if (!loadingCard) {
                         loadingCard = document.createElement('div');
                         loadingCard.className = 'result-card';
                         loadingCard.id = 'loading-card-' + taskId;
                         loadingCard.innerHTML = `
-                            <div class="card-header"><h2 class="card-title">Summary (Processing...)</h2></div>
-                            <div class="card-content">Your summary is being generated in the background. You can leave this page and come back later.</div>
+                            <div id="loading-spinner" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 0;">
+                                <div class="loading-spinner" style="margin-bottom:18px;"></div>
+                                <p style="color:#a0a0a0;font-size:1.1rem;text-align:center;">Summary is being processed. This may take a few minutes. You can leave this page and come back later.</p>
+                            </div>
                         `;
                         resultsSection.insertBefore(loadingCard, resultsSection.firstChild);
                         resultsSection.classList.remove('hidden');
@@ -963,7 +980,10 @@
                                                 // Save to localStorage for persistence
                                                 saveOngoingTask(taskId, { started: Date.now() });
                                                 // Redirect to class view page with task_id
-                                                window.location.href = `/classes/${classId}?task_id=${taskId}`;
+                                                if (taskId) {
+                                                    saveOngoingTask(taskId, { started: Date.now() });
+                                                    pollSummarizeTask(taskId, { started: Date.now() });
+                                                }
                                         } else {
                                             loadingSection.classList.add('hidden');
                                             showError(summarizeData.message || 'Unknown error occurred during summarization');
@@ -1077,6 +1097,18 @@
 
                 window.addEventListener('resize', handleResize);
                 handleResize();
+
+                function toggleUserDropdown() {
+                    const dropdown = document.getElementById('userDropdown');
+                    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+                }
+                document.addEventListener('click', function(event) {
+                    const dropdown = document.getElementById('userDropdown');
+                    const userButton = document.querySelector('.user-button');
+                    if (!userButton.contains(event.target) && !dropdown.contains(event.target)) {
+                        dropdown.style.display = 'none';
+                    }
+                });
             } catch (err) {
                 console.error('Error in DOMContentLoaded:', err);
                 showError('An error occurred while initializing the page. Check the console for details.');
