@@ -413,8 +413,8 @@
                     
                     <div class="settings-card">
                         <h3>Usage Limits</h3>
-                        <p>Daily Summaries: {{ plan_limits.get('daily_summaries', 0) }}</p>
-                        <p>Monthly Summaries: {{ plan_limits.get('monthly_summaries', 0) }}</p>
+                        <p>Daily Summaries: {{ plan_limits.get('summaries_per_day', 0) }}</p>
+                        <p>Monthly Summaries: {{ plan_limits.get('summaries_per_month', 0) }}</p>
                         <a href="{{ url_for('buy') }}" class="btn btn-outline">Purchase Tokens</a>
                     </div>
 

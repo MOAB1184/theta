@@ -500,20 +500,36 @@ def dashboard():
         class_obj['transcript_count'] = len(class_obj.get('transcripts', []))
     
     # Get summary limits and usage
-    plan_limits = user.get('plan_limits', {})
     subscription_type = user.get('subscription_type', 'plus')
     
-    # Count summaries for today and this month (in Pacific time)
-    pacific_tz = datetime.timezone(datetime.timedelta(hours=-7))  # PDT
+    # Define default plan limits
+    default_plan_limits = {
+        'plus': {
+            'summaries_per_day': 2,
+            'summaries_per_month': 60
+        },
+        'pro': {
+            'summaries_per_day': 5,
+            'summaries_per_month': 150
+        },
+        'enterprise': {
+            'summaries_per_day': float('inf'),
+            'summaries_per_month': float('inf')
+        }
+    }
+    
+    # Get user's plan limits or use defaults
+    plan_limits = user.get('plan_limits', default_plan_limits.get(subscription_type, default_plan_limits['plus']))
+    
+    pacific_tz = ZoneInfo('America/Los_Angeles')
     now = datetime.datetime.now(pacific_tz)
     today = now.date()
     month_start = datetime.datetime(now.year, now.month, 1, tzinfo=pacific_tz)
-    
+    # Count summaries for today and this month
     summaries_today = 0
     summaries_month = 0
-    
-    for class_obj in classes:
-        for summary in class_obj.get('summaries', []):
+    for class_obj2 in mongo.db.classes.find({'teacher_id': user['_id']}):
+        for summary in class_obj2.get('summaries', []):
             if 'created_at' in summary:
                 created_at = summary['created_at']
                 if isinstance(created_at, str):
@@ -521,15 +537,31 @@ def dashboard():
                         created_at = datetime.datetime.fromisoformat(created_at)
                     except Exception:
                         continue
-                # Make naive datetimes timezone-aware (UTC)
                 if created_at.tzinfo is None:
                     created_at = created_at.replace(tzinfo=datetime.timezone.utc)
-                # Convert to Pacific time
                 created_at = created_at.astimezone(pacific_tz)
                 if created_at.date() == today:
                     summaries_today += 1
                 if created_at >= month_start:
                     summaries_month += 1
+    out_of_summaries = False
+    summary_limit_resets_at = None
+    if subscription_type == 'plus':
+        if summaries_today >= plan_limits.get('summaries_per_day', 2):
+            out_of_summaries = True
+            # Reset at midnight Pacific
+            tomorrow = now + timedelta(days=1)
+            reset_time = datetime.datetime.combine(tomorrow.date(), datetime.time.min, tzinfo=pacific_tz)
+            summary_limit_resets_at = reset_time.strftime('%Y-%m-%d %I:%M %p %Z')
+    else:
+        if summaries_month >= plan_limits.get('summaries_per_month', 60):
+            out_of_summaries = True
+            # Reset at first of next month Pacific
+            if now.month == 12:
+                next_month = datetime.datetime(now.year + 1, 1, 1, tzinfo=pacific_tz)
+            else:
+                next_month = datetime.datetime(now.year, now.month + 1, 1, tzinfo=pacific_tz)
+            summary_limit_resets_at = next_month.strftime('%Y-%m-%d %I:%M %p %Z')
     
     return render_template('dashboard.html', 
                          classes=classes, 
@@ -676,8 +708,26 @@ def summarize():
             return jsonify({'status': 'error', 'message': 'Active subscription required to generate summaries'}), 403
 
         # Get plan limits
-        plan_limits = user.get('plan_limits', {})
         subscription_type = user.get('subscription_type', 'plus')
+        
+        # Define default plan limits
+        default_plan_limits = {
+            'plus': {
+                'summaries_per_day': 2,
+                'summaries_per_month': 60
+            },
+            'pro': {
+                'summaries_per_day': 5,
+                'summaries_per_month': 150
+            },
+            'enterprise': {
+                'summaries_per_day': float('inf'),
+                'summaries_per_month': float('inf')
+            }
+        }
+        
+        # Get user's plan limits or use defaults
+        plan_limits = user.get('plan_limits', default_plan_limits.get(subscription_type, default_plan_limits['plus']))
 
         # Count summaries for today and this month
         today = datetime.datetime.now(datetime.timezone.utc).date()
@@ -1204,8 +1254,27 @@ def view_class(class_id):
     processing_summaries = []  # TODO: Replace with real in-progress summary tracking
 
     # --- Summary limit logic ---
-    plan_limits = user.get('plan_limits', {})
     subscription_type = user.get('subscription_type', 'plus')
+    
+    # Define default plan limits
+    default_plan_limits = {
+        'plus': {
+            'summaries_per_day': 2,
+            'summaries_per_month': 60
+        },
+        'pro': {
+            'summaries_per_day': 5,
+            'summaries_per_month': 150
+        },
+        'enterprise': {
+            'summaries_per_day': float('inf'),
+            'summaries_per_month': float('inf')
+        }
+    }
+    
+    # Get user's plan limits or use defaults
+    plan_limits = user.get('plan_limits', default_plan_limits.get(subscription_type, default_plan_limits['plus']))
+    
     pacific_tz = ZoneInfo('America/Los_Angeles')
     now = datetime.datetime.now(pacific_tz)
     today = now.date()
@@ -2408,11 +2477,31 @@ def settings():
     if not user:
         return redirect(url_for('logout'))
     
+    # Define default plan limits
+    subscription_type = user.get('subscription_type', 'plus')
+    default_plan_limits = {
+        'plus': {
+            'summaries_per_day': 2,
+            'summaries_per_month': 60
+        },
+        'pro': {
+            'summaries_per_day': 5,
+            'summaries_per_month': 150
+        },
+        'enterprise': {
+            'summaries_per_day': float('inf'),
+            'summaries_per_month': float('inf')
+        }
+    }
+    
+    # Get user's plan limits or use defaults
+    plan_limits = user.get('plan_limits', default_plan_limits.get(subscription_type, default_plan_limits['plus']))
+    
     return render_template('settings.html',
                          username=user['username'],
                          user_role=user['role'],
-                         subscription_type=user.get('subscription_type', 'plus'),
-                         plan_limits=user.get('plan_limits', {}),
+                         subscription_type=subscription_type,
+                         plan_limits=plan_limits,
                          is_admin=user.get('is_admin', False))
 
 @app.route('/resend-verification', methods=['POST'])
