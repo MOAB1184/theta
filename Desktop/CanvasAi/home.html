@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canvas AI - Home</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Refined Light Mode Colors - Inspired by Notion */
+            --primary-color: #446CDA; /* Softer, more branded blue */
+            --primary-color-hover: #335AC9;
+            --secondary-color: #7B61FF; /* Purple accent */
+            --success-color: #0FBA81; /* Slightly softer green */
+            --warning-color: #F4AE55; /* Warmer orange */
+            --danger-color: #E5484D; /* Softer red */
+            --light-bg: #FFFFFF;
+            --light-surface: #F5F6F8; /* Softer surface */
+            --light-border: #DCDFE4; /* Softer border */
+            --text-primary: #111827; /* Darker text */
+            --text-secondary: #68778D; /* Muted text */
+            --text-muted: #9AA4B2; /* Placeholder text */
+            --text-on-primary: #FFFFFF;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --radius-sm: 6px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+
+            /* Dark Mode Colors - Based on the image */
+            --dark-bg: #0F0F0F; /* Very dark gray/almost black background */
+            --dark-surface: #1A1A1A; /* Slightly lighter dark gray for cards/sidebar */
+            --dark-border: #2A2A2A; /* Subtle dark border */
+            --dark-text-primary: #FFFFFF; /* Pure white text */
+            --dark-text-secondary: #B0B0B0; /* Light gray for secondary text */
+            --dark-text-muted: #808080; /* Medium gray for muted text */
+            --dark-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--light-bg);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+
+
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 260px; /* Slightly narrower */
+            background: var(--light-surface);
+            border-right: 1px solid var(--light-border);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            z-index: 100;
+            transition: transform 0.3s ease, width 0.3s ease; /* Smooth collapse */
+        }
+        .sidebar.collapsed {
+             width: 60px; /* Width when collapsed */
+        }
+        .sidebar.collapsed .sidebar-header .username,
+        .sidebar.collapsed .nav-link span,
+        .sidebar.collapsed .sidebar-footer span {
+            display: none; /* Hide text when collapsed */
+        }
+        .sidebar.collapsed .user-avatar {
+            margin: 0 auto; /* Center avatar when collapsed */
+        }
+        .sidebar.collapsed .nav-icon {
+             margin: 0 auto; /* Center icons when collapsed */
+        }
+
+        .sidebar-header {
+            padding: 1.5rem 1rem; /* Adjusted padding */
+            border-bottom: 1px solid var(--light-border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 36px; /* Slightly smaller */
+            height: 36px;
+            background: var(--primary-color);
+            color: var(--text-on-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px; /* Smaller font */
+            flex-shrink: 0; /* Prevent shrinking */
+        }
+
+        .user-info {
+            flex: 1;
+            min-width: 0; /* Allow text truncation */
+        }
+
+        .username {
+            font-weight: 600; /* Slightly bolder */
+            font-size: 15px;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 0.5rem 0; /* Reduced top/bottom padding */
+            overflow-y: auto; /* Allow scrolling if many items */
+        }
+
+        .sidebar-nav ul {
+            list-style: none;
+        }
+
+        .sidebar-nav li {
+            margin: 2px 0;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 12px; /* Reduced padding */
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border-radius: 0 var(--radius-md) var(--radius-md) 0; /* Rounded only on right */
+            margin-right: 8px; /* Space from right edge */
+        }
+        .nav-link:hover {
+            background: rgba(0, 0, 0, 0.05); /* Subtle hover background */
+            color: var(--text-primary);
+        }
+        .nav-link.active {
+            background: rgba(68, 108, 218, 0.1); /* Light blue tint background */
+            color: var(--primary-color); /* Blue text */
+            font-weight: 500;
+        }
+        .nav-link.active:hover {
+             background: rgba(68, 108, 218, 0.15); /* Slightly darker on hover when active */
+        }
+
+
+        .nav-icon {
+            width: 18px; /* Slightly smaller */
+            height: 18px;
+            stroke-width: 2;
+            flex-shrink: 0; /* Prevent shrinking */
+        }
+
+        .sidebar-footer {
+            padding: 1rem 12px; /* Adjusted padding */
+            border-top: 1px solid var(--light-border);
+        }
+
+        .sidebar-toggle-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 14px;
+            padding: 6px 0; /* Reduced padding */
+            transition: color 0.2s ease;
+            width: 100%; /* Full width for better click area */
+            text-align: left; /* Align text left */
+        }
+        .sidebar-toggle-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 260px; /* Match sidebar width */
+            padding: 2rem;
+            background: var(--light-bg);
+            transition: margin-left 0.3s ease; /* Smooth margin change on collapse */
+        }
+        .main-content.sidebar-collapsed {
+            margin-left: 60px; /* Match collapsed sidebar width */
+        }
+
+        .content-view {
+            display: none;
+        }
+
+        .content-view.active {
+            display: block;
+        }
+
+        .page-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .welcome-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            border-radius: var(--radius-lg);
+            color: var(--text-on-primary);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .sparkle-icon {
+            width: 32px;
+            height: 32px;
+            color: var(--text-on-primary);
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+        }
+
+        .welcome-header h1 {
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: var(--text-on-primary);
+            margin: 0;
+        }
+
+        .ai-prompt-container {
+            margin-bottom: 4rem;
+        }
+
+        .home-agent-input-box {
+            background: var(--light-bg);
+            border: 2px solid var(--light-border);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-lg);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .home-agent-input-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .home-agent-input-box:focus-within {
+            border-color: var(--primary-color);
+            box-shadow: 0 8px 25px rgba(68, 108, 218, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        .home-agent-input-box:focus-within::before {
+            opacity: 1;
+        }
+
+        .home-agent-input-box textarea {
+            width: 100%;
+            border: none;
+            background: transparent;
+            resize: none;
+            font-size: 16px;
+            font-family: inherit;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            padding: 0.25rem;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .home-agent-input-box textarea::placeholder {
+            color: var(--text-muted);
+        }
+        .home-agent-input-box textarea:focus {
+            outline: none;
+        }
+
+        .home-agent-submit-btn {
+            background: transparent;
+            color: var(--text-secondary);
+            border: none;
+            border-radius: 50%;
+            padding: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s ease, color 0.2s ease;
+            width: 32px;
+            height: 32px;
+        }
+        .home-agent-submit-btn:hover {
+            background: rgba(0, 0, 0, 0.1);
+            color: var(--text-primary);
+        }
+        body.dark-mode .home-agent-submit-btn {
+            color: var(--dark-text-secondary);
+        }
+        body.dark-mode .home-agent-submit-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--dark-text-primary);
+        }
+
+        .home-agent-input-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .home-agent-action-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .home-agent-action-btn {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid transparent;
+            border-radius: var(--radius-md);
+            padding: 4px 10px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .home-agent-action-btn:hover {
+             background: var(--light-surface);
+             border-color: var(--light-border);
+             color: var(--text-primary);
+        }
+        body.dark-mode .home-agent-action-btn {
+            color: var(--dark-text-secondary);
+        }
+        body.dark-mode .home-agent-action-btn:hover {
+             background: var(--dark-bg);
+             border-color: var(--dark-border);
+             color: var(--dark-text-primary);
+        }
+
+        /* Style dropdowns */
+        .home-agent-dropdown-wrapper {
+            position: relative;
+        }
+        .home-agent-dropdown-wrapper select {
+            appearance: none;
+            background: transparent;
+            border: 1px solid var(--light-border);
+            border-radius: var(--radius-md);
+            padding: 4px 28px 4px 10px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .home-agent-dropdown-wrapper select:hover {
+             background: var(--light-surface);
+        }
+        .home-agent-dropdown-wrapper select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(68, 108, 218, 0.2);
+        }
+        /* Custom dropdown arrow */
+        .home-agent-dropdown-wrapper::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+            border-top: 4px solid var(--text-secondary); /* Arrow color */
+            pointer-events: none;
+        }
+
+
+        .home-agent-tool-btn {
+            background: transparent;
+            border: none;
+            border-radius: var(--radius-md);
+            padding: 6px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .home-agent-tool-btn:hover {
+            background: var(--light-surface);
+            color: var(--text-primary);
+        }
+        .home-agent-tool-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+        body.dark-mode .home-agent-tool-btn {
+            color: var(--dark-text-secondary);
+        }
+        body.dark-mode .home-agent-tool-btn:hover {
+            background: var(--dark-bg);
+            color: var(--dark-text-primary);
+        }
+
+        .home-section {
+            margin-bottom: 2.5rem; /* Increased spacing */
+        }
+
+        .home-section h2 {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .section-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .recent-pages-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .recent-page-card {
+            background: var(--light-bg);
+            border: 1px solid var(--light-border);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            text-decoration: none;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .recent-page-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+        
+        .recent-page-card:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .recent-page-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .card-icon {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-on-primary);
+            margin-bottom: 16px;
+            box-shadow: var(--shadow-md);
+            transition: transform 0.3s ease;
+        }
+        
+        .recent-page-card:hover .card-icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .card-icon svg {
+            width: 28px;
+            height: 28px;
+        }
+
+        .card-title {
+            font-weight: 600;
+            font-size: 18px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 8px;
+        }
+
+        .upcoming-events-list {
+            background: var(--light-bg);
+            border: 1px solid var(--light-border);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-md);
+        }
+
+        .event-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            border-radius: var(--radius-md);
+            transition: background-color 0.2s ease;
+            margin-bottom: 8px;
+        }
+        
+        .event-item:hover {
+            background: var(--light-surface);
+        }
+
+        .event-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .event-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .event-title {
+            flex: 1;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .event-time {
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .page-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .btn {
+            background: var(--primary-color);
+            color: var(--text-on-primary);
+            border: none;
+            border-radius: var(--radius-md);
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            background: var(--primary-color-hover);
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+             .sidebar, .main-content {
+                transition: none; /* Disable transitions on mobile for performance */
+            }
+        }
+
+        /* Dark mode styles */
+        body.dark-mode {
+            background-color: var(--dark-bg);
+            color: var(--dark-text-primary);
+        }
+
+
+
+        body.dark-mode .sidebar {
+            background: var(--dark-surface);
+            border-color: var(--dark-border);
+        }
+
+        body.dark-mode .sidebar-header {
+            border-color: var(--dark-border);
+        }
+
+        body.dark-mode .nav-link {
+            color: var(--dark-text-secondary);
+        }
+
+        body.dark-mode .nav-link:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--dark-text-primary);
+        }
+
+        body.dark-mode .nav-link.active {
+            background: rgba(68, 108, 218, 0.15);
+            color: var(--primary-color);
+        }
+        body.dark-mode .nav-link.active:hover {
+             background: rgba(68, 108, 218, 0.2);
+        }
+
+        body.dark-mode .sidebar-footer {
+            border-color: var(--dark-border);
+        }
+
+        body.dark-mode .sidebar-toggle-btn {
+             color: var(--dark-text-secondary);
+        }
+        body.dark-mode .sidebar-toggle-btn:hover {
+            color: var(--dark-text-primary);
+        }
+
+        body.dark-mode .main-content {
+            background: var(--dark-bg);
+        }
+
+        body.dark-mode .home-agent-input-box {
+            background: var(--dark-surface);
+            border-color: var(--dark-border);
+            box-shadow: var(--dark-shadow);
+        }
+
+        body.dark-mode .home-agent-input-box textarea {
+            color: var(--dark-text-primary);
+        }
+        body.dark-mode .home-agent-input-box textarea::placeholder {
+            color: var(--dark-text-muted);
+        }
+        
+        body.dark-mode .home-agent-dropdown-wrapper select {
+            background: transparent;
+            border-color: var(--dark-border);
+            color: var(--dark-text-primary);
+        }
+        body.dark-mode .home-agent-dropdown-wrapper select:hover {
+             background: var(--dark-bg);
+        }
+        body.dark-mode .home-agent-dropdown-wrapper select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(68, 108, 218, 0.3);
+        }
+        body.dark-mode .home-agent-dropdown-wrapper::after {
+             border-top-color: var(--dark-text-secondary); /* Dark mode arrow */
+        }
+
+        body.dark-mode .upcoming-events-list {
+            background: var(--dark-surface);
+            border-color: var(--dark-border);
+            box-shadow: var(--dark-shadow);
+        }
+
+        body.dark-mode .recent-page-card {
+            background: var(--dark-surface);
+            border-color: var(--dark-border);
+            box-shadow: var(--dark-shadow);
+            color: var(--dark-text-primary);
+        }
+        body.dark-mode .recent-page-card:hover {
+            border-color: var(--primary-color);
+            box-shadow: var(--shadow-md); /* Use light shadow for contrast */
+        }
+
+        body.dark-mode .event-item {
+            border-color: var(--dark-border);
+        }
+
+        body.dark-mode .event-title {
+             color: var(--dark-text-primary);
+        }
+        body.dark-mode .event-time {
+             color: var(--dark-text-secondary);
+        }
+
+        body.dark-mode .welcome-header h1,
+        body.dark-mode .home-section h2,
+        body.dark-mode .page-header h1 {
+            color: var(--dark-text-primary);
+        }
+        
+        /* Dark mode welcome header adjustments */
+        body.dark-mode .welcome-header {
+            background: linear-gradient(135deg, #2A2A2A 0%, #1A1A1A 100%);
+            border: 1px solid var(--dark-border);
+        }
+
+        body.dark-mode .username {
+             color: var(--dark-text-primary);
+        }
+        
+        /* Quick Actions Styles */
+        .quick-actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .quick-action-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--light-bg);
+            border: 1px solid var(--light-border);
+            border-radius: var(--radius-lg);
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--text-primary);
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        .quick-action-btn:hover {
+            border-color: var(--primary-color);
+            background: var(--light-surface);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .quick-action-btn svg {
+            width: 20px;
+            height: 20px;
+            color: var(--primary-color);
+        }
+        
+        /* Dark mode for quick actions */
+        body.dark-mode .quick-action-btn {
+            background: var(--dark-surface);
+            border-color: var(--dark-border);
+            color: var(--dark-text-primary);
+        }
+        
+        body.dark-mode .quick-action-btn:hover {
+            background: var(--dark-bg);
+            border-color: var(--primary-color);
+        }
+    </style>
+</head>
+<body class="dark-mode">
+
+    <div class="dashboard-container" id="dashboard-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="user-avatar">S</div>
+                <div class="user-info"><div class="username">shaurya duggal's...</div></div>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li><a class="nav-link" data-view="home"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg><span>Home</span></a></li>
+                    <li><a class="nav-link" data-view="ai-agent"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg><span>AI Agent</span></a></li>
+                    <li><a class="nav-link" data-view="notes"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg><span>Notes</span></a></li>
+                    <li><a class="nav-link" data-view="calendar"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg><span>Calendar</span></a></li>
+                    <li><a class="nav-link" data-view="assignments"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg><span>Assignments</span></a></li>
+                    <li><a class="nav-link" data-view="student-planner"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg><span>Student Planner</span></a></li>
+                    <li><a class="nav-link" data-view="autocomplete-hw"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg><span>AutoComplete HW</span></a></li>
+                    <li><a class="nav-link" data-view="ai-class-notes"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v15H6.5A2.5 2.5 0 0 1 4 14.5V4A2 2 0 0 1 6.5 2z"></path></svg><span>AI Class Notes</span></a></li>
+                    <li><a class="nav-link" data-view="ai-tutor"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg><span>AI Tutor</span></a></li>
+                    <li><a class="nav-link" data-view="settings"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l-.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg><span>Settings</span></a></li>
+                    <li><a class="nav-link theme-toggle-btn" id="theme-toggle-btn"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg><span>Light Mode</span></a></li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="sidebar-toggle-btn" id="sidebar-toggle-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                    <span>Collapse</span>
+                </button>
+            </div>
+        </aside>
+        <main class="main-content">
+            <!-- Home/Dashboard View -->
+            <div id="home-view" class="content-view active page-container">
+                <div class="welcome-header">
+                    <svg class="sparkle-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M12,2.6L9.3,8L3,9.3l4.5,4.1L6.2,20L12,16.5L17.8,20l-1.3-6.6L21,9.3l-6-1.3L12,2.6z"/></svg>
+                    <div>
+                        <h1>Good evening, shaurya</h1>
+                        <p style="margin: 8px 0 0 0; opacity: 0.9; font-size: 16px;">Ready to boost your productivity?</p>
+                    </div>
+                </div>
+                <div class="ai-prompt-container">
+                    <div class="home-agent-input-box">
+                        <textarea id="home-ai-input" rows="1" placeholder="Ask anything from your workspace..."></textarea>
+                        <div class="home-agent-input-actions">
+                            <div class="home-agent-action-group">
+                                <div class="home-agent-dropdown-wrapper">
+                                    <select class="home-agent-action-select">
+                                        <option value="ask">Ask</option>
+                                    </select>
+                                </div>
+                                <button class="home-agent-action-btn">Research</button>
+                                <button class="home-agent-action-btn">Build</button>
+                            </div>
+                            <div class="home-agent-action-group">
+                                <button class="home-agent-tool-btn" title="Web Search">
+                                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z M9 12a3 3 0 1 0 6 0 3 3 0 0 0-6 0z"/></svg>
+                                </button>
+                                <button class="home-agent-tool-btn" title="All Sources">
+                                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM16 18H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                                    <span style="font-size: 14px; font-weight: 500;">All sources</span>
+                                </button>
+                                <button class="home-agent-tool-btn" title="Attach File">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+                                </button>
+                                <button class="home-agent-tool-btn" title="Mention">
+                                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c5.52 0 10 4.48 10 10s-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2zm4.45 13.23c.31-.64.47-1.35.47-2.1 0-2.42-1.72-4.44-4-4.84V8.5c.83 0 1.5.67 1.5 1.5h2c0-1.93-1.57-3.5-3.5-3.5S8.5 8.07 8.5 10h2c0-.83.67-1.5 1.5-1.5v1.89c-2.28.4-4 2.42-4 4.84 0 .75.16 1.46.47 2.1h-.47v2h8v-2h-.55zM12 16.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                                </button>
+                                <button id="home-ai-submit" class="home-agent-submit-btn">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Quick Actions Section -->
+                <div class="home-section">
+                    <h2><svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Quick Actions</h2>
+                    <div class="quick-actions-grid">
+                        <button class="quick-action-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                            <span>Create Note</span>
+                        </button>
+                        <button class="quick-action-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                            <span>Add Event</span>
+                        </button>
+                        <button class="quick-action-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+                            <span>New Task</span>
+                        </button>
+                        <button class="quick-action-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                            <span>AI Chat</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="home-section">
+                    <h2><svg class="section-icon" viewBox="0 0 16 16"><path fill="currentColor" d="M8,0a8,8,0,1,0,8,8A8,8,0,0,0,8,0ZM8,14a6,6,0,1,1,6-6A6,6,0 0,1,8,14Z"/><path fill="currentColor" d="M10.45,11.11,7.5,8.85V4h1V8.29l2.55,2Z"/></svg>Recently visited</h2>
+                    <div class="recent-pages-grid">
+                        <a class="recent-page-card" href="home.html">
+                            <div class="card-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>
+                            </div>
+                            <div class="card-title">Student Planner</div>
+                        </a>
+                        <a class="recent-page-card" href="Assignments.html">
+                            <div class="card-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+                            </div>
+                            <div class="card-title">Assignments</div>
+                        </a>
+                        <a class="recent-page-card" href="calander.html">
+                            <div class="card-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                            </div>
+                            <div class="card-title">Calendar</div>
+                        </a>
+                    </div>
+                </div>
+                <div class="home-section">
+                    <h2><svg class="section-icon" viewBox="0 0 16 16"><path fill="currentColor" d="M13,2H3A1,1,0,0,0,2,3V13a1,1,0,0,0,1,1H13a1,1,0 0,0,1-1V3A1,1,0,0,0,13,2ZM12,12H4V7h8Zm0-6H4V4h8Z"/></svg>Upcoming events</h2>
+                    <div class="upcoming-events-list">
+                        <div class="event-item"><div class="event-dot" style="background-color: var(--danger-color);"></div><div class="event-title">History Essay Due</div><div class="event-time">in 3 days</div></div>
+                        <div class="event-item"><div class="event-dot" style="background-color: var(--warning-color);"></div><div class="event-title">Debate Club Meeting</div><div class="event-time">Tomorrow</div></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="navigation.js"></script>
+    <script>
+        // Quick action button functionality
+        document.addEventListener('DOMContentLoaded', () => {
+            const quickActionBtns = document.querySelectorAll('.quick-action-btn');
+            const homeAiInput = document.getElementById('home-ai-input');
+            const actionSelect = document.querySelector('.home-agent-action-select');
+            
+            // Handle Enter key press on home AI input
+            homeAiInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    
+                    const query = homeAiInput.value.trim();
+                    if (query) {
+                        const selectedMode = actionSelect.value;
+                        
+                        // Store the query and mode in sessionStorage for AI Agent page
+                        sessionStorage.setItem('aiQuery', query);
+                        sessionStorage.setItem('aiMode', selectedMode);
+                        sessionStorage.setItem('autoSubmit', 'true');
+                        
+                        // Redirect to AI Agent page
+                        window.location.href = 'Ai Agent.html';
+                    }
+                }
+            });
+            
+            quickActionBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const action = btn.querySelector('span').textContent;
+                    
+                    // Add click animation
+                    btn.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        btn.style.transform = '';
+                    }, 150);
+                    
+                    // Handle different actions
+                    switch(action) {
+                        case 'Create Note':
+                            window.location.href = 'notes.html';
+                            break;
+                        case 'Add Event':
+                            window.location.href = 'calander.html';
+                            break;
+                        case 'New Task':
+                            window.location.href = 'Assignments.html';
+                            break;
+                        case 'AI Chat':
+                            window.location.href = 'Ai Agent.html';
+                            break;
+                    }
+                });
+            });
+            
+            // Add some subtle animations to the welcome header
+            const welcomeHeader = document.querySelector('.welcome-header');
+            if (welcomeHeader) {
+                welcomeHeader.style.opacity = '0';
+                welcomeHeader.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    welcomeHeader.style.transition = 'all 0.6s ease';
+                    welcomeHeader.style.opacity = '1';
+                    welcomeHeader.style.transform = 'translateY(0)';
+                }, 100);
+            }
+        });
+    </script>
+</body>
+</html>

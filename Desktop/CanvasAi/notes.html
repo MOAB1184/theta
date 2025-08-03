@@ -1,0 +1,2077 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canvas AI - Notes</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Theme Colors */
+            --primary-color: #446CDA;
+            --primary-color-hover: #335AC9;
+            --light-bg: #FFFFFF;
+            --light-surface: #F5F6F8;
+            --light-border: #DCDFE4;
+            --text-primary: #111827;
+            --text-secondary: #68778D;
+            --text-muted: #9AA4B2;
+            --text-on-primary: #FFFFFF;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --success-color: #0FBA81;
+            --danger-color: #DC3545;
+
+            /* Dark Mode Colors - Based on the image */
+            --dark-bg: #0F0F0F; /* Very dark gray/almost black background */
+            --dark-surface: #1A1A1A; /* Slightly lighter dark gray for cards/sidebar */
+            --dark-border: #2A2A2A; /* Subtle dark border */
+            --dark-text-primary: #FFFFFF; /* Pure white text */
+            --dark-text-secondary: #B0B0B0; /* Light gray for secondary text */
+            --dark-text-muted: #808080; /* Medium gray for muted text */
+            --dark-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--light-bg);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .dashboard-container { display: flex; min-height: 100vh; }
+
+        /* --- SIDEBAR STYLES (Consistent) --- */
+        .sidebar {
+            width: 260px; background: var(--light-surface); border-right: 1px solid var(--light-border);
+            display: flex; flex-direction: column; position: fixed; height: 100vh;
+            left: 0; top: 0; z-index: 100; transition: transform 0.3s ease, width 0.3s ease;
+        }
+        .sidebar.collapsed { width: 60px; }
+        .sidebar.collapsed .sidebar-header .username,
+        .sidebar.collapsed .nav-link span { display: none; }
+        .sidebar.collapsed .user-avatar { margin: 0 auto; }
+        .sidebar.collapsed .nav-icon { margin: 0 auto; }
+        .sidebar.collapsed .sidebar-toggle-btn {
+            justify-content: center;
+            padding: 6px;
+        }
+        .sidebar.collapsed .sidebar-toggle-btn span {
+            display: none;
+        }
+        .sidebar-header { padding: 1.5rem 1rem; border-bottom: 1px solid var(--light-border); display: flex; align-items: center; gap: 12px; }
+        .user-avatar {
+            width: 36px; height: 36px; background: var(--primary-color); color: var(--text-on-primary); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; flex-shrink: 0;
+        }
+        .user-info { flex: 1; min-width: 0; }
+        .username { font-weight: 600; font-size: 15px; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .sidebar-nav { flex: 1; padding: 0.5rem 0; overflow-y: auto; }
+        .sidebar-nav ul { list-style: none; }
+        .sidebar-nav li { margin: 2px 0; }
+        .nav-link {
+            display: flex; align-items: center; gap: 12px; padding: 8px 12px; color: var(--text-secondary);
+            text-decoration: none; transition: all 0.2s ease; cursor: pointer; border-radius: 0 var(--radius-md) var(--radius-md) 0; margin-right: 8px;
+        }
+        .nav-link:hover { background: rgba(0, 0, 0, 0.05); color: var(--text-primary); }
+        .nav-link.active { background: rgba(68, 108, 218, 0.1); color: var(--primary-color); font-weight: 500; }
+        .nav-link.active:hover { background: rgba(68, 108, 218, 0.15); }
+        .nav-icon { width: 18px; height: 18px; stroke-width: 2; flex-shrink: 0; }
+        .sidebar-footer { padding: 1rem 12px; border-top: 1px solid var(--light-border); }
+        .sidebar-toggle-btn {
+            display: flex; align-items: center; gap: 8px; background: none; border: none; color: var(--text-secondary);
+            cursor: pointer; font-size: 14px; padding: 6px 0; transition: color 0.2s ease; width: 100%; text-align: left;
+        }
+        .sidebar-toggle-btn:hover { color: var(--text-primary); }
+
+        /* --- MAIN CONTENT AREA FOR NOTES --- */
+        .main-content {
+            flex: 1; margin-left: 260px; background: var(--light-bg);
+            transition: margin-left 0.3s ease; padding: 2rem;
+        }
+        .main-content.sidebar-collapsed { margin-left: 60px; }
+        .notes-page-container { max-width: 1200px; margin: 0 auto; }
+        .notes-header { display: flex; align-items: center; margin-bottom: 2rem; gap: 1rem; }
+        .notes-header h1 { font-size: 1.75rem; font-weight: 700; display: flex; align-items: center; gap: 0.75rem; flex-grow: 1; }
+        .header-btn {
+            background: var(--light-surface); color: var(--text-primary); border: 1px solid var(--light-border);
+            border-radius: var(--radius-md); padding: 8px 16px; font-size: 14px; font-weight: 500;
+            cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s ease;
+        }
+        .header-btn.primary { background: var(--primary-color); color: var(--text-on-primary); border-color: var(--primary-color); }
+        .header-btn:not(.primary):hover { background: var(--light-border); }
+        .header-btn.primary:hover { background: var(--primary-color-hover); }
+        .search-bar {
+            display: flex; align-items: center; background: var(--light-surface);
+            border: 1px solid var(--light-border); border-radius: var(--radius-md); padding: 0 8px;
+        }
+        .search-bar svg { color: var(--text-muted); width: 18px; height: 18px; }
+        .search-bar input {
+            border: none; background: transparent; padding: 10px 8px; font-size: 14px;
+            color: var(--text-primary); width: 180px;
+        }
+        .search-bar input:focus { outline: none; }
+
+        /* --- NOTES GRID & CARDS --- */
+        .notes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+        .note-card {
+            background: var(--light-surface); border: 1px solid var(--light-border);
+            border-radius: var(--radius-lg); padding: 1.25rem;
+            text-decoration: none; color: var(--text-primary);
+            transition: all 0.2s ease; cursor: pointer;
+            display: flex; flex-direction: column; gap: 0.75rem;
+        }
+        .note-card:hover { border-color: var(--primary-color); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .note-card h3 { font-weight: 600; font-size: 1rem; }
+        .note-card .content-preview {
+            font-size: 0.875rem; color: var(--text-secondary);
+            flex-grow: 1;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .note-card-footer { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--text-muted); }
+        .note-card-tag { background: var(--light-border); padding: 2px 8px; border-radius: var(--radius-md); }
+        
+        /* Note Card Action Buttons */
+        .note-card {
+            position: relative;
+        }
+        .note-card-actions {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            display: flex;
+            gap: 6px;
+        }
+        .note-share-btn {
+            background: rgba(68, 108, 218, 0.1);
+            border: 1px solid rgba(68, 108, 218, 0.2);
+            color: var(--primary-color);
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            opacity: 0;
+            visibility: hidden;
+        }
+        .note-card:hover .note-share-btn {
+            opacity: 1;
+            visibility: visible;
+        }
+        .note-share-btn:hover {
+            background: rgba(68, 108, 218, 0.2);
+            transform: scale(1.05);
+        }
+        .note-delete-btn {
+            background: rgba(220, 53, 69, 0.1);
+            border: 1px solid rgba(220, 53, 69, 0.2);
+            color: #DC3545;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            opacity: 0;
+            visibility: hidden;
+        }
+        .note-card:hover .note-delete-btn {
+            opacity: 1;
+            visibility: visible;
+        }
+        .note-delete-btn:hover {
+            background: rgba(220, 53, 69, 0.2);
+            border-color: rgba(220, 53, 69, 0.4);
+            transform: scale(1.1);
+        }
+        .note-delete-btn svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        /* --- PROFESSIONAL NOTES EDITOR --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.8); z-index: 1000;
+            display: none; align-items: center; justify-content: center;
+        }
+        .modal-overlay.active { display: flex; }
+        
+        .note-editor-container {
+            background: var(--dark-bg); border-radius: 12px; width: 95%; max-width: 1400px;
+            height: 90vh; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        
+        /* Professional Header */
+        .editor-header {
+            background: var(--dark-surface); border-bottom: 1px solid var(--dark-border); padding: 1rem 1.5rem;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .header-left {
+            display: flex; align-items: center; gap: 1rem;
+        }
+        .back-btn {
+            background: none; border: none; color: var(--dark-text-secondary); cursor: pointer;
+            font-size: 20px; padding: 8px; border-radius: 6px; transition: all 0.2s;
+        }
+        .back-btn:hover { background: var(--dark-border); color: var(--dark-text-primary); }
+        .app-title {
+            color: var(--dark-text-primary); font-size: 18px; font-weight: 600;
+        }
+        .note-title-display {
+            color: var(--dark-text-secondary); font-size: 14px; margin-left: 1rem;
+        }
+        .header-actions {
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        .header-action-btn {
+            background: var(--dark-surface); border: 1px solid var(--dark-border); color: var(--dark-text-secondary); cursor: pointer;
+            padding: 8px 12px; border-radius: 6px; font-size: 14px; font-weight: 500;
+            transition: all 0.2s; display: flex; align-items: center; gap: 6px;
+        }
+        .header-action-btn:hover { background: var(--dark-border); color: var(--dark-text-primary); }
+        .header-action-btn.danger {
+            background: var(--danger-color); border-color: var(--danger-color); color: var(--text-on-primary);
+        }
+        .header-action-btn.danger:hover { background: #C82333; border-color: #C82333; }
+        .header-action-btn.primary {
+            background: var(--primary-color); border-color: var(--primary-color); color: var(--text-on-primary);
+        }
+        .header-action-btn.primary:hover { background: var(--primary-color-hover); border-color: var(--primary-color-hover); }
+        
+        /* Main Content Area */
+        .editor-main-content {
+            flex: 1; display: flex; flex-direction: row; background: var(--dark-bg);
+        }
+        
+        /* Note Content Area */
+        .note-content-area {
+            flex: 1; padding: 2rem; background: var(--dark-bg); overflow-y: auto;
+        }
+        .note-title-input {
+            background: transparent; border: none; color: var(--dark-text-primary);
+            font-size: 2rem; font-weight: 700; width: 100%;
+            margin-bottom: 2rem; padding: 0; font-family: inherit;
+        }
+        .note-title-input:focus { outline: none; }
+        .note-title-input::placeholder { color: var(--dark-text-muted); }
+        
+        /* Rich Text Editor */
+        .rich-text-editor {
+            background: transparent; border: none; color: var(--dark-text-primary);
+            font-size: 1.1rem; line-height: 1.7; width: 100%; min-height: calc(100vh - 300px);
+            padding: 0; font-family: inherit; outline: none; resize: none;
+        }
+        .rich-text-editor:focus { outline: none; }
+        .rich-text-editor::placeholder { color: var(--text-muted); }
+        
+        /* Light mode styles for rich text editor */
+        body:not(.dark-mode) .rich-text-editor {
+            color: var(--text-primary);
+            background: transparent;
+        }
+        
+        body:not(.dark-mode) .rich-text-editor::placeholder {
+            color: var(--text-muted);
+        }
+        
+        /* Enhanced Text Color and Highlighting Features */
+        .text-formatting-tools {
+            padding: 1.5rem; border-bottom: 1px solid var(--dark-border);
+            flex-shrink: 0;
+        }
+        
+        .text-color-preview {
+            width: 100%; height: 40px; border: 2px solid var(--dark-border);
+            border-radius: 6px; margin-bottom: 1rem; display: flex;
+            align-items: center; justify-content: center; font-weight: 600;
+            background: var(--dark-bg); color: var(--dark-text-primary);
+        }
+        
+        .highlight-preview {
+            width: 100%; height: 40px; border: 2px solid var(--dark-border);
+            border-radius: 6px; margin-bottom: 1rem; display: flex;
+            align-items: center; justify-content: center; font-weight: 600;
+            background: var(--dark-bg); color: var(--dark-text-primary);
+        }
+        
+        /* Light mode styles for text formatting */
+        body:not(.dark-mode) .text-formatting-tools {
+            border-bottom: 1px solid var(--light-border);
+        }
+        
+        body:not(.dark-mode) .text-color-preview {
+            border: 2px solid var(--light-border);
+            background: var(--light-bg); color: var(--text-primary);
+        }
+        
+        body:not(.dark-mode) .highlight-preview {
+            border: 2px solid var(--light-border);
+            background: var(--light-bg); color: var(--text-primary);
+        }
+        
+        /* Right Sidebar - Tools */
+        .editor-right-sidebar {
+            width: 300px; background: var(--dark-surface); display: flex; flex-direction: column;
+            border-left: 1px solid var(--dark-border);
+            overflow-y: auto;
+            flex-shrink: 0;
+            transition: transform 0.3s ease, width 0.3s ease;
+            max-height: 100vh;
+            height: 100vh;
+        }
+        
+        .editor-right-sidebar.collapsed {
+            width: 0;
+            transform: translateX(100%);
+            overflow: hidden;
+        }
+        
+        /* Ensure toggle button is always visible when sidebar is collapsed */
+        .editor-right-sidebar.collapsed .tools-toggle-btn {
+            position: fixed !important;
+            right: 20px !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            z-index: 9999 !important;
+            background: var(--dark-surface) !important;
+            border: 1px solid var(--dark-border) !important;
+            color: var(--dark-text-secondary) !important;
+            border-radius: 50% !important;
+            width: 40px !important;
+            height: 40px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            cursor: pointer !important;
+            transition: all 0.2s !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+        
+        .editor-right-sidebar.collapsed .tools-toggle-btn:hover {
+            background: var(--dark-border) !important;
+            color: var(--dark-text-primary) !important;
+            transform: translateY(-50%) scale(1.05) !important;
+        }
+        
+        /* Keep toggle button visible when collapsed - only in notes editor */
+        .modal-overlay.active .editor-right-sidebar.collapsed .tools-toggle-btn,
+        .note-editor-container .editor-right-sidebar.collapsed .tools-toggle-btn {
+            position: fixed !important;
+            right: 20px !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            z-index: 9999 !important;
+            background: var(--dark-surface) !important;
+            border: 1px solid var(--dark-border) !important;
+            color: var(--dark-text-secondary) !important;
+            border-radius: 50% !important;
+            width: 40px !important;
+            height: 40px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            cursor: pointer !important;
+            transition: all 0.2s !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+        
+        .modal-overlay.active .editor-right-sidebar.collapsed .tools-toggle-btn:hover,
+        .note-editor-container .editor-right-sidebar.collapsed .tools-toggle-btn:hover {
+            background: var(--dark-border);
+            color: var(--dark-text-primary);
+            transform: translateY(-50%) scale(1.05);
+        }
+        
+        .editor-right-sidebar.collapsed .tools-toggle-btn svg {
+            transform: rotate(180deg);
+        }
+        
+        /* Toggle Button */
+        .tools-toggle-btn {
+            position: absolute; right: 12px; top: 12px; z-index: 10;
+            background: var(--dark-surface); border: 1px solid var(--dark-border);
+            color: var(--dark-text-secondary); border-radius: 50%;
+            width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        .tools-toggle-btn:hover {
+            background: var(--dark-border);
+            color: var(--dark-text-primary);
+        }
+        .tools-toggle-btn svg {
+            width: 18px; height: 18px;
+            transition: transform 0.3s ease;
+        }
+        .tools-toggle-btn.collapsed svg {
+            transform: rotate(180deg);
+        }
+        
+        /* Tools Header */
+        .tools-header {
+            padding: 1.5rem; border-bottom: 1px solid var(--dark-border);
+            display: flex; align-items: center; justify-content: space-between;
+            position: relative;
+            flex-shrink: 0;
+        }
+        .tools-title {
+            color: var(--dark-text-primary); font-size: 16px; font-weight: 600;
+        }
+
+        
+        /* Text Formatting Tools */
+        .formatting-tools {
+            padding: 1.5rem; border-bottom: 1px solid var(--dark-border);
+            flex-shrink: 0;
+        }
+        .tool-group {
+            margin-bottom: 1.5rem;
+        }
+        .tool-group-title {
+            color: var(--dark-text-secondary); font-size: 13px; font-weight: 600; margin-bottom: 0.75rem;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .tool-buttons {
+            display: flex; gap: 0.5rem; flex-wrap: wrap;
+        }
+        .tool-btn {
+            width: 36px; height: 36px; background: var(--dark-bg); border: 1px solid var(--dark-border); color: var(--dark-text-secondary); cursor: pointer; font-size: 14px;
+            display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+            font-weight: 600; border-radius: 6px;
+        }
+        .tool-btn:hover { background: var(--dark-border); color: var(--dark-text-primary); }
+        .tool-btn.active { background: var(--primary-color); border-color: var(--primary-color); color: var(--text-on-primary); }
+        
+        /* Font Controls */
+        .font-controls {
+            margin-bottom: 1rem;
+        }
+        .font-select {
+            width: 100%; padding: 8px 12px; border: 1px solid var(--dark-border);
+            border-radius: 6px; background: var(--dark-bg); color: var(--dark-text-primary);
+            font-size: 14px; cursor: pointer; outline: none; transition: all 0.2s;
+        }
+        .font-select:hover {
+            border-color: var(--primary-color);
+        }
+        .font-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(68, 108, 218, 0.2);
+        }
+        .font-select option {
+            background: var(--dark-bg);
+            color: var(--dark-text-primary);
+            padding: 8px;
+        }
+        
+
+        
+
+        
+        /* List and Alignment Tools */
+        .list-alignment-tools {
+            padding: 1.5rem;
+            flex-shrink: 0;
+        }
+        .alignment-buttons {
+            display: flex; gap: 0.5rem; margin-bottom: 1rem;
+        }
+        .list-buttons {
+            display: flex; gap: 0.5rem;
+        }
+        
+        /* Undo/Redo History */
+        .history-controls {
+            padding: 1.5rem; border-bottom: 1px solid var(--dark-border);
+            flex-shrink: 0;
+        }
+        .history-buttons {
+            display: flex; gap: 0.5rem;
+        }
+        .history-btn {
+            width: 36px; height: 36px; background: var(--dark-bg); border: 1px solid var(--dark-border);
+            color: var(--dark-text-secondary); cursor: pointer; font-size: 14px;
+            display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+            border-radius: 6px;
+        }
+        .history-btn:hover { background: var(--dark-border); color: var(--dark-text-primary); }
+        .history-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .history-btn:disabled:hover { background: var(--dark-bg); color: var(--dark-text-secondary); }
+        
+        /* Custom Confirmation Dialog */
+        .confirmation-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.8); z-index: 2000;
+            display: none; align-items: center; justify-content: center;
+        }
+        .confirmation-overlay.active { display: flex; }
+        
+        .confirmation-dialog {
+            background: var(--dark-surface); border-radius: 12px; padding: 2rem;
+            max-width: 400px; width: 90%; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--dark-border);
+        }
+        .confirmation-header {
+            display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;
+        }
+        .confirmation-icon {
+            width: 48px; height: 48px; background: rgba(220, 53, 69, 0.1);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            color: #DC3545; font-size: 24px;
+        }
+        .confirmation-title {
+            color: var(--dark-text-primary); font-size: 1.25rem; font-weight: 600;
+        }
+        .confirmation-message {
+            color: var(--dark-text-secondary); font-size: 1rem; line-height: 1.5;
+            margin-bottom: 2rem;
+        }
+        .confirmation-actions {
+            display: flex; gap: 1rem; justify-content: flex-end;
+        }
+        .confirmation-btn {
+            padding: 10px 20px; border-radius: 6px; font-size: 14px; font-weight: 500;
+            cursor: pointer; transition: all 0.2s; border: 1px solid transparent;
+        }
+        .confirmation-btn.cancel {
+            background: var(--dark-bg); color: var(--dark-text-secondary);
+            border-color: var(--dark-border);
+        }
+        .confirmation-btn.cancel:hover {
+            background: var(--dark-border); color: var(--dark-text-primary);
+        }
+        .confirmation-btn.danger {
+            background: #DC3545; color: white; border-color: #DC3545;
+        }
+        .confirmation-btn.danger:hover {
+            background: #C82333; border-color: #C82333;
+        }
+
+        /* --- EMPTY STATE --- */
+        .empty-state {
+            text-align: center; padding: 4rem 2rem; color: var(--text-muted);
+        }
+        .empty-state svg { width: 64px; height: 64px; margin-bottom: 1rem; opacity: 0.5; }
+        .empty-state h3 { font-size: 1.25rem; margin-bottom: 0.5rem; color: var(--text-secondary); }
+        .empty-state p { font-size: 1rem; }
+
+        /* --- RESPONSIVE & DARK MODE STYLES --- */
+        /* Hide menu toggle by default on notes page */
+        .notes-page-container .menu-toggle { display: none; }
+        
+        @media (max-width: 768px) {
+            /* Only show menu toggle on notes page on mobile */
+            .notes-page-container .menu-toggle { display: block; position: fixed; top: 1rem; left: 1rem; z-index: 1000; }
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.open { transform: translateX(0); }
+            .main-content { margin-left: 0; padding: 1rem; }
+            .sidebar, .main-content { transition: none; }
+            .notes-header { flex-wrap: wrap; }
+            .note-editor-modal { width: 95%; max-height: 95vh; }
+        }
+
+        body.dark-mode { background-color: var(--dark-bg); color: var(--dark-text-primary); }
+        body.dark-mode .notes-page-container .menu-toggle { background: var(--dark-surface); border-color: var(--dark-border); }
+        body.dark-mode .sidebar { background: var(--dark-surface); border-color: var(--dark-border); }
+        body.dark-mode .sidebar-header, body.dark-mode .sidebar-footer { border-color: var(--dark-border); }
+        body.dark-mode .nav-link { color: var(--dark-text-secondary); }
+        body.dark-mode .nav-link:hover { background: rgba(255, 255, 255, 0.05); color: var(--dark-text-primary); }
+        body.dark-mode .nav-link.active { background: rgba(68, 108, 218, 0.15); }
+        body.dark-mode .nav-link.active:hover { background: rgba(68, 108, 218, 0.2); }
+        body.dark-mode .sidebar-toggle-btn { color: var(--dark-text-secondary); }
+        body.dark-mode .sidebar-toggle-btn:hover { color: var(--dark-text-primary); }
+        body.dark-mode .main-content { background: var(--dark-bg); }
+        body.dark-mode .username { color: var(--dark-text-primary); }
+        body.dark-mode .notes-header h1 { color: var(--dark-text-primary); }
+        body.dark-mode .header-btn {
+            background: var(--dark-surface);
+            color: var(--dark-text-secondary);
+            border: 1px solid var(--dark-border);
+        }
+        body.dark-mode .header-btn:hover {
+            background: var(--dark-border);
+            color: var(--dark-text-primary);
+        }
+        body.dark-mode .search-bar { background: var(--dark-surface); border-color: var(--dark-border); }
+        body.dark-mode .search-bar input { color: var(--dark-text-primary); }
+        body.dark-mode .note-card { background: var(--dark-surface); border-color: var(--dark-border); color: var(--dark-text-primary); }
+        body.dark-mode .note-card:hover { border-color: var(--primary-color); box-shadow: 0 0 15px rgba(0,0,0,0.2); }
+        body.dark-mode .note-card .content-preview, body.dark-mode .note-card-footer { color: var(--dark-text-secondary); }
+        body.dark-mode .note-card-tag { background: var(--dark-border); color: var(--dark-text-secondary); }
+        body.dark-mode .note-share-btn {
+            background: rgba(68, 108, 218, 0.15);
+            border-color: rgba(68, 108, 218, 0.3);
+            color: var(--primary-color);
+        }
+        body.dark-mode .note-share-btn:hover {
+            background: rgba(68, 108, 218, 0.25);
+            border-color: rgba(68, 108, 218, 0.5);
+        }
+        body.dark-mode .note-delete-btn {
+            background: rgba(220, 53, 69, 0.15);
+            border-color: rgba(220, 53, 69, 0.3);
+            color: #FF6B6B;
+        }
+        body.dark-mode .note-delete-btn:hover {
+            background: rgba(220, 53, 69, 0.25);
+            border-color: rgba(220, 53, 69, 0.5);
+        }
+        
+        /* Light mode styles for editor */
+        body:not(.dark-mode) .editor-right-sidebar {
+            background: var(--light-surface);
+            border-left: 1px solid var(--light-border);
+        }
+        body:not(.dark-mode) .tools-header {
+            border-bottom: 1px solid var(--light-border);
+        }
+        body:not(.dark-mode) .tools-title {
+            color: var(--text-primary);
+        }
+        body:not(.dark-mode) .tool-btn {
+            background: var(--light-bg);
+            border: 1px solid var(--light-border);
+            color: var(--text-secondary);
+        }
+        body:not(.dark-mode) .tool-btn:hover {
+            background: var(--light-border);
+            color: var(--text-primary);
+        }
+        body:not(.dark-mode) .tool-btn.active {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            color: var(--text-on-primary);
+        }
+        body:not(.dark-mode) .font-size-btn {
+            background: var(--light-bg);
+            border: 1px solid var(--light-border);
+            color: var(--text-secondary);
+        }
+        body:not(.dark-mode) .font-size-btn:hover {
+            background: var(--light-border);
+            color: var(--text-primary);
+        }
+        body:not(.dark-mode) .font-select {
+            background: var(--light-bg);
+            border: 1px solid var(--light-border);
+            color: var(--text-primary);
+        }
+        body:not(.dark-mode) .font-select:hover {
+            border-color: var(--primary-color);
+        }
+        body:not(.dark-mode) .font-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(68, 108, 218, 0.2);
+        }
+        body:not(.dark-mode) .font-select option {
+            background: var(--light-bg);
+            color: var(--text-primary);
+        }
+        
+        /* Custom Font Dropdown Styles */
+        .font-select-container {
+            position: relative;
+        }
+        
+        .custom-font-dropdown {
+            background: var(--dark-surface);
+            border: 1px solid var(--dark-border);
+            border-radius: 6px;
+            max-height: 200px;
+            overflow-y: auto;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .custom-font-dropdown.active {
+            display: block;
+        }
+        
+        .font-search-input {
+            background: var(--dark-surface);
+            border: none;
+            color: var(--dark-text-primary);
+            padding: 8px 12px;
+            font-size: 14px;
+            outline: none;
+            width: 100%;
+            border-bottom: 1px solid var(--dark-border);
+        }
+        
+        .font-search-input::placeholder {
+            color: var(--dark-text-muted);
+        }
+        
+        .font-option {
+            padding: 8px 12px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-size: 14px;
+        }
+        
+        .font-option:hover {
+            background: var(--dark-border);
+        }
+        
+        .font-option.selected {
+            background: var(--primary-color);
+            color: var(--text-on-primary);
+        }
+        
+        .font-option.hidden {
+            display: none;
+        }
+        
+        /* Light mode styles */
+        body:not(.dark-mode) .custom-font-dropdown {
+            background: var(--light-surface);
+            border: 1px solid var(--light-border);
+        }
+        
+        body:not(.dark-mode) .font-search-input {
+            background: var(--light-surface);
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--light-border);
+        }
+        
+        body:not(.dark-mode) .font-search-input::placeholder {
+            color: var(--text-muted);
+        }
+        
+        body:not(.dark-mode) .font-option:hover {
+            background: var(--light-border);
+        }
+        
+
+        
+        /* Light mode styles for toggle button */
+        body:not(.dark-mode) .tools-toggle-btn {
+            background: var(--light-surface);
+            border: 1px solid var(--light-border);
+            color: var(--text-secondary);
+        }
+        body:not(.dark-mode) .tools-toggle-btn:hover {
+            background: var(--light-border);
+            color: var(--text-primary);
+        }
+        
+        /* Light mode styles for collapsed toggle button - only in notes editor */
+        body:not(.dark-mode) .modal-overlay.active .editor-right-sidebar.collapsed .tools-toggle-btn,
+        body:not(.dark-mode) .note-editor-container .editor-right-sidebar.collapsed .tools-toggle-btn {
+            background: var(--light-surface) !important;
+            border: 1px solid var(--light-border) !important;
+            color: var(--text-secondary) !important;
+        }
+        body:not(.dark-mode) .modal-overlay.active .editor-right-sidebar.collapsed .tools-toggle-btn:hover,
+        body:not(.dark-mode) .note-editor-container .editor-right-sidebar.collapsed .tools-toggle-btn:hover {
+            background: var(--light-border) !important;
+            color: var(--text-primary) !important;
+        }
+        
+        /* Light mode fallback for collapsed toggle button */
+        body:not(.dark-mode) .editor-right-sidebar.collapsed .tools-toggle-btn {
+            background: var(--light-surface) !important;
+            border: 1px solid var(--light-border) !important;
+            color: var(--text-secondary) !important;
+        }
+        
+        body:not(.dark-mode) .editor-right-sidebar.collapsed .tools-toggle-btn:hover {
+            background: var(--light-border) !important;
+            color: var(--text-primary) !important;
+        }
+        body:not(.dark-mode) .tool-group-title {
+            color: var(--text-secondary);
+        }
+        body:not(.dark-mode) .history-btn {
+            background: var(--light-bg);
+            border: 1px solid var(--light-border);
+            color: var(--text-secondary);
+        }
+        body:not(.dark-mode) .history-btn:hover {
+            background: var(--light-border);
+            color: var(--text-primary);
+        }
+        body:not(.dark-mode) .history-btn:disabled {
+            opacity: 0.5;
+        }
+        body:not(.dark-mode) .history-btn:disabled:hover {
+            background: var(--light-bg);
+            color: var(--text-secondary);
+        }
+        
+        /* Light mode styles for confirmation dialog */
+        body:not(.dark-mode) .confirmation-dialog {
+            background: var(--light-surface);
+            border: 1px solid var(--light-border);
+        }
+        body:not(.dark-mode) .confirmation-title {
+            color: var(--text-primary);
+        }
+        body:not(.dark-mode) .confirmation-message {
+            color: var(--text-secondary);
+        }
+        body:not(.dark-mode) .confirmation-btn.cancel {
+            background: var(--light-bg);
+            color: var(--text-secondary);
+            border-color: var(--light-border);
+        }
+        body:not(.dark-mode) .confirmation-btn.cancel:hover {
+            background: var(--light-border);
+            color: var(--text-primary);
+        }
+        
+        body.dark-mode .note-editor-modal { background: var(--dark-surface); }
+        body.dark-mode .modal-header { border-color: var(--dark-border); }
+        body.dark-mode .note-title-input, body.dark-mode .note-content-editor {
+            background: var(--dark-bg); color: var(--dark-text-primary); border-color: var(--dark-border);
+        }
+        body.dark-mode .note-title-input:focus, body.dark-mode .note-content-editor:focus {
+            border-color: var(--primary-color);
+        }
+        body.dark-mode .rich-text-editor {
+            color: var(--dark-text-primary);
+            background: transparent;
+        }
+        body.dark-mode .rich-text-editor::placeholder {
+            color: var(--dark-text-muted);
+        }
+        body.dark-mode .modal-btn {
+            background: var(--dark-surface); color: var(--dark-text-secondary); border-color: var(--dark-border);
+        }
+        body.dark-mode .modal-btn:hover { background: var(--dark-border); color: var(--dark-text-primary); }
+    </style>
+</head>
+<body>
+    <button class="menu-toggle" id="menu-toggle-btn">
+        <svg fill="currentColor" viewBox="0 0 24 24" width="20px" height="20px"><path d="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z" /></svg>
+    </button>
+    <div class="dashboard-container" id="dashboard-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="user-avatar">S</div>
+                <div class="user-info"><div class="username">shaurya duggal's...</div></div>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li><a class="nav-link" data-view="home"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg><span>Home</span></a></li>
+                    <li><a class="nav-link" data-view="ai-agent"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg><span>AI Agent</span></a></li>
+                    <li><a class="nav-link" data-view="notes"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg><span>Notes</span></a></li>
+                    <li><a class="nav-link" data-view="calendar"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg><span>Calendar</span></a></li>
+                    <li><a class="nav-link" data-view="assignments"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg><span>Assignments</span></a></li>
+                    <li><a class="nav-link" data-view="student-planner"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg><span>Student Planner</span></a></li>
+                    <li><a class="nav-link" data-view="autocomplete-hw"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg><span>AutoComplete HW</span></a></li>
+                    <li><a class="nav-link" data-view="ai-class-notes"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v15H6.5A2.5 2.5 0 0 1 4 14.5V4A2 2 0 0 1 6.5 2z"></path></svg><span>AI Class Notes</span></a></li>
+                    <li><a class="nav-link" data-view="ai-tutor"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg><span>AI Tutor</span></a></li>
+                    <li><a class="nav-link" data-view="settings"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l-.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg><span>Settings</span></a></li>
+                    <li><a class="nav-link theme-toggle-btn" id="theme-toggle-btn"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg><span>Light Mode</span></a></li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="sidebar-toggle-btn" id="sidebar-toggle-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                    <span>Collapse</span>
+                </button>
+            </div>
+        </aside>
+
+        <main class="main-content" id="main-content">
+            <div class="notes-page-container">
+                <header class="notes-header">
+                    <h1><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 6H21M3 12H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>All notes</h1>
+                    <button class="header-btn primary" id="create-note-btn"><svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 3.5a.5.5 0 0 1 .5.5v3.5h3.5a.5.5 0 0 1 0 1h-3.5v3.5a.5.5 0 0 1-1 0v-3.5h-3.5a.5.5 0 0 1 0-1h3.5v-3.5a.5.5 0 0 1 .5-.5z"/></svg>Create note</button>
+                    <div class="search-bar">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        <input type="text" placeholder="Search notes" id="search-input">
+                    </div>
+                </header>
+                
+                <div class="notes-grid" id="notes-grid">
+                    <!-- Notes will be dynamically loaded here -->
+                </div>
+                
+                <div class="empty-state" id="empty-state" style="display: none;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                    <h3>No notes yet</h3>
+                    <p>Create your first note to get started</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Professional Notes Editor -->
+    <div class="modal-overlay" id="note-modal">
+        <div class="note-editor-container">
+            <!-- Professional Header -->
+            <div class="editor-header">
+                <div class="header-left">
+                    <button class="back-btn" id="back-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 12H5M12 19l-7-7 7-7"/>
+                        </svg>
+                    </button>
+                    <div class="app-title">Canvas Notes</div>
+                    <div class="note-title-display" id="note-title-display">Untitled Note</div>
+                </div>
+                <div class="header-actions">
+                    <button class="header-action-btn" id="share-btn" title="Share Note">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="18" cy="5" r="3"/>
+                            <circle cx="6" cy="12" r="3"/>
+                            <circle cx="18" cy="19" r="3"/>
+                            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                        </svg>
+                    </button>
+                    <button class="header-action-btn danger" id="delete-btn" title="Delete Note">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3,6 5,6 21,6"/>
+                            <path d="M19,6v14a2,2,0,0,1-2,2H7a2,2,0,0,1-2-2V6m3,0V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2V6"/>
+                            <line x1="10" y1="11" x2="10" y2="17"/>
+                            <line x1="14" y1="11" x2="14" y2="17"/>
+                        </svg>
+                        Delete
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Main Content Area -->
+            <div class="editor-main-content">
+                <!-- Note Content Area -->
+                <div class="note-content-area">
+                    <input type="text" class="note-title-input" id="note-title-input" placeholder="Enter note title...">
+                    <div class="rich-text-editor" id="rich-text-editor" contenteditable="true" placeholder="Start writing your note here..."></div>
+                </div>
+                
+                <!-- Right Sidebar - Tools -->
+                <div class="editor-right-sidebar">
+                <!-- Tools Header -->
+                <div class="tools-header">
+                    <div class="tools-title">Formatting Tools</div>
+                    <button class="tools-toggle-btn" id="tools-toggle-btn" title="Hide Tools">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 9l6 6 6-6"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- Undo/Redo History -->
+                <div class="history-controls">
+                    <div class="tool-group">
+                        <div class="tool-group-title">History</div>
+                        <div class="history-buttons">
+                            <button class="history-btn" id="undo-btn" title="Undo (Ctrl+Z)">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M3 7v6h6"/>
+                                    <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/>
+                                </svg>
+                            </button>
+                            <button class="history-btn" id="redo-btn" title="Redo (Ctrl+Y)">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 7v6h-6"/>
+                                    <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3-2.3"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Text Formatting Tools -->
+                <div class="formatting-tools">
+                    <div class="tool-group">
+                        <div class="tool-group-title">Text Style</div>
+                        <div class="tool-buttons">
+                            <button class="tool-btn" id="bold-btn" title="Bold (Ctrl+B)">B</button>
+                            <button class="tool-btn" id="italic-btn" title="Italic (Ctrl+I)">I</button>
+                            <button class="tool-btn" id="underline-btn" title="Underline (Ctrl+U)">U</button>
+                            <button class="tool-btn" id="strikethrough-btn" title="Strikethrough">S</button>
+                        </div>
+                    </div>
+                    
+                    <div class="tool-group">
+                        <div class="tool-group-title">Font Family</div>
+                        <div class="font-controls">
+                            <div class="font-select-container">
+                                <button class="font-select" id="font-family-select">
+                                    <span id="font-family-display">Inter</span>
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="6 9 12 15 18 9"></polyline>
+                                    </svg>
+                                </button>
+                                <div class="custom-font-dropdown" id="custom-font-dropdown">
+                                    <input type="text" class="font-search-input" id="font-family-search" placeholder="Search fonts...">
+                                    <div class="font-option" data-value="Arial">Arial</div>
+                                    <div class="font-option" data-value="Calibri">Calibri</div>
+                                    <div class="font-option" data-value="Times New Roman">Times New Roman</div>
+                                    <div class="font-option" data-value="Georgia">Georgia</div>
+                                    <div class="font-option" data-value="Verdana">Verdana</div>
+                                    <div class="font-option" data-value="Tahoma">Tahoma</div>
+                                    <div class="font-option" data-value="Trebuchet MS">Trebuchet MS</div>
+                                    <div class="font-option" data-value="Impact">Impact</div>
+                                    <div class="font-option" data-value="Comic Sans MS">Comic Sans MS</div>
+                                    <div class="font-option" data-value="Courier New">Courier New</div>
+                                    <div class="font-option" data-value="Lucida Console">Lucida Console</div>
+                                    <div class="font-option" data-value="Palatino">Palatino</div>
+                                    <div class="font-option" data-value="Garamond">Garamond</div>
+                                    <div class="font-option" data-value="Bookman">Bookman</div>
+                                    <div class="font-option" data-value="Avant Garde">Avant Garde</div>
+                                    <div class="font-option" data-value="Century Gothic">Century Gothic</div>
+                                    <div class="font-option" data-value="Franklin Gothic">Franklin Gothic</div>
+                                    <div class="font-option" data-value="Helvetica">Helvetica</div>
+                                    <div class="font-option" data-value="Optima">Optima</div>
+                                    <div class="font-option" data-value="Baskerville">Baskerville</div>
+                                    <div class="font-option" data-value="Futura">Futura</div>
+                                    <div class="font-option" data-value="Gill Sans">Gill Sans</div>
+                                    <div class="font-option" data-value="Myriad">Myriad</div>
+                                    <div class="font-option" data-value="Univers">Univers</div>
+                                    <div class="font-option selected" data-value="Inter">Inter</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                                                <div class="tool-group">
+                                <div class="tool-group-title">Font Size</div>
+                                <div class="font-controls">
+                                    <select id="font-size-select" class="font-select">
+                                        <option value="8">8</option>
+                                        <option value="9">9</option>
+                                        <option value="10">10</option>
+                                        <option value="11">11</option>
+                                        <option value="12">12</option>
+                                        <option value="14">14</option>
+                                        <option value="16" selected>16</option>
+                                        <option value="18">18</option>
+                                        <option value="20">20</option>
+                                        <option value="22">22</option>
+                                        <option value="24">24</option>
+                                        <option value="26">26</option>
+                                        <option value="28">28</option>
+                                        <option value="32">32</option>
+                                        <option value="36">36</option>
+                                        <option value="40">40</option>
+                                        <option value="44">44</option>
+                                        <option value="48">48</option>
+                                        <option value="54">54</option>
+                                        <option value="60">60</option>
+                                        <option value="66">66</option>
+                                        <option value="72">72</option>
+                                        <option value="80">80</option>
+                                        <option value="88">88</option>
+                                        <option value="96">96</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+
+                </div>
+                
+
+                
+
+                
+                <!-- List and Alignment Tools -->
+                <div class="list-alignment-tools">
+                    <div class="tool-group">
+                        <div class="tool-group-title">Alignment</div>
+                        <div class="alignment-buttons">
+                            <button class="tool-btn" id="align-left-btn" title="Align Left">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="17" y1="10" x2="3" y2="10"/>
+                                    <line x1="21" y1="6" x2="3" y2="6"/>
+                                    <line x1="21" y1="14" x2="3" y2="14"/>
+                                    <line x1="17" y1="18" x2="3" y2="18"/>
+                                </svg>
+                            </button>
+                            <button class="tool-btn active" id="align-center-btn" title="Align Center">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="18" y1="10" x2="6" y2="10"/>
+                                    <line x1="21" y1="6" x2="3" y2="6"/>
+                                    <line x1="21" y1="14" x2="3" y2="14"/>
+                                    <line x1="18" y1="18" x2="6" y2="18"/>
+                                </svg>
+                            </button>
+                            <button class="tool-btn" id="align-right-btn" title="Align Right">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="21" y1="10" x2="7" y2="10"/>
+                                    <line x1="21" y1="6" x2="3" y2="6"/>
+                                    <line x1="21" y1="14" x2="3" y2="14"/>
+                                    <line x1="21" y1="18" x2="7" y2="18"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="tool-group">
+                        <div class="tool-group-title">Lists</div>
+                        <div class="list-buttons">
+                            <button class="tool-btn" id="bullet-list-btn" title="Bullet List">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="8" y1="6" x2="21" y2="6"/>
+                                    <line x1="8" y1="12" x2="21" y2="12"/>
+                                    <line x1="8" y1="18" x2="21" y2="18"/>
+                                    <line x1="3" y1="6" x2="3.01" y2="6"/>
+                                    <line x1="3" y1="12" x2="3.01" y2="12"/>
+                                    <line x1="3" y1="18" x2="3.01" y2="18"/>
+                                </svg>
+                            </button>
+                            <button class="tool-btn" id="number-list-btn" title="Numbered List">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="10" y1="6" x2="21" y2="6"/>
+                                    <line x1="10" y1="12" x2="21" y2="12"/>
+                                    <line x1="10" y1="18" x2="21" y2="18"/>
+                                    <line x1="4" y1="9" x2="4" y2="9"/>
+                                    <line x1="4" y1="15" x2="4" y2="15"/>
+                                    <polyline points="4,6 4,6 6,4"/>
+                                </svg>
+                            </button>
+                            <button class="tool-btn" id="check-list-btn" title="Check List">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="8" y1="6" x2="21" y2="6"/>
+                                    <line x1="8" y1="12" x2="21" y2="12"/>
+                                    <line x1="8" y1="18" x2="21" y2="18"/>
+                                    <line x1="3" y1="6" x2="3.01" y2="6"/>
+                                    <line x1="3" y1="12" x2="3.01" y2="12"/>
+                                    <line x1="3" y1="18" x2="3.01" y2="18"/>
+                                    <polyline points="9,11 12,14 22,4"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Confirmation Dialog -->
+    <div class="confirmation-overlay" id="confirmation-overlay">
+        <div class="confirmation-dialog">
+            <div class="confirmation-header">
+                <div class="confirmation-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                        <line x1="12" y1="9" x2="12" y2="13"/>
+                        <line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                </div>
+                <div class="confirmation-title">Delete Note</div>
+            </div>
+            <div class="confirmation-message" id="confirmation-message">
+                Are you sure you want to delete this note? This action cannot be undone.
+            </div>
+            <div class="confirmation-actions">
+                <button class="confirmation-btn cancel" id="confirmation-cancel">Cancel</button>
+                <button class="confirmation-btn danger" id="confirmation-confirm">Delete Note</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="navigation.js"></script>
+    <script>
+        // Rich Text Notes Management System
+        class RichTextNotesManager {
+            constructor() {
+                this.notes = this.loadNotes();
+                this.currentNoteId = null;
+                this.initializeElements();
+                this.bindEvents();
+                this.renderNotes();
+                this.initializeRichTextEditor();
+
+                this.initializeHistory();
+
+            }
+
+            initializeElements() {
+                console.log('Initializing elements...');
+                this.notesGrid = document.getElementById('notes-grid');
+                this.emptyState = document.getElementById('empty-state');
+                this.createNoteBtn = document.getElementById('create-note-btn');
+                this.searchInput = document.getElementById('search-input');
+                this.modal = document.getElementById('note-modal');
+                this.noteTitleInput = document.getElementById('note-title-input');
+                this.richTextEditor = document.getElementById('rich-text-editor');
+
+                this.noteTitleDisplay = document.getElementById('note-title-display');
+                this.backBtn = document.getElementById('back-btn');
+
+                this.shareBtn = document.getElementById('share-btn');
+                this.deleteBtn = document.getElementById('delete-btn');
+                
+
+                
+                // History controls
+                this.undoBtn = document.getElementById('undo-btn');
+                this.redoBtn = document.getElementById('redo-btn');
+                
+                // Formatting tools
+                this.boldBtn = document.getElementById('bold-btn');
+                this.italicBtn = document.getElementById('italic-btn');
+                this.underlineBtn = document.getElementById('underline-btn');
+                this.strikethroughBtn = document.getElementById('strikethrough-btn');
+                
+                // Font controls
+                this.fontFamilySelect = document.getElementById('font-family-select');
+                this.fontSizeSelect = document.getElementById('font-size-select');
+                
+
+                
+                // Alignment tools
+                this.alignLeftBtn = document.getElementById('align-left-btn');
+                this.alignCenterBtn = document.getElementById('align-center-btn');
+                this.alignRightBtn = document.getElementById('align-right-btn');
+                
+                // List tools
+                this.bulletListBtn = document.getElementById('bullet-list-btn');
+                this.numberListBtn = document.getElementById('number-list-btn');
+                this.checkListBtn = document.getElementById('check-list-btn');
+                
+
+                
+                // Confirmation dialog elements
+                this.confirmationOverlay = document.getElementById('confirmation-overlay');
+                this.confirmationMessage = document.getElementById('confirmation-message');
+                this.confirmationCancel = document.getElementById('confirmation-cancel');
+                this.confirmationConfirm = document.getElementById('confirmation-confirm');
+                
+                // Tools toggle elements
+                this.toolsToggleBtn = document.getElementById('tools-toggle-btn');
+                this.editorRightSidebar = document.querySelector('.editor-right-sidebar');
+                
+                // Font dropdown elements
+                this.fontFamilySelect = document.getElementById('font-family-select');
+                this.fontFamilyDisplay = document.getElementById('font-family-display');
+                this.customFontDropdown = document.getElementById('custom-font-dropdown');
+                this.fontFamilySearch = document.getElementById('font-family-search');
+                
+                console.log('Elements initialized:', {
+                    richTextEditor: this.richTextEditor,
+                    boldBtn: this.boldBtn,
+                    undoBtn: this.undoBtn
+                });
+            }
+
+            bindEvents() {
+                this.createNoteBtn.addEventListener('click', () => this.createNewNote());
+                this.searchInput.addEventListener('input', (e) => this.searchNotes(e.target.value));
+                this.backBtn.addEventListener('click', () => this.closeModal());
+
+                this.shareBtn.addEventListener('click', () => this.shareNote());
+                this.deleteBtn.addEventListener('click', () => this.deleteNote());
+                
+
+                
+                // History controls
+                this.undoBtn.addEventListener('click', () => this.undo());
+                this.redoBtn.addEventListener('click', () => this.redo());
+                
+                // Auto-save on input
+                this.noteTitleInput.addEventListener('input', () => {
+                    this.autoSave();
+                    this.updateTitleDisplay();
+                });
+                this.richTextEditor.addEventListener('input', () => this.autoSave());
+                
+                // Enter key to move from title to content
+                this.noteTitleInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        this.richTextEditor.focus();
+                        // Place cursor at the beginning of the content
+                        const range = document.createRange();
+                        const selection = window.getSelection();
+                        range.setStart(this.richTextEditor, 0);
+                        range.collapse(true);
+                        selection.removeAllRanges();
+                        selection.addRange(range);
+                    }
+                });
+                
+                // Save when user clicks outside the editor
+                this.noteTitleInput.addEventListener('blur', () => this.saveCurrentNote());
+                this.richTextEditor.addEventListener('blur', () => this.saveCurrentNote());
+                
+                // Save when modal loses focus
+                this.modal.addEventListener('click', (e) => {
+                    if (e.target === this.modal) {
+                        this.saveCurrentNote();
+                    }
+                });
+                
+                // Font controls
+                this.fontFamilySelect.addEventListener('change', (e) => {
+                    this.setFontFamily(e.target.value);
+                });
+                
+                // Clear search when dropdown loses focus
+                this.fontFamilySelect.addEventListener('blur', () => {
+                    setTimeout(() => {
+                        this.fontFamilySearch.value = '';
+                        this.filterFonts('');
+                        this.fontFamilySearch.parentElement.classList.remove('search-active');
+                    }, 200);
+                });
+                this.fontSizeSelect.addEventListener('change', (e) => {
+                    this.setFontSize(e.target.value);
+                });
+                
+
+                
+                // Keyboard shortcuts
+                this.richTextEditor.addEventListener('keydown', (e) => {
+                    if (e.ctrlKey || e.metaKey) {
+                        switch(e.key.toLowerCase()) {
+                            case 'b':
+                                e.preventDefault();
+                                this.toggleFormat('bold');
+                                break;
+                            case 'i':
+                                e.preventDefault();
+                                this.toggleFormat('italic');
+                                break;
+                            case 'u':
+                                e.preventDefault();
+                                this.toggleFormat('underline');
+                                break;
+
+                            case 'z':
+                                e.preventDefault();
+                                if (e.shiftKey) {
+                                    this.redo();
+                                } else {
+                                    this.undo();
+                                }
+                                break;
+                            case 'y':
+                                e.preventDefault();
+                                this.redo();
+                                break;
+                            case 't':
+                                e.preventDefault();
+                                this.toggleTools();
+                                break;
+                        }
+                    }
+                });
+                
+                // Formatting tools
+                this.boldBtn.addEventListener('click', () => this.toggleFormat('bold'));
+                this.italicBtn.addEventListener('click', () => this.toggleFormat('italic'));
+                this.underlineBtn.addEventListener('click', () => this.toggleFormat('underline'));
+                this.strikethroughBtn.addEventListener('click', () => this.toggleFormat('strikethrough'));
+                
+                // Alignment tools
+                this.alignLeftBtn.addEventListener('click', () => this.setAlignment('left'));
+                this.alignCenterBtn.addEventListener('click', () => this.setAlignment('center'));
+                this.alignRightBtn.addEventListener('click', () => this.setAlignment('right'));
+
+                // List tools
+                this.bulletListBtn.addEventListener('click', () => this.insertList('bullet'));
+                this.numberListBtn.addEventListener('click', () => this.insertList('number'));
+                this.checkListBtn.addEventListener('click', () => this.insertList('checklist'));
+
+                // Tools toggle event handler
+                this.toolsToggleBtn.addEventListener('click', () => this.toggleTools());
+
+                // Font controls
+                this.fontSizeSelect.addEventListener('change', (e) => this.setFontSize(e.target.value));
+
+                // Custom font dropdown functionality
+                this.fontFamilySelect.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.toggleFontDropdown();
+                });
+
+                // Font search event handler
+                this.fontFamilySearch.addEventListener('input', (e) => this.filterFonts(e.target.value));
+
+                // Close dropdown when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!this.fontFamilySelect.contains(e.target) && !this.customFontDropdown.contains(e.target)) {
+                        this.closeFontDropdown();
+                    }
+                });
+
+                // Font option click handlers
+                this.customFontDropdown.querySelectorAll('.font-option').forEach(option => {
+                    option.addEventListener('click', () => {
+                        const fontValue = option.dataset.value;
+                        this.setFontFamily(fontValue);
+                        this.closeFontDropdown();
+                    });
+                });
+            }
+
+            setFontSize(size) {
+                console.log(`setFontSize called with: ${size}`);
+                const mappedSize = this.getMappedFontSize(size);
+                console.log(`Mapped size: ${mappedSize}`);
+                if (mappedSize) {
+                    document.execCommand('fontSize', false, mappedSize);
+                }
+                this.richTextEditor.focus();
+            }
+
+            getMappedFontSize(pixelSize) {
+                console.log(`getMappedFontSize called with: ${pixelSize}`);
+                const sizes = [8, 10, 12, 16, 20, 24, 32];
+                let bestMatch = 1;
+                let smallestDiff = Infinity;
+
+                for (let i = 0; i < sizes.length; i++) {
+                    const diff = Math.abs(pixelSize - sizes[i]);
+                    if (diff < smallestDiff) {
+                        smallestDiff = diff;
+                        bestMatch = i + 1;
+                    }
+                }
+                console.log(`Best match for ${pixelSize} is ${bestMatch}`);
+                return bestMatch.toString();
+            }
+
+            // Initialize Rich Text Editor
+            initializeRichTextEditor() {
+                console.log('Initializing rich text editor...');
+                this.richTextEditor.addEventListener('paste', (e) => {
+                    e.preventDefault();
+                    const text = e.clipboardData.getData('text/plain');
+                    document.execCommand('insertText', false, text);
+                });
+                
+                // Set default font size and family
+                this.setFontSize(16);
+                this.setFontFamily('Inter');
+                
+                // Set default font size in the select
+                if (this.fontSizeSelect) {
+                    this.fontSizeSelect.value = '16';
+                }
+                
+                console.log('Rich text editor initialized');
+            }
+
+
+
+            // Initialize History
+            initializeHistory() {
+                this.history = [];
+                this.historyIndex = -1;
+                this.maxHistory = 50;
+            }
+
+            loadNotes() {
+                const saved = localStorage.getItem('canvas-notes');
+                return saved ? JSON.parse(saved) : [];
+            }
+
+            saveNotes() {
+                localStorage.setItem('canvas-notes', JSON.stringify(this.notes));
+            }
+
+            createNewNote() {
+                const newNote = {
+                    id: Date.now().toString(),
+                    title: 'Untitled Note',
+                    content: '',
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                };
+                
+                this.notes.unshift(newNote);
+                this.saveNotes();
+                this.renderNotes();
+                this.openNoteEditor(newNote.id);
+            }
+
+            openNoteEditor(noteId) {
+                const note = this.notes.find(n => n.id === noteId);
+                if (!note) return;
+
+                this.currentNoteId = noteId;
+                this.noteTitleInput.value = note.title;
+                this.richTextEditor.innerHTML = note.content || '';
+                this.updateTitleDisplay();
+                this.modal.classList.add('active');
+                
+                // Test rich text editor
+                console.log('Opening note editor, rich text editor:', this.richTextEditor);
+                console.log('Rich text editor content:', this.richTextEditor.innerHTML);
+                
+                // Ensure default font size is set
+                if (this.fontSizeSelect) {
+                    this.fontSizeSelect.value = '16';
+                }
+                
+                // Focus on title input
+                setTimeout(() => this.noteTitleInput.focus(), 100);
+            }
+
+            updateTitleDisplay() {
+                const title = this.noteTitleInput.value.trim() || 'Untitled Note';
+                this.noteTitleDisplay.textContent = title;
+            }
+
+            closeModal() {
+                // Save before closing
+                this.saveCurrentNote();
+                
+                this.modal.classList.remove('active');
+                this.currentNoteId = null;
+                this.noteTitleInput.value = '';
+                this.richTextEditor.innerHTML = '';
+                this.noteTitleDisplay.textContent = 'Untitled Note';
+
+            }
+
+
+
+            shareNote() {
+                if (!this.currentNoteId) return;
+                
+                const note = this.notes.find(n => n.id === this.currentNoteId);
+                if (!note) return;
+
+                // Create shareable content
+                const shareText = `${note.title}\n\n${note.content}`;
+                
+                if (navigator.share) {
+                    navigator.share({
+                        title: note.title,
+                        text: shareText
+                    });
+                } else {
+                    // Fallback: copy to clipboard
+                    navigator.clipboard.writeText(shareText).then(() => {
+                        this.showNotification('Note copied to clipboard!', 'success');
+                    });
+                }
+            }
+
+                        shareNote() {
+                if (!this.currentNoteId) return;
+                
+                const note = this.notes.find(n => n.id === this.currentNoteId);
+                if (!note) return;
+                
+                // Create shareable content
+                const shareText = `${note.title}\n\n${note.content.replace(/<[^>]*>/g, '')}`;
+                
+                // Try to use native sharing if available
+                if (navigator.share) {
+                    navigator.share({
+                        title: note.title,
+                        text: shareText,
+                        url: window.location.href
+                    }).then(() => {
+                        this.showNotification('Note shared successfully!', 'success');
+                    }).catch((error) => {
+                        console.log('Error sharing:', error);
+                        this.fallbackShare(shareText, note.title);
+                    });
+                } else {
+                    this.fallbackShare(shareText, note.title);
+                }
+            }
+            
+            fallbackShare(shareText, title) {
+                // Copy to clipboard
+                navigator.clipboard.writeText(shareText).then(() => {
+                    this.showNotification('Note copied to clipboard!', 'success');
+                }).catch(() => {
+                    // Fallback for older browsers
+                    const textArea = document.createElement('textarea');
+                    textArea.value = shareText;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    this.showNotification('Note copied to clipboard!', 'success');
+                });
+            }
+            
+            deleteNote() {
+                if (!this.currentNoteId) return;
+                
+                this.showConfirmationDialog(
+                    'Are you sure you want to delete this note? This action cannot be undone.',
+                    () => {
+                        this.notes = this.notes.filter(n => n.id !== this.currentNoteId);
+                        this.saveNotes();
+                        this.renderNotes();
+                        this.closeModal();
+                        this.showNotification('Note deleted successfully!', 'success');
+                    }
+                );
+            }
+
+            deleteNoteFromGrid(noteId) {
+                const note = this.notes.find(n => n.id === noteId);
+                if (!note) return;
+
+                this.showConfirmationDialog(
+                    `Are you sure you want to delete "${note.title}"? This action cannot be undone.`,
+                    () => {
+                        this.notes = this.notes.filter(n => n.id !== noteId);
+                        this.saveNotes();
+                        this.renderNotes();
+                        this.showNotification('Note deleted successfully!', 'success');
+                    }
+                );
+            }
+            
+            shareNoteFromGrid(noteId) {
+                const note = this.notes.find(n => n.id === noteId);
+                if (!note) return;
+                
+                const shareText = `${note.title}\n\n${note.content.replace(/<[^>]*>/g, '')}`;
+                if (navigator.share) {
+                    navigator.share({
+                        title: note.title,
+                        text: shareText,
+                        url: window.location.href
+                    }).then(() => {
+                        this.showNotification('Note shared successfully!', 'success');
+                    }).catch((error) => {
+                        console.log('Error sharing:', error);
+                        this.fallbackShare(shareText, note.title);
+                    });
+                } else {
+                    this.fallbackShare(shareText, note.title);
+                }
+            }
+
+            showConfirmationDialog(message, onConfirm) {
+                this.confirmationMessage.textContent = message;
+                this.confirmationOverlay.classList.add('active');
+                this.pendingConfirmAction = onConfirm;
+            }
+
+            hideConfirmationDialog() {
+                this.confirmationOverlay.classList.remove('active');
+                this.pendingConfirmAction = null;
+            }
+
+            executeConfirmedAction() {
+                if (this.pendingConfirmAction) {
+                    this.pendingConfirmAction();
+                }
+                this.hideConfirmationDialog();
+            }
+
+            toggleTools() {
+                this.editorRightSidebar.classList.toggle('collapsed');
+                this.toolsToggleBtn.classList.toggle('collapsed');
+                
+                const isCollapsed = this.editorRightSidebar.classList.contains('collapsed');
+                this.toolsToggleBtn.title = isCollapsed ? 'Show Tools' : 'Hide Tools';
+                
+                // Ensure the toggle button is always visible
+                if (isCollapsed) {
+                    this.toolsToggleBtn.style.position = 'fixed';
+                    this.toolsToggleBtn.style.right = '20px';
+                    this.toolsToggleBtn.style.top = '50%';
+                    this.toolsToggleBtn.style.transform = 'translateY(-50%)';
+                    this.toolsToggleBtn.style.zIndex = '9999';
+                    this.toolsToggleBtn.style.display = 'flex';
+                    this.toolsToggleBtn.style.opacity = '1';
+                    this.toolsToggleBtn.style.visibility = 'visible';
+                } else {
+                    this.toolsToggleBtn.style.position = 'absolute';
+                    this.toolsToggleBtn.style.right = '12px';
+                    this.toolsToggleBtn.style.top = '12px';
+                    this.toolsToggleBtn.style.transform = 'none';
+                    this.toolsToggleBtn.style.zIndex = '10';
+                }
+                
+                this.showNotification(
+                    isCollapsed ? 'Tools hidden' : 'Tools shown', 
+                    'success'
+                );
+            }
+
+            toggleFontDropdown() {
+                this.customFontDropdown.classList.toggle('active');
+                if (this.customFontDropdown.classList.contains('active')) {
+                    this.fontFamilySearch.focus();
+                }
+            }
+            
+            closeFontDropdown() {
+                this.customFontDropdown.classList.remove('active');
+                this.fontFamilySearch.value = '';
+                this.filterFonts('');
+            }
+            
+            filterFonts(searchTerm) {
+                const options = this.customFontDropdown.querySelectorAll('.font-option');
+                const searchLower = searchTerm.toLowerCase();
+                
+                options.forEach(option => {
+                    const fontName = option.textContent.toLowerCase();
+                    if (fontName.includes(searchLower)) {
+                        option.classList.remove('hidden');
+                    } else {
+                        option.classList.add('hidden');
+                    }
+                });
+            }
+            
+
+            
+
+
+            showNotification(message, type = 'info') {
+                // Create notification element
+                const notification = document.createElement('div');
+                notification.style.cssText = `
+                    position: fixed; top: 20px; right: 20px; padding: 12px 20px;
+                    background: ${type === 'success' ? 'var(--success-color)' : 'var(--primary-color)'}; color: var(--text-on-primary);
+                    border-radius: 6px; z-index: 10000; font-weight: 500;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.3); transform: translateX(100%);
+                    transition: transform 0.3s ease;
+                `;
+                notification.textContent = message;
+                document.body.appendChild(notification);
+                
+                // Animate in
+                setTimeout(() => notification.style.transform = 'translateX(0)', 100);
+                
+                // Remove after 3 seconds
+                setTimeout(() => {
+                    notification.style.transform = 'translateX(100%)';
+                    setTimeout(() => document.body.removeChild(notification), 300);
+                }, 3000);
+            }
+
+            // Rich Text Editing Methods
+            toggleFormat(format) {
+                document.execCommand(format, false, null);
+                this.updateFormatButtons();
+                this.saveToHistory();
+                this.showNotification(`${format.charAt(0).toUpperCase() + format.slice(1)} applied!`, 'success');
+            }
+
+            setFontSize(size) {
+                // Focus the editor first
+                this.richTextEditor.focus();
+                
+                // Get current selection
+                const selection = window.getSelection();
+                
+                // If no selection, create a range at the end
+                if (selection.rangeCount === 0) {
+                    const range = document.createRange();
+                    range.selectNodeContents(this.richTextEditor);
+                    range.collapse(false);
+                    selection.addRange(range);
+                }
+                
+                const range = selection.getRangeAt(0);
+                
+                // Create a span with the font size
+                const span = document.createElement('span');
+                span.style.fontSize = size + 'px';
+                
+                // If there's selected text, wrap it in a span
+                if (!range.collapsed) {
+                    const contents = range.extractContents();
+                    span.appendChild(contents);
+                    range.insertNode(span);
+                } else {
+                    // If no selection, insert a space with the font size
+                    span.textContent = '\u200B'; // Zero-width space
+                    range.insertNode(span);
+                    range.setStartAfter(span);
+                    range.setEndAfter(span);
+                }
+                
+                // Update selection
+                selection.removeAllRanges();
+                selection.addRange(range);
+                
+                // Also try the execCommand method as fallback
+                document.execCommand('fontSize', false, size);
+                
+                // Update the select value
+                this.fontSizeSelect.value = size;
+                
+                // Focus back to editor
+                this.richTextEditor.focus();
+                
+                this.saveToHistory();
+                this.showNotification(`Font size set to ${size}px!`, 'success');
+            }
+
+            setFontFamily(family) {
+                document.execCommand('fontName', false, family);
+                this.fontFamilyDisplay.textContent = family;
+                
+                // Update selected state in dropdown
+                this.customFontDropdown.querySelectorAll('.font-option').forEach(option => {
+                    option.classList.remove('selected');
+                    if (option.dataset.value === family) {
+                        option.classList.add('selected');
+                    }
+                });
+                
+                this.saveToHistory();
+                this.showNotification(`Font changed to ${family}!`, 'success');
+            }
+
+            setAlignment(alignment) {
+                document.execCommand('justify' + alignment.charAt(0).toUpperCase() + alignment.slice(1), false, null);
+                
+                // Update alignment button states
+                document.querySelectorAll('.alignment-buttons .tool-btn').forEach(btn => btn.classList.remove('active'));
+                document.getElementById(`align-${alignment}-btn`).classList.add('active');
+                
+                this.saveToHistory();
+                this.showNotification(`${alignment.charAt(0).toUpperCase() + alignment.slice(1)} alignment applied!`, 'success');
+            }
+
+            insertList(type) {
+                switch(type) {
+                    case 'bullet':
+                        document.execCommand('insertUnorderedList', false, null);
+                        break;
+                    case 'number':
+                        document.execCommand('insertOrderedList', false, null);
+                        break;
+                    case 'check':
+                        // Insert checkbox
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.style.marginRight = '8px';
+                        document.execCommand('insertHTML', false, checkbox.outerHTML + ' ');
+                        break;
+                }
+                
+                this.saveToHistory();
+                this.showNotification(`${type.charAt(0).toUpperCase() + type.slice(1)} list created!`, 'success');
+            }
+
+
+
+            // History Methods
+            saveToHistory() {
+                const content = this.richTextEditor.innerHTML;
+                
+                // Remove old history if we're not at the end
+                if (this.historyIndex < this.history.length - 1) {
+                    this.history = this.history.slice(0, this.historyIndex + 1);
+                }
+                
+                // Add new state
+                this.history.push(content);
+                this.historyIndex++;
+                
+                // Limit history size
+                if (this.history.length > this.maxHistory) {
+                    this.history.shift();
+                    this.historyIndex--;
+                }
+                
+                this.updateHistoryButtons();
+            }
+
+            undo() {
+                if (this.historyIndex > 0) {
+                    this.historyIndex--;
+                    this.richTextEditor.innerHTML = this.history[this.historyIndex];
+                    this.updateHistoryButtons();
+                    this.showNotification('Undone!', 'success');
+                }
+            }
+
+            redo() {
+                if (this.historyIndex < this.history.length - 1) {
+                    this.historyIndex++;
+                    this.richTextEditor.innerHTML = this.history[this.historyIndex];
+                    this.updateHistoryButtons();
+                    this.showNotification('Redone!', 'success');
+                }
+            }
+
+            updateHistoryButtons() {
+                this.undoBtn.disabled = this.historyIndex <= 0;
+                this.redoBtn.disabled = this.historyIndex >= this.history.length - 1;
+            }
+
+            updateFormatButtons() {
+                this.boldBtn.classList.toggle('active', document.queryCommandState('bold'));
+                this.italicBtn.classList.toggle('active', document.queryCommandState('italic'));
+                this.underlineBtn.classList.toggle('active', document.queryCommandState('underline'));
+                this.strikethroughBtn.classList.toggle('active', document.queryCommandState('strikethrough'));
+            }
+
+
+
+
+
+            autoSave() {
+                // Debounced auto-save
+                clearTimeout(this.autoSaveTimeout);
+                this.autoSaveTimeout = setTimeout(() => {
+                    this.saveCurrentNote();
+                }, 500); // Reduced from 1000ms to 500ms for faster response
+            }
+
+            saveCurrentNote() {
+                if (!this.currentNoteId) return;
+                
+                const noteIndex = this.notes.findIndex(n => n.id === this.currentNoteId);
+                if (noteIndex === -1) return;
+
+                this.notes[noteIndex].title = this.noteTitleInput.value.trim() || 'Untitled Note';
+                this.notes[noteIndex].content = this.richTextEditor.innerHTML;
+                this.notes[noteIndex].updatedAt = new Date().toISOString();
+
+                this.saveNotes();
+                this.renderNotes();
+            }
+
+
+
+            searchNotes(query) {
+                const filteredNotes = this.notes.filter(note => 
+                    note.title.toLowerCase().includes(query.toLowerCase()) ||
+                    note.content.toLowerCase().includes(query.toLowerCase())
+                );
+                this.renderNotes(filteredNotes);
+            }
+
+            renderNotes(notesToRender = null) {
+                const notes = notesToRender || this.notes;
+                
+                if (notes.length === 0) {
+                    this.notesGrid.style.display = 'none';
+                    this.emptyState.style.display = 'block';
+                    return;
+                }
+
+                this.notesGrid.style.display = 'grid';
+                this.emptyState.style.display = 'none';
+
+                this.notesGrid.innerHTML = notes.map(note => {
+                    const date = new Date(note.updatedAt).toLocaleDateString();
+                    const preview = note.content.substring(0, 100) + (note.content.length > 100 ? '...' : '');
+                    
+                    return `
+                        <div class="note-card" data-note-id="${note.id}">
+                            <div class="note-card-actions">
+                                <button class="note-share-btn" data-note-id="${note.id}" title="Share note">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="18" cy="5" r="3"/>
+                                        <circle cx="6" cy="12" r="3"/>
+                                        <circle cx="18" cy="19" r="3"/>
+                                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                                    </svg>
+                                </button>
+                                <button class="note-delete-btn" data-note-id="${note.id}" title="Delete note">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="3,6 5,6 21,6"/>
+                                        <path d="M19,6v14a2,2,0,0,1-2,2H7a2,2,0,0,1-2-2V6m3,0V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2V6"/>
+                                        <line x1="10" y1="11" x2="10" y2="17"/>
+                                        <line x1="14" y1="11" x2="14" y2="17"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <h3>${note.title}</h3>
+                            <p class="content-preview">${preview || 'No content'}</p>
+                            <div class="note-card-footer">
+                                <span class="note-date">${date}</span>
+                                <span class="note-card-tag">Text</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                // Add click handlers to note cards and action buttons
+                this.notesGrid.querySelectorAll('.note-card').forEach(card => {
+                    card.addEventListener('click', (e) => {
+                        // Don't open editor if clicking on action buttons
+                        if (e.target.closest('.note-delete-btn') || e.target.closest('.note-share-btn')) {
+                            return;
+                        }
+                        const noteId = card.dataset.noteId;
+                        this.openNoteEditor(noteId);
+                    });
+                });
+                
+                // Add click handlers to delete buttons
+                this.notesGrid.querySelectorAll('.note-delete-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation(); // Prevent card click
+                        const noteId = btn.dataset.noteId;
+                        this.deleteNoteFromGrid(noteId);
+                    });
+                });
+                
+                // Add click handlers to share buttons
+                this.notesGrid.querySelectorAll('.note-share-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation(); // Prevent card click
+                        const noteId = btn.dataset.noteId;
+                        this.shareNoteFromGrid(noteId);
+                    });
+                });
+            }
+        }
+
+        // Initialize rich text notes manager when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Initializing RichTextNotesManager...');
+            try {
+                const manager = new RichTextNotesManager();
+                console.log('RichTextNotesManager initialized successfully:', manager);
+                
+                // Test if elements exist
+                console.log('Testing elements:');
+                console.log('- Rich text editor:', document.getElementById('rich-text-editor'));
+                console.log('- Bold button:', document.getElementById('bold-btn'));
+                console.log('- Undo button:', document.getElementById('undo-btn'));
+
+                console.log('- History controls:', document.querySelector('.history-controls'));
+                console.log('- Formatting tools:', document.querySelector('.formatting-tools'));
+
+                
+            } catch (error) {
+                console.error('Error initializing RichTextNotesManager:', error);
+            }
+        });
+    </script>
+</body>
+</html>
