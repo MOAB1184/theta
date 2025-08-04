@@ -137,8 +137,11 @@
             flex-grow: 1;
             display: -webkit-box;
             -webkit-line-clamp: 3;
+            line-clamp: 3; /* Standard property for compatibility */
             -webkit-box-orient: vertical;
             overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.4;
         }
         .note-card-footer { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--text-muted); }
         .note-card-tag { background: var(--light-border); padding: 2px 8px; border-radius: var(--radius-md); }
@@ -282,6 +285,17 @@
         }
         .rich-text-editor:focus { outline: none; }
         .rich-text-editor::placeholder { color: var(--text-muted); }
+        
+        /* Font size spans in rich text editor */
+        .rich-text-editor span[style*="font-size"] {
+            display: inline;
+            line-height: inherit;
+        }
+        
+        /* Ensure font size changes are properly inherited */
+        .rich-text-editor * {
+            font-family: inherit;
+        }
         
         /* Light mode styles for rich text editor */
         body:not(.dark-mode) .rich-text-editor {
@@ -484,6 +498,84 @@
             background: var(--dark-bg);
             color: var(--dark-text-primary);
             padding: 8px;
+        }
+        
+        /* Color Controls */
+        .color-controls {
+            margin-bottom: 1rem;
+        }
+        .color-picker-container {
+            position: relative;
+        }
+        .color-picker-btn {
+            width: 100%; padding: 8px 12px; border: 1px solid var(--dark-border);
+            border-radius: 6px; background: var(--dark-bg); color: var(--dark-text-primary);
+            font-size: 14px; cursor: pointer; outline: none; transition: all 0.2s;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .color-picker-btn:hover {
+            border-color: var(--primary-color);
+        }
+        .color-preview {
+            width: 20px; height: 20px; border-radius: 4px; border: 1px solid var(--dark-border);
+        }
+        .color-dropdown {
+            position: absolute; top: 100%; left: 0; right: 0; z-index: 1000;
+            background: var(--dark-surface); border: 1px solid var(--dark-border);
+            border-radius: 6px; padding: 12px; margin-top: 4px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            display: none;
+        }
+        .color-dropdown.active {
+            display: block;
+        }
+        .color-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+        }
+        .color-option {
+            width: 32px; height: 32px; border-radius: 4px; cursor: pointer;
+            border: 2px solid transparent; transition: all 0.2s;
+        }
+        .color-option:hover {
+            border-color: var(--primary-color); transform: scale(1.1);
+        }
+        
+        /* Emoji Picker */
+        .emoji-picker {
+            position: absolute; top: 100%; left: 0; z-index: 1000;
+            background: var(--dark-surface); border: 1px solid var(--dark-border);
+            border-radius: 8px; width: 280px; height: 320px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            display: none; flex-direction: column;
+        }
+        .emoji-picker.active {
+            display: flex;
+        }
+        .emoji-categories {
+            display: flex; border-bottom: 1px solid var(--dark-border);
+            padding: 8px;
+        }
+        .emoji-category {
+            background: none; border: none; color: var(--dark-text-secondary);
+            font-size: 18px; padding: 8px; cursor: pointer; border-radius: 4px;
+            transition: all 0.2s;
+        }
+        .emoji-category:hover {
+            background: var(--dark-border);
+        }
+        .emoji-category.active {
+            background: var(--primary-color); color: var(--text-on-primary);
+        }
+        .emoji-grid {
+            flex: 1; padding: 12px; overflow-y: auto;
+            display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px;
+        }
+        .emoji-option {
+            font-size: 20px; padding: 8px; cursor: pointer; border-radius: 4px;
+            text-align: center; transition: all 0.2s;
+        }
+        .emoji-option:hover {
+            background: var(--dark-border); transform: scale(1.2);
         }
         
 
@@ -1095,11 +1187,103 @@
                                 </div>
                             </div>
                             
+                    <div class="tool-group">
+                        <div class="tool-group-title">Text Color</div>
+                        <div class="color-controls">
+                            <div class="color-picker-container">
+                                <button class="color-picker-btn" id="text-color-btn" title="Text Color">
+                                    <div class="color-preview" id="text-color-preview" style="background-color: #000000;"></div>
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="6 9 12 15 18 9"></polyline>
+                                    </svg>
+                                </button>
+                                <div class="color-dropdown" id="text-color-dropdown">
+                                    <div class="color-grid">
+                                        <div class="color-option" data-color="#000000" style="background-color: #000000;" title="Black"></div>
+                                        <div class="color-option" data-color="#FF0000" style="background-color: #FF0000;" title="Red"></div>
+                                        <div class="color-option" data-color="#00FF00" style="background-color: #00FF00;" title="Green"></div>
+                                        <div class="color-option" data-color="#0000FF" style="background-color: #0000FF;" title="Blue"></div>
+                                        <div class="color-option" data-color="#FFFF00" style="background-color: #FFFF00;" title="Yellow"></div>
+                                        <div class="color-option" data-color="#FF00FF" style="background-color: #FF00FF;" title="Magenta"></div>
+                                        <div class="color-option" data-color="#00FFFF" style="background-color: #00FFFF;" title="Cyan"></div>
+                                        <div class="color-option" data-color="#FFA500" style="background-color: #FFA500;" title="Orange"></div>
+                                        <div class="color-option" data-color="#800080" style="background-color: #800080;" title="Purple"></div>
+                                        <div class="color-option" data-color="#008000" style="background-color: #008000;" title="Dark Green"></div>
+                                        <div class="color-option" data-color="#000080" style="background-color: #000080;" title="Navy"></div>
+                                        <div class="color-option" data-color="#808080" style="background-color: #808080;" title="Gray"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tool-group">
+                        <div class="tool-group-title">Highlight</div>
+                        <div class="color-controls">
+                            <div class="color-picker-container">
+                                <button class="color-picker-btn" id="highlight-color-btn" title="Highlight Color">
+                                    <div class="color-preview" id="highlight-color-preview" style="background-color: #FFFF00;"></div>
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="6 9 12 15 18 9"></polyline>
+                                    </svg>
+                                </button>
+                                <div class="color-dropdown" id="highlight-color-dropdown">
+                                    <div class="color-grid">
+                                        <div class="color-option" data-color="#FFFF00" style="background-color: #FFFF00;" title="Yellow"></div>
+                                        <div class="color-option" data-color="#00FF00" style="background-color: #00FF00;" title="Green"></div>
+                                        <div class="color-option" data-color="#00FFFF" style="background-color: #00FFFF;" title="Cyan"></div>
+                                        <div class="color-option" data-color="#FF00FF" style="background-color: #FF00FF;" title="Magenta"></div>
+                                        <div class="color-option" data-color="#FFA500" style="background-color: #FFA500;" title="Orange"></div>
+                                        <div class="color-option" data-color="#FFB6C1" style="background-color: #FFB6C1;" title="Light Pink"></div>
+                                        <div class="color-option" data-color="#90EE90" style="background-color: #90EE90;" title="Light Green"></div>
+                                        <div class="color-option" data-color="#87CEEB" style="background-color: #87CEEB;" title="Sky Blue"></div>
+                                        <div class="color-option" data-color="#DDA0DD" style="background-color: #DDA0DD;" title="Plum"></div>
+                                        <div class="color-option" data-color="#F0E68C" style="background-color: #F0E68C;" title="Khaki"></div>
+                                        <div class="color-option" data-color="#FFE4E1" style="background-color: #FFE4E1;" title="Misty Rose"></div>
+                                        <div class="color-option" data-color="#E0E0E0" style="background-color: #E0E0E0;" title="Light Gray"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tool-group">
+                        <div class="tool-group-title">Emoji & Media</div>
+                        <div class="tool-buttons">
+                            <button class="tool-btn" id="emoji-btn" title="Insert Emoji">😀</button>
+                            <button class="tool-btn" id="link-btn" title="Insert Link">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                                </svg>
+                            </button>
+                            <button class="tool-btn" id="video-btn" title="Embed Video">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polygon points="23 7 16 12 23 17 23 7"></polygon>
+                                    <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
 
                 </div>
                 
-
-                
+                <!-- Emoji Picker Modal -->
+                <div class="emoji-picker" id="emoji-picker">
+                    <div class="emoji-categories">
+                        <button class="emoji-category active" data-category="smileys">😀</button>
+                        <button class="emoji-category" data-category="people">👤</button>
+                        <button class="emoji-category" data-category="animals">🐶</button>
+                        <button class="emoji-category" data-category="food">🍎</button>
+                        <button class="emoji-category" data-category="activities">⚽</button>
+                        <button class="emoji-category" data-category="travel">🚗</button>
+                        <button class="emoji-category" data-category="objects">💡</button>
+                        <button class="emoji-category" data-category="symbols">❤️</button>
+                    </div>
+                    <div class="emoji-grid" id="emoji-grid">
+                        <!-- Emojis will be populated by JavaScript -->
+                    </div>
+                </div>
 
                 
                 <!-- List and Alignment Tools -->
@@ -1276,6 +1460,21 @@
                 this.customFontDropdown = document.getElementById('custom-font-dropdown');
                 this.fontFamilySearch = document.getElementById('font-family-search');
                 
+                // Color picker elements
+                this.textColorBtn = document.getElementById('text-color-btn');
+                this.textColorPreview = document.getElementById('text-color-preview');
+                this.textColorDropdown = document.getElementById('text-color-dropdown');
+                this.highlightColorBtn = document.getElementById('highlight-color-btn');
+                this.highlightColorPreview = document.getElementById('highlight-color-preview');
+                this.highlightColorDropdown = document.getElementById('highlight-color-dropdown');
+                
+                // Emoji and media elements
+                this.emojiBtn = document.getElementById('emoji-btn');
+                this.emojiPicker = document.getElementById('emoji-picker');
+                this.emojiGrid = document.getElementById('emoji-grid');
+                this.linkBtn = document.getElementById('link-btn');
+                this.videoBtn = document.getElementById('video-btn');
+                
                 console.log('Elements initialized:', {
                     richTextEditor: this.richTextEditor,
                     boldBtn: this.boldBtn,
@@ -1347,6 +1546,19 @@
                     this.setFontSize(e.target.value);
                 });
                 
+                // Update font size select when cursor position changes
+                this.richTextEditor.addEventListener('click', () => {
+                    this.updateFontSizeSelect();
+                });
+                this.richTextEditor.addEventListener('keyup', () => {
+                    this.updateFontSizeSelect();
+                });
+                
+                // Handle font size for new text being typed
+                this.richTextEditor.addEventListener('input', (e) => {
+                    this.handleFontSizeForNewText(e);
+                });
+                
 
                 
                 // Keyboard shortcuts
@@ -1396,34 +1608,83 @@
                 this.alignLeftBtn.addEventListener('click', () => this.setAlignment('left'));
                 this.alignCenterBtn.addEventListener('click', () => this.setAlignment('center'));
                 this.alignRightBtn.addEventListener('click', () => this.setAlignment('right'));
-
+                
                 // List tools
                 this.bulletListBtn.addEventListener('click', () => this.insertList('bullet'));
                 this.numberListBtn.addEventListener('click', () => this.insertList('number'));
-                this.checkListBtn.addEventListener('click', () => this.insertList('checklist'));
+                this.checkListBtn.addEventListener('click', () => this.insertList('check'));
+                
+                // Color picker tools
+                this.textColorBtn.addEventListener('click', () => this.toggleColorDropdown('text'));
+                this.highlightColorBtn.addEventListener('click', () => this.toggleColorDropdown('highlight'));
+                
+                // Color option event listeners
+                this.textColorDropdown.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('color-option')) {
+                        this.setTextColor(e.target.dataset.color);
+                    }
+                });
+                this.highlightColorDropdown.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('color-option')) {
+                        this.setHighlightColor(e.target.dataset.color);
+                    }
+                });
+                
+                // Emoji and media tools
+                this.emojiBtn.addEventListener('click', () => this.toggleEmojiPicker());
+                this.linkBtn.addEventListener('click', () => this.insertLink());
+                this.videoBtn.addEventListener('click', () => this.insertVideo());
+                
+                // Emoji picker event listeners
+                this.emojiPicker.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('emoji-option')) {
+                        this.insertEmoji(e.target.textContent);
+                    }
+                    if (e.target.classList.contains('emoji-category')) {
+                        this.switchEmojiCategory(e.target.dataset.category);
+                    }
+                });
+                
+                // Close dropdowns when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('.color-picker-container')) {
+                        this.textColorDropdown.classList.remove('active');
+                        this.highlightColorDropdown.classList.remove('active');
+                    }
+                    if (!e.target.closest('#emoji-btn') && !e.target.closest('#emoji-picker')) {
+                        this.emojiPicker.classList.remove('active');
+                    }
+                });
 
+                
+                // Confirmation dialog event handlers
+                this.confirmationCancel.addEventListener('click', () => this.hideConfirmationDialog());
+                this.confirmationConfirm.addEventListener('click', () => this.executeConfirmedAction());
+                this.confirmationOverlay.addEventListener('click', (e) => {
+                    if (e.target === this.confirmationOverlay) {
+                        this.hideConfirmationDialog();
+                    }
+                });
+                
                 // Tools toggle event handler
                 this.toolsToggleBtn.addEventListener('click', () => this.toggleTools());
-
-                // Font controls
-                this.fontSizeSelect.addEventListener('change', (e) => this.setFontSize(e.target.value));
-
+                
                 // Custom font dropdown functionality
                 this.fontFamilySelect.addEventListener('click', (e) => {
                     e.preventDefault();
                     this.toggleFontDropdown();
                 });
-
+                
                 // Font search event handler
                 this.fontFamilySearch.addEventListener('input', (e) => this.filterFonts(e.target.value));
-
+                
                 // Close dropdown when clicking outside
                 document.addEventListener('click', (e) => {
                     if (!this.fontFamilySelect.contains(e.target) && !this.customFontDropdown.contains(e.target)) {
                         this.closeFontDropdown();
                     }
                 });
-
+                
                 // Font option click handlers
                 this.customFontDropdown.querySelectorAll('.font-option').forEach(option => {
                     option.addEventListener('click', () => {
@@ -1432,33 +1693,8 @@
                         this.closeFontDropdown();
                     });
                 });
-            }
+                
 
-            setFontSize(size) {
-                console.log(`setFontSize called with: ${size}`);
-                const mappedSize = this.getMappedFontSize(size);
-                console.log(`Mapped size: ${mappedSize}`);
-                if (mappedSize) {
-                    document.execCommand('fontSize', false, mappedSize);
-                }
-                this.richTextEditor.focus();
-            }
-
-            getMappedFontSize(pixelSize) {
-                console.log(`getMappedFontSize called with: ${pixelSize}`);
-                const sizes = [8, 10, 12, 16, 20, 24, 32];
-                let bestMatch = 1;
-                let smallestDiff = Infinity;
-
-                for (let i = 0; i < sizes.length; i++) {
-                    const diff = Math.abs(pixelSize - sizes[i]);
-                    if (diff < smallestDiff) {
-                        smallestDiff = diff;
-                        bestMatch = i + 1;
-                    }
-                }
-                console.log(`Best match for ${pixelSize} is ${bestMatch}`);
-                return bestMatch.toString();
             }
 
             // Initialize Rich Text Editor
@@ -1466,8 +1702,7 @@
                 console.log('Initializing rich text editor...');
                 this.richTextEditor.addEventListener('paste', (e) => {
                     e.preventDefault();
-                    const text = e.clipboardData.getData('text/plain');
-                    document.execCommand('insertText', false, text);
+                    this.handlePaste(e);
                 });
                 
                 // Set default font size and family
@@ -1529,7 +1764,7 @@
                 console.log('Opening note editor, rich text editor:', this.richTextEditor);
                 console.log('Rich text editor content:', this.richTextEditor.innerHTML);
                 
-                // Ensure default font size is set
+                // Ensure default font size is set in the select
                 if (this.fontSizeSelect) {
                     this.fontSizeSelect.value = '16';
                 }
@@ -1790,39 +2025,55 @@
                 // Get current selection
                 const selection = window.getSelection();
                 
-                // If no selection, create a range at the end
                 if (selection.rangeCount === 0) {
-                    const range = document.createRange();
-                    range.selectNodeContents(this.richTextEditor);
-                    range.collapse(false);
-                    selection.addRange(range);
+                    // No selection, just update the select value
+                    this.fontSizeSelect.value = size;
+                    return;
                 }
                 
                 const range = selection.getRangeAt(0);
                 
-                // Create a span with the font size
-                const span = document.createElement('span');
-                span.style.fontSize = size + 'px';
-                
-                // If there's selected text, wrap it in a span
-                if (!range.collapsed) {
-                    const contents = range.extractContents();
-                    span.appendChild(contents);
+                if (range.collapsed) {
+                    // No text selected - use execCommand to set font size for future typing
+                    
+                    // Use execCommand with a size value (1-7 scale)
+                    let execCommandSize = '3'; // Default medium
+                    if (size <= 10) execCommandSize = '1';
+                    else if (size <= 13) execCommandSize = '2';
+                    else if (size <= 16) execCommandSize = '3';
+                    else if (size <= 18) execCommandSize = '4';
+                    else if (size <= 24) execCommandSize = '5';
+                    else if (size <= 32) execCommandSize = '6';
+                    else execCommandSize = '7';
+                    
+                    document.execCommand('fontSize', false, execCommandSize);
+                    
+                    // Also create a span for pixel-perfect sizing
+                    const span = document.createElement('span');
+                    span.style.fontSize = size + 'px';
+                    span.innerHTML = '&nbsp;';
                     range.insertNode(span);
-                } else {
-                    // If no selection, insert a space with the font size
-                    span.textContent = '\u200B'; // Zero-width space
-                    range.insertNode(span);
+                    
+                    // Position cursor after the span
                     range.setStartAfter(span);
                     range.setEndAfter(span);
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                } else {
+                    // Text is selected, wrap it in a span with the font size
+                    const contents = range.extractContents();
+                    const span = document.createElement('span');
+                    span.style.fontSize = size + 'px';
+                    span.appendChild(contents);
+                    
+                    range.insertNode(span);
+                    
+                    // Position cursor after the span
+                    range.setStartAfter(span);
+                    range.setEndAfter(span);
+                    selection.removeAllRanges();
+                    selection.addRange(range);
                 }
-                
-                // Update selection
-                selection.removeAllRanges();
-                selection.addRange(range);
-                
-                // Also try the execCommand method as fallback
-                document.execCommand('fontSize', false, size);
                 
                 // Update the select value
                 this.fontSizeSelect.value = size;
@@ -1831,7 +2082,89 @@
                 this.richTextEditor.focus();
                 
                 this.saveToHistory();
-                this.showNotification(`Font size set to ${size}px!`, 'success');
+            }
+
+            updateFontSizeSelect() {
+                const selection = window.getSelection();
+                if (selection.rangeCount === 0) return;
+                
+                const range = selection.getRangeAt(0);
+                let element = range.startContainer;
+                
+                // If the start container is a text node, get its parent element
+                if (element.nodeType === Node.TEXT_NODE) {
+                    element = element.parentElement;
+                }
+                
+                // Walk up the DOM tree to find an element with font-size style
+                while (element && element !== this.richTextEditor) {
+                    const fontSize = window.getComputedStyle(element).fontSize;
+                    if (fontSize && element.style.fontSize) {
+                        // Extract pixel value from font size
+                        const pixelValue = parseInt(fontSize.replace('px', ''));
+                        if (pixelValue && this.fontSizeSelect) {
+                            // Only update if the value exists in our select options
+                            const option = this.fontSizeSelect.querySelector(`option[value="${pixelValue}"]`);
+                            if (option) {
+                                this.fontSizeSelect.value = pixelValue.toString();
+                                return;
+                            }
+                        }
+                    }
+                    element = element.parentElement;
+                }
+                
+                // If no specific font size found, use the editor's default
+                const editorFontSize = window.getComputedStyle(this.richTextEditor).fontSize;
+                const defaultPixelValue = parseInt(editorFontSize.replace('px', ''));
+                if (this.fontSizeSelect && defaultPixelValue) {
+                    const option = this.fontSizeSelect.querySelector(`option[value="${defaultPixelValue}"]`);
+                    if (option) {
+                        this.fontSizeSelect.value = defaultPixelValue.toString();
+                    } else {
+                        // Default to 16 if computed size is not in our options
+                        this.fontSizeSelect.value = '16';
+                    }
+                }
+            }
+
+            handleFontSizeForNewText(e) {
+                // Get the current selection
+                const selection = window.getSelection();
+                if (selection.rangeCount === 0) return;
+                
+                const range = selection.getRangeAt(0);
+                let element = range.startContainer;
+                
+                // If we're in a text node, get its parent
+                if (element.nodeType === Node.TEXT_NODE) {
+                    element = element.parentElement;
+                }
+                
+                // Check if we're in a span with font-size but no content
+                if (element.tagName === 'SPAN' && element.style.fontSize && element.textContent.trim() === '') {
+                    // Remove the empty span - it was just for positioning
+                    const fontSize = element.style.fontSize;
+                    const parent = element.parentElement;
+                    parent.removeChild(element);
+                    
+                    // Create a new span with the font size for the actual text
+                    const newSpan = document.createElement('span');
+                    newSpan.style.fontSize = fontSize;
+                    
+                    // Get the newly inserted text
+                    const insertedText = e.data || '';
+                    newSpan.textContent = insertedText;
+                    
+                    // Insert the new span at the current position
+                    range.insertNode(newSpan);
+                    
+                    // Position cursor after the new span
+                    range.setStartAfter(newSpan);
+                    range.setEndAfter(newSpan);
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                }
             }
 
             setFontFamily(family) {
@@ -2049,6 +2382,457 @@
                     });
                 });
             }
+            
+            // Color Picker Methods
+            toggleColorDropdown(type) {
+                const dropdown = type === 'text' ? this.textColorDropdown : this.highlightColorDropdown;
+                const otherDropdown = type === 'text' ? this.highlightColorDropdown : this.textColorDropdown;
+                
+                // Close other dropdown
+                otherDropdown.classList.remove('active');
+                
+                // Toggle current dropdown
+                dropdown.classList.toggle('active');
+            }
+            
+            setTextColor(color) {
+                this.richTextEditor.focus();
+                
+                const selection = window.getSelection();
+                if (selection.rangeCount === 0) return;
+                
+                const range = selection.getRangeAt(0);
+                
+                if (range.collapsed) {
+                    // No text selected - set color for future typing
+                    document.execCommand('foreColor', false, color);
+                } else {
+                    // Text is selected, wrap it in a span with the color
+                    const span = document.createElement('span');
+                    span.style.color = color;
+                    
+                    try {
+                        range.surroundContents(span);
+                    } catch (e) {
+                        // If surroundContents fails, extract and wrap content
+                        const contents = range.extractContents();
+                        span.appendChild(contents);
+                        range.insertNode(span);
+                    }
+                    
+                    // Clear selection and position cursor after the span
+                    selection.removeAllRanges();
+                    const newRange = document.createRange();
+                    newRange.setStartAfter(span);
+                    newRange.collapse(true);
+                    selection.addRange(newRange);
+                }
+                
+                // Update color preview
+                this.textColorPreview.style.backgroundColor = color;
+                this.textColorDropdown.classList.remove('active');
+                
+                this.saveToHistory();
+                this.showNotification('Text color applied!', 'success');
+            }
+            
+            setHighlightColor(color) {
+                this.richTextEditor.focus();
+                
+                const selection = window.getSelection();
+                if (selection.rangeCount === 0) return;
+                
+                const range = selection.getRangeAt(0);
+                
+                if (range.collapsed) {
+                    // No text selected - set highlight for future typing
+                    document.execCommand('backColor', false, color);
+                } else {
+                    // Text is selected, wrap it in a span with the background color
+                    const span = document.createElement('span');
+                    span.style.backgroundColor = color;
+                    
+                    try {
+                        range.surroundContents(span);
+                    } catch (e) {
+                        // If surroundContents fails, extract and wrap content
+                        const contents = range.extractContents();
+                        span.appendChild(contents);
+                        range.insertNode(span);
+                    }
+                    
+                    // Clear selection and position cursor after the span
+                    selection.removeAllRanges();
+                    const newRange = document.createRange();
+                    newRange.setStartAfter(span);
+                    newRange.collapse(true);
+                    selection.addRange(newRange);
+                }
+                
+                // Update color preview
+                this.highlightColorPreview.style.backgroundColor = color;
+                this.highlightColorDropdown.classList.remove('active');
+                
+                this.saveToHistory();
+                this.showNotification('Highlight color applied!', 'success');
+            }
+            
+            // Emoji Picker Methods
+            toggleEmojiPicker() {
+                this.emojiPicker.classList.toggle('active');
+                if (this.emojiPicker.classList.contains('active')) {
+                    this.loadEmojiCategory('smileys');
+                }
+            }
+            
+            loadEmojiCategory(category) {
+                const emojiData = {
+                    smileys: ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩', '🥳', '😏'],
+                    animals: ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐽', '🐸', '🐵', '🙈', '🙉', '🙊', '🐒', '🐔', '🐧', '🐦', '🐤', '🐣', '🐥', '🦆', '🦅', '🦉', '🦇', '🐺', '🐗'],
+                    food: ['🍎', '🍐', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🍈', '🍒', '🍑', '🥭', '🍍', '🥥', '🥝', '🍅', '🍆', '🥑', '🥦', '🥬', '🥒', '🌶️', '🌽', '🥕', '🧄', '🧅', '🥔', '🍠', '🥐', '🍞', '🥖', '🥨'],
+                    objects: ['⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🥏', '🎱', '🪀', '🏓', '🏸', '🏒', '🏑', '🥍', '🏏', '🪃', '🥅', '⛳', '🪁', '🏹', '🎣', '🤿', '🥊', '🥋', '🎽', '🛹', '🛷', '⛸️', '🥌', '🎿']
+                };
+                
+                const emojis = emojiData[category] || emojiData.smileys;
+                this.emojiGrid.innerHTML = emojis.map(emoji => 
+                    `<div class="emoji-option">${emoji}</div>`
+                ).join('');
+                
+                // Update active category button
+                this.emojiPicker.querySelectorAll('.emoji-category').forEach(btn => {
+                    btn.classList.remove('active');
+                    if (btn.dataset.category === category) {
+                        btn.classList.add('active');
+                    }
+                });
+            }
+            
+            switchEmojiCategory(category) {
+                this.loadEmojiCategory(category);
+            }
+            
+            insertEmoji(emoji) {
+                this.richTextEditor.focus();
+                
+                const selection = window.getSelection();
+                if (selection.rangeCount > 0) {
+                    const range = selection.getRangeAt(0);
+                    range.deleteContents();
+                    range.insertNode(document.createTextNode(emoji));
+                    
+                    // Move cursor after the emoji
+                    range.setStartAfter(range.endContainer);
+                    range.collapse(true);
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                }
+                
+                this.emojiPicker.classList.remove('active');
+                this.saveToHistory();
+                this.showNotification('Emoji inserted!', 'success');
+            }
+            
+            // Media Methods
+            insertLink() {
+                const url = prompt('Enter the URL:');
+                if (url) {
+                    const text = prompt('Enter the link text (optional):') || url;
+                    
+                    this.richTextEditor.focus();
+                    const selection = window.getSelection();
+                    
+                    if (selection.rangeCount > 0) {
+                        const range = selection.getRangeAt(0);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.textContent = text;
+                        link.target = '_blank';
+                        link.style.color = 'var(--primary-color)';
+                        link.style.textDecoration = 'underline';
+                        
+                        range.deleteContents();
+                        range.insertNode(link);
+                        
+                        // Move cursor after the link
+                        range.setStartAfter(link);
+                        range.collapse(true);
+                        selection.removeAllRanges();
+                        selection.addRange(range);
+                    }
+                    
+                    this.saveToHistory();
+                    this.showNotification('Link inserted!', 'success');
+                }
+            }
+            
+            insertVideo() {
+                const url = prompt('Enter the video URL (YouTube, Vimeo, etc.):');
+                if (url) {
+                    let embedUrl = url;
+                    
+                    // Convert YouTube URLs to embed format
+                    if (url.includes('youtube.com/watch?v=')) {
+                        const videoId = url.split('v=')[1].split('&')[0];
+                        embedUrl = `https://www.youtube.com/embed/${videoId}`;
+                    } else if (url.includes('youtu.be/')) {
+                        const videoId = url.split('youtu.be/')[1].split('?')[0];
+                        embedUrl = `https://www.youtube.com/embed/${videoId}`;
+                    } else if (url.includes('vimeo.com/')) {
+                        const videoId = url.split('vimeo.com/')[1].split('?')[0];
+                        embedUrl = `https://player.vimeo.com/video/${videoId}`;
+                    }
+                    
+                    this.richTextEditor.focus();
+                    const selection = window.getSelection();
+                    
+                    if (selection.rangeCount > 0) {
+                        const range = selection.getRangeAt(0);
+                        const iframe = document.createElement('iframe');
+                        iframe.src = embedUrl;
+                        iframe.width = '560';
+                        iframe.height = '315';
+                        iframe.style.maxWidth = '100%';
+                        iframe.style.border = 'none';
+                        iframe.style.borderRadius = '8px';
+                        iframe.setAttribute('allowfullscreen', '');
+                        
+                        range.deleteContents();
+                        range.insertNode(iframe);
+                        
+                        // Add a line break after the video
+                        const br = document.createElement('br');
+                        range.setStartAfter(iframe);
+                        range.insertNode(br);
+                        range.setStartAfter(br);
+                        range.collapse(true);
+                        selection.removeAllRanges();
+                        selection.addRange(range);
+                    }
+                    
+                    this.saveToHistory();
+                    this.showNotification('Video embedded!', 'success');
+                }
+            }
+            
+            // Paste Handling
+            handlePaste(e) {
+                const clipboardData = e.clipboardData || window.clipboardData;
+                
+                // Check for images first
+                const items = clipboardData.items;
+                if (items) {
+                    for (let i = 0; i < items.length; i++) {
+                        const item = items[i];
+                        if (item.type.indexOf('image') !== -1) {
+                            // Handle image paste
+                            const file = item.getAsFile();
+                            this.handleImagePaste(file);
+                            return;
+                        }
+                    }
+                }
+                
+                // Try to get HTML content (for rich text)
+                const htmlData = clipboardData.getData('text/html');
+                const textData = clipboardData.getData('text/plain');
+                
+                if (htmlData) {
+                    // Clean and insert HTML content
+                    const cleanedHtml = this.cleanPastedHtml(htmlData);
+                    document.execCommand('insertHTML', false, cleanedHtml);
+                } else if (textData) {
+                    // Insert plain text
+                    document.execCommand('insertText', false, textData);
+                }
+                
+                this.saveToHistory();
+                this.showNotification('Content pasted!', 'success');
+            }
+            
+            handleImagePaste(file) {
+                if (!file || !file.type.startsWith('image/')) {
+                    this.showNotification('Invalid image file!', 'error');
+                    return;
+                }
+                
+                // Check file size (limit to 5MB)
+                const maxSize = 5 * 1024 * 1024; // 5MB
+                if (file.size > maxSize) {
+                    this.showNotification('Image too large! Maximum size is 5MB.', 'error');
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const imageDataUrl = e.target.result;
+                    this.insertImage(imageDataUrl, file.name);
+                };
+                
+                reader.onerror = () => {
+                    this.showNotification('Failed to read image file!', 'error');
+                };
+                
+                reader.readAsDataURL(file);
+                this.showNotification('Processing image...', 'info');
+            }
+            
+            insertImage(dataUrl, fileName = 'Pasted Image') {
+                this.richTextEditor.focus();
+                
+                const selection = window.getSelection();
+                if (selection.rangeCount > 0) {
+                    const range = selection.getRangeAt(0);
+                    
+                    // Create image element
+                    const img = document.createElement('img');
+                    img.src = dataUrl;
+                    img.alt = fileName;
+                    img.style.maxWidth = '100%';
+                    img.style.height = 'auto';
+                    img.style.borderRadius = '8px';
+                    img.style.margin = '8px 0';
+                    img.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
+                    img.style.cursor = 'pointer';
+                    img.title = fileName;
+                    
+                    // Add click handler for image preview/zoom
+                    img.addEventListener('click', () => {
+                        this.showImagePreview(dataUrl, fileName);
+                    });
+                    
+                    // Insert image
+                    range.deleteContents();
+                    range.insertNode(img);
+                    
+                    // Add line break after image
+                    const br = document.createElement('br');
+                    range.setStartAfter(img);
+                    range.insertNode(br);
+                    range.setStartAfter(br);
+                    range.collapse(true);
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                }
+                
+                this.saveToHistory();
+                this.showNotification('Image inserted successfully!', 'success');
+            }
+            
+            showImagePreview(dataUrl, fileName) {
+                // Create modal overlay for image preview
+                const overlay = document.createElement('div');
+                overlay.style.cssText = `
+                    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                    background: rgba(0, 0, 0, 0.8); z-index: 10000;
+                    display: flex; align-items: center; justify-content: center;
+                    cursor: pointer;
+                `;
+                
+                const img = document.createElement('img');
+                img.src = dataUrl;
+                img.alt = fileName;
+                img.style.cssText = `
+                    max-width: 90%; max-height: 90%;
+                    border-radius: 8px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+                `;
+                
+                const closeBtn = document.createElement('button');
+                closeBtn.innerHTML = '×';
+                closeBtn.style.cssText = `
+                    position: absolute; top: 20px; right: 20px;
+                    background: rgba(255, 255, 255, 0.9); border: none;
+                    width: 40px; height: 40px; border-radius: 50%;
+                    font-size: 24px; font-weight: bold; cursor: pointer;
+                    display: flex; align-items: center; justify-content: center;
+                `;
+                
+                overlay.appendChild(img);
+                overlay.appendChild(closeBtn);
+                document.body.appendChild(overlay);
+                
+                // Close on click
+                const closePreview = () => {
+                    document.body.removeChild(overlay);
+                };
+                
+                overlay.addEventListener('click', closePreview);
+                closeBtn.addEventListener('click', closePreview);
+                
+                // Close on Escape key
+                const handleKeydown = (e) => {
+                    if (e.key === 'Escape') {
+                        closePreview();
+                        document.removeEventListener('keydown', handleKeydown);
+                    }
+                };
+                document.addEventListener('keydown', handleKeydown);
+            }
+            
+            cleanPastedHtml(html) {
+                // Create a temporary div to parse the HTML
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = html;
+                
+                // Remove unwanted elements and attributes
+                const elementsToRemove = ['script', 'style', 'meta', 'link', 'title'];
+                elementsToRemove.forEach(tag => {
+                    const elements = tempDiv.querySelectorAll(tag);
+                    elements.forEach(el => el.remove());
+                });
+                
+                // Clean attributes but preserve basic formatting
+                const allowedTags = ['p', 'div', 'span', 'strong', 'b', 'em', 'i', 'u', 'br', 'a', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
+                const allowedAttributes = ['href', 'target', 'style'];
+                
+                const cleanElement = (element) => {
+                    // Remove elements not in allowed list
+                    if (!allowedTags.includes(element.tagName.toLowerCase())) {
+                        // Replace with span to preserve content
+                        const span = document.createElement('span');
+                        span.innerHTML = element.innerHTML;
+                        element.parentNode.replaceChild(span, element);
+                        return span;
+                    }
+                    
+                    // Clean attributes
+                    const attributes = Array.from(element.attributes);
+                    attributes.forEach(attr => {
+                        if (!allowedAttributes.includes(attr.name.toLowerCase())) {
+                            element.removeAttribute(attr.name);
+                        }
+                    });
+                    
+                    // Clean style attribute to only allow safe styles
+                    if (element.style) {
+                        const allowedStyles = ['color', 'background-color', 'font-size', 'font-weight', 'font-style', 'text-decoration'];
+                        const currentStyles = element.style.cssText;
+                        element.removeAttribute('style');
+                        
+                        // Re-add only allowed styles
+                        currentStyles.split(';').forEach(style => {
+                            const [property, value] = style.split(':').map(s => s.trim());
+                            if (property && value && allowedStyles.includes(property)) {
+                                element.style.setProperty(property, value);
+                            }
+                        });
+                    }
+                    
+                    return element;
+                };
+                
+                // Recursively clean all elements
+                const cleanRecursively = (element) => {
+                    const children = Array.from(element.children);
+                    children.forEach(child => {
+                        const cleanedChild = cleanElement(child);
+                        cleanRecursively(cleanedChild);
+                    });
+                };
+                
+                cleanRecursively(tempDiv);
+                
+                return tempDiv.innerHTML;
+            }
         }
 
         // Initialize rich text notes manager when DOM is loaded
@@ -2066,6 +2850,7 @@
 
                 console.log('- History controls:', document.querySelector('.history-controls'));
                 console.log('- Formatting tools:', document.querySelector('.formatting-tools'));
+                console.log('- Font size select:', document.getElementById('font-size-select'));
 
                 
             } catch (error) {
