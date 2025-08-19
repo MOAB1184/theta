@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Scout Accelerator</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z' stroke='%2300A3FF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/><path d='M16.24 7.76L14.12 14.12L7.76 16.24L9.88 9.88L16.24 7.76Z' stroke='%2300A3FF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            },
+            colors: {
+              'primary': '#111111', // Near-black background
+              'secondary': '#1A1A1A', // Lighter surface for cards/modals
+              'accent': '#00A3FF', // Vibrant blue for interactive elements
+              'accent-hover': '#0083CC',
+              'text-primary': '#F0F0F0', // Light gray for body text
+              'text-secondary': '#A0A0A0', // Dimmer text for secondary info
+              'border-color': '#2A2A2A', // Subtle borders
+              'scout-blue': '#00A3FF', // Remapping old name to new accent
+              'scout-green': '#22C55E', // A vibrant green
+            },
+          },
+        },
+      }
+    </script>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.1.0/",
+    "react": "https://esm.sh/react@^19.1.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.1.0/",
+    "react-router-dom": "https://esm.sh/react-router-dom@^7.6.3",
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@^2.51.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body class="bg-primary text-text-primary font-sans">
+    <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>
