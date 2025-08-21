@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign-off Approvals - Scout Accelerator</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="images/compass-icon.svg">
+</head>
+<body>
+    <!-- Dashboard Header -->
+    <header class="dashboard-header">
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo">
+                    <svg class="compass-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="compassGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#00D4FF;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#0078FF;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <circle cx="50" cy="50" r="45" fill="none" stroke="url(#compassGradient)" stroke-width="3"/>
+                        <polygon points="50,15 60,50 50,85 40,50" fill="url(#compassGradient)" stroke="url(#compassGradient)" stroke-width="1"/>
+                        <circle cx="50" cy="50" r="3" fill="#00D4FF"/>
+                    </svg>
+                    <h1 class="logo-text">Scout Accelerator</h1>
+                </a>
+                <nav class="dashboard-nav">
+                    <a href="scoutmaster-dashboard.html" class="nav-link">Dashboard</a>
+                    <a href="troop-management.html" class="nav-link">Troop Management</a>
+                    <a href="signoff-approvals.html" class="nav-link active">Sign-off Approvals</a>
+                    <a href="conferences.html" class="nav-link">Conferences</a>
+                    <a href="profile.html" class="nav-link">Profile</a>
+                </nav>
+                <div class="header-actions">
+                    <button class="btn btn-secondary">Sign Out</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="dashboard-main">
+        <div class="container">
+            <!-- Page Header -->
+            <section class="page-header">
+                <div class="header-content">
+                    <h1 class="page-title">Sign-off Approvals</h1>
+                    <p class="page-subtitle">Review and approve scout advancement sign-offs</p>
+                </div>
+            </section>
+
+            <!-- Pending Approvals -->
+            <section class="approvals-section">
+                <div class="overview-grid">
+                    <div class="overview-card">
+                        <div class="card-header">
+                            <h3>Pending Sign-off Requests</h3>
+                            <span class="badge">8 pending</span>
+                        </div>
+                        <div class="card-content">
+                            <div class="signoff-list">
+                                <div class="signoff-item">
+                                    <div class="signoff-info">
+                                        <h5>Alex Thompson</h5>
+                                        <p>Basic First Aid - Tenderfoot</p>
+                                        <span class="signoff-time">2 hours ago</span>
+                                    </div>
+                                    <div class="signoff-actions">
+                                        <button class="btn-approve" onclick="approveSignoff(this)">✓ Approve</button>
+                                        <button class="btn-deny" onclick="denySignoff(this)">✗ Deny</button>
+                                    </div>
+                                </div>
+                                <div class="signoff-item">
+                                    <div class="signoff-info">
+                                        <h5>Sam Wilson</h5>
+                                        <p>Fire Safety - Tenderfoot</p>
+                                        <span class="signoff-time">5 hours ago</span>
+                                    </div>
+                                    <div class="signoff-actions">
+                                        <button class="btn-approve" onclick="approveSignoff(this)">✓ Approve</button>
+                                        <button class="btn-deny" onclick="denySignoff(this)">✗ Deny</button>
+                                    </div>
+                                </div>
+                                <div class="signoff-item">
+                                    <div class="signoff-info">
+                                        <h5>Mike Davis</h5>
+                                        <p>Knife Safety - Second Class</p>
+                                        <span class="signoff-time">1 day ago</span>
+                                    </div>
+                                    <div class="signoff-actions">
+                                        <button class="btn-approve" onclick="approveSignoff(this)">✓ Approve</button>
+                                        <button class="btn-deny" onclick="denySignoff(this)">✗ Deny</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="overview-card">
+                        <div class="card-header">
+                            <h3>Recent Approvals</h3>
+                            <span class="badge badge-success">12 approved</span>
+                        </div>
+                        <div class="card-content">
+                            <div class="signoff-list">
+                                <div class="signoff-item completed">
+                                    <div class="signoff-info">
+                                        <h5>Chris Brown</h5>
+                                        <p>Map Reading - First Class</p>
+                                        <span class="signoff-time">Approved yesterday</span>
+                                    </div>
+                                    <div class="signoff-status">
+                                        <span class="status-badge approved">Approved</span>
+                                    </div>
+                                </div>
+                                <div class="signoff-item completed">
+                                    <div class="signoff-info">
+                                        <h5>John Davis</h5>
+                                        <p>Swimming - First Class</p>
+                                        <span class="signoff-time">Approved 2 days ago</span>
+                                    </div>
+                                    <div class="signoff-status">
+                                        <span class="status-badge approved">Approved</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="js/scoutmaster-dashboard.js"></script>
+</body>
+</html>

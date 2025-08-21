@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Scout Accelerator</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="images/compass-icon.svg">
+</head>
+<body>
+    <!-- Dashboard Header -->
+    <header class="dashboard-header">
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo">
+                    <svg class="compass-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="compassGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#00D4FF;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#0078FF;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <circle cx="50" cy="50" r="45" fill="none" stroke="url(#compassGradient)" stroke-width="3"/>
+                        <polygon points="50,15 60,50 50,85 40,50" fill="url(#compassGradient)" stroke="url(#compassGradient)" stroke-width="1"/>
+                        <circle cx="50" cy="50" r="3" fill="#00D4FF"/>
+                    </svg>
+                    <h1 class="logo-text">Scout Accelerator</h1>
+                </a>
+                <nav class="dashboard-nav">
+                    <a href="scout-dashboard.html" class="nav-link active">Dashboard</a>
+                    <a href="advancements.html" class="nav-link">Advancements</a>
+                    <a href="signoff-requests.html" class="nav-link">Sign-off Requests</a>
+                    <a href="profile.html" class="nav-link">Profile</a>
+                </nav>
+                <div class="header-actions">
+                    <button class="btn btn-secondary">Sign Out</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Dashboard Content -->
+    <main class="dashboard-main">
+        <div class="container">
+            <!-- Welcome Section -->
+            <section class="welcome-section">
+                <div class="welcome-content">
+                    <h2 class="welcome-title">Welcome back, <span id="scoutName">Alex</span>!</h2>
+                    <p class="welcome-subtitle">Continue your journey to Eagle Scout</p>
+                </div>
+                <div class="scout-info">
+                    <div class="troop-badge">
+                        <span class="troop-label">Troop</span>
+                        <span class="troop-number" id="troopNumber">123</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Progress Overview -->
+            <section class="progress-overview">
+                <div class="progress-grid">
+                    <!-- Current Rank Card -->
+                    <div class="progress-card rank-card">
+                        <div class="card-header">
+                            <h3>Current Rank</h3>
+                        </div>
+                        <div class="card-content">
+                            <div class="rank-display">
+                                <div class="rank-logo">
+                                    <div class="rank-badge-large" id="currentRankBadge">
+                                        <span class="rank-letter">T</span>
+                                    </div>
+                                </div>
+                                <div class="rank-details">
+                                    <h4 id="currentRankName">Tenderfoot</h4>
+                                    <div class="rank-progress">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" id="rankProgressBar" style="width: 60%"></div>
+                                        </div>
+                                        <span class="progress-text" id="rankProgressText">6/10 completed</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn btn-primary" onclick="window.location.href='advancements.html'">
+                                Continue Progress
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Eagle Progress Card -->
+                    <div class="progress-card eagle-card">
+                        <div class="card-header">
+                            <h3>Progress to Eagle</h3>
+                        </div>
+                        <div class="card-content">
+                            <div class="eagle-progress">
+                                <div class="eagle-logo">
+                                    <div class="eagle-badge">
+                                        <span class="eagle-letter">E</span>
+                                    </div>
+                                </div>
+                                <div class="eagle-stats">
+                                    <div class="stat-item">
+                                        <span class="stat-number" id="ranksCompleted">2</span>
+                                        <span class="stat-label">Ranks Completed</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-number">7</span>
+                                        <span class="stat-label">Ranks Remaining</span>
+                                    </div>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" id="eagleProgressBar" style="width: 22%"></div>
+                                    </div>
+                                    <span class="progress-text">22% complete</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity Card -->
+                    <div class="progress-card activity-card">
+                        <div class="card-header">
+                            <h3>Recent Activity</h3>
+                        </div>
+                        <div class="card-content">
+                            <div class="activity-list">
+                                <div class="activity-item">
+                                    <div class="activity-icon">✓</div>
+                                    <div class="activity-content">
+                                        <h5>Sign-off Approved</h5>
+                                        <p>Basic First Aid requirement signed off</p>
+                                        <span class="activity-time">2 hours ago</span>
+                                    </div>
+                                </div>
+                                <div class="activity-item">
+                                    <div class="activity-icon">⏰</div>
+                                    <div class="activity-content">
+                                        <h5>Sign-off Request Pending</h5>
+                                        <p>Fire Safety requirement awaiting approval</p>
+                                        <span class="activity-time">1 day ago</span>
+                                    </div>
+                                </div>
+                                <div class="activity-item">
+                                    <div class="activity-icon">🎯</div>
+                                    <div class="activity-content">
+                                        <h5>Rank Progress</h5>
+                                        <p>Completed 6/10 Tenderfoot requirements</p>
+                                        <span class="activity-time">3 days ago</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions Card -->
+                    <div class="progress-card actions-card">
+                        <div class="card-header">
+                            <h3>Quick Actions</h3>
+                        </div>
+                        <div class="card-content">
+                            <div class="action-buttons">
+                                <button class="action-btn" onclick="window.location.href='advancements.html'">
+                                    <div class="action-icon">🎯</div>
+                                    <span>View Requirements</span>
+                                </button>
+                                <button class="action-btn" onclick="window.location.href='signoff-requests.html'">
+                                    <div class="action-icon">📋</div>
+                                    <span>Sign-off Requests</span>
+                                </button>
+                                <button class="action-btn" onclick="requestConference()">
+                                    <div class="action-icon">🏆</div>
+                                    <span>Request Conference</span>
+                                </button>
+                                <button class="action-btn" onclick="requestBoardOfReview()">
+                                    <div class="action-icon">⭐</div>
+                                    <span>Request Board of Review</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Rank Progress Visualization -->
+            <section class="rank-visualization">
+                <div class="section-header">
+                    <h3>Your Journey to Eagle Scout</h3>
+                    <p>Track your progress through each rank</p>
+                </div>
+                <div class="rank-timeline">
+                    <div class="timeline-container">
+                        <div class="timeline-item completed">
+                            <div class="timeline-badge">S</div>
+                            <div class="timeline-content">
+                                <h4>Scout</h4>
+                                <p>Completed</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item active">
+                            <div class="timeline-badge">T</div>
+                            <div class="timeline-content">
+                                <h4>Tenderfoot</h4>
+                                <p>In Progress (6/10)</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-badge">2</div>
+                            <div class="timeline-content">
+                                <h4>Second Class</h4>
+                                <p>Not Started</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-badge">1</div>
+                            <div class="timeline-content">
+                                <h4>First Class</h4>
+                                <p>Not Started</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-badge">★</div>
+                            <div class="timeline-content">
+                                <h4>Star</h4>
+                                <p>Not Started</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-badge">◉</div>
+                            <div class="timeline-content">
+                                <h4>Life</h4>
+                                <p>Not Started</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item eagle">
+                            <div class="timeline-badge">E</div>
+                            <div class="timeline-content">
+                                <h4>Eagle</h4>
+                                <p>Final Goal</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="js/scout-dashboard.js"></script>
+</body>
+</html>

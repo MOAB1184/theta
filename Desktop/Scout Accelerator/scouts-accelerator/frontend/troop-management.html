@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Troop Management - Scout Accelerator</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="images/compass-icon.svg">
+</head>
+<body>
+    <!-- Dashboard Header -->
+    <header class="dashboard-header">
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo">
+                    <svg class="compass-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="compassGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#00D4FF;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#0078FF;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <circle cx="50" cy="50" r="45" fill="none" stroke="url(#compassGradient)" stroke-width="3"/>
+                        <polygon points="50,15 60,50 50,85 40,50" fill="url(#compassGradient)" stroke="url(#compassGradient)" stroke-width="1"/>
+                        <circle cx="50" cy="50" r="3" fill="#00D4FF"/>
+                    </svg>
+                    <h1 class="logo-text">Scout Accelerator</h1>
+                </a>
+                <nav class="dashboard-nav">
+                    <a href="scoutmaster-dashboard.html" class="nav-link">Dashboard</a>
+                    <a href="troop-management.html" class="nav-link active">Troop Management</a>
+                    <a href="signoff-approvals.html" class="nav-link">Sign-off Approvals</a>
+                    <a href="conferences.html" class="nav-link">Conferences</a>
+                    <a href="profile.html" class="nav-link">Profile</a>
+                </nav>
+                <div class="header-actions">
+                    <button class="btn btn-secondary">Sign Out</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="dashboard-main">
+        <div class="container">
+            <!-- Page Header -->
+            <section class="page-header">
+                <div class="header-content">
+                    <h1 class="page-title">Troop Management</h1>
+                    <p class="page-subtitle">Manage your troop members, patrols, and settings</p>
+                </div>
+            </section>
+
+            <!-- Management Grid -->
+            <section class="management-grid">
+                <!-- Members Management -->
+                <div class="management-card">
+                    <div class="card-header">
+                        <h3>Troop Members</h3>
+                        <button class="btn btn-primary" onclick="addMember()">Add Member</button>
+                    </div>
+                    <div class="card-content">
+                        <div class="members-list">
+                            <div class="member-item">
+                                <div class="member-info">
+                                    <div class="member-avatar">JD</div>
+                                    <div class="member-details">
+                                        <h5>John Davis</h5>
+                                        <span class="member-rank">Scoutmaster</span>
+                                    </div>
+                                </div>
+                                <div class="member-actions">
+                                    <span class="member-status status-active">Active</span>
+                                </div>
+                            </div>
+                            <div class="member-item">
+                                <div class="member-info">
+                                    <div class="member-avatar">AT</div>
+                                    <div class="member-details">
+                                        <h5>Alex Thompson</h5>
+                                        <span class="member-rank">Tenderfoot</span>
+                                    </div>
+                                </div>
+                                <div class="member-actions">
+                                    <button class="btn-remove" onclick="removeMember(this)">Remove</button>
+                                </div>
+                            </div>
+                            <div class="member-item">
+                                <div class="member-info">
+                                    <div class="member-avatar">SW</div>
+                                    <div class="member-details">
+                                        <h5>Sam Wilson</h5>
+                                        <span class="member-rank">Tenderfoot</span>
+                                    </div>
+                                </div>
+                                <div class="member-actions">
+                                    <button class="btn-remove" onclick="removeMember(this)">Remove</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Patrols Management -->
+                <div class="management-card">
+                    <div class="card-header">
+                        <h3>Patrol Management</h3>
+                        <button class="btn btn-primary" onclick="createPatrol()">Create Patrol</button>
+                    </div>
+                    <div class="card-content">
+                        <div class="patrols-list">
+                            <div class="patrol-item">
+                                <div class="patrol-info">
+                                    <div class="patrol-name">
+                                        <h5>Eagle Patrol</h5>
+                                        <span class="patrol-leader">Leader: Mike Davis</span>
+                                    </div>
+                                    <div class="patrol-stats">
+                                        <span class="patrol-members">6 members</span>
+                                    </div>
+                                </div>
+                                <div class="patrol-actions">
+                                    <button class="btn-manage" onclick="managePatrol(this)">Manage</button>
+                                </div>
+                            </div>
+                            <div class="patrol-item">
+                                <div class="patrol-info">
+                                    <div class="patrol-name">
+                                        <h5>Bear Patrol</h5>
+                                        <span class="patrol-leader">Leader: Chris Brown</span>
+                                    </div>
+                                    <div class="patrol-stats">
+                                        <span class="patrol-members">5 members</span>
+                                    </div>
+                                </div>
+                                <div class="patrol-actions">
+                                    <button class="btn-manage" onclick="managePatrol(this)">Manage</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Troop Settings -->
+                <div class="management-card">
+                    <div class="card-header">
+                        <h3>Troop Settings</h3>
+                    </div>
+                    <div class="card-content">
+                        <div class="settings-list">
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <h5>Eligible Sign-off Rank</h5>
+                                    <p>Scouts at or above this rank can sign off requirements</p>
+                                </div>
+                                <div class="setting-control">
+                                    <select id="eligibleRank" onchange="updateEligibleRank(this.value)">
+                                        <option value="first_class" selected>First Class</option>
+                                        <option value="star">Star</option>
+                                        <option value="life">Life</option>
+                                        <option value="eagle">Eagle</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <h5>Senior Patrol Leader</h5>
+                                    <p>Assign SPL to help manage the troop</p>
+                                </div>
+                                <div class="setting-control">
+                                    <select id="splSelect" onchange="assignSPL(this.value)">
+                                        <option value="">Select Scout</option>
+                                        <option value="mike">Mike Davis</option>
+                                        <option value="chris">Chris Brown</option>
+                                        <option value="alex">Alex Thompson</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="js/scoutmaster-dashboard.js"></script>
+</body>
+</html>

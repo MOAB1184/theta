@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scout Accelerator - Free Scouting Advancement Platform</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="images/compass-icon.svg">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="#" class="logo">
+                    <svg class="compass-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="compassGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#00D4FF;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#0078FF;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <circle cx="50" cy="50" r="45" fill="none" stroke="url(#compassGradient)" stroke-width="3"/>
+                        <polygon points="50,15 60,50 50,85 40,50" fill="url(#compassGradient)" stroke="url(#compassGradient)" stroke-width="1"/>
+                        <circle cx="50" cy="50" r="3" fill="#00D4FF"/>
+                    </svg>
+                    <h1 class="logo-text">Scout Accelerator</h1>
+                </a>
+                <nav class="nav">
+                    <a href="#features" class="nav-link">Features</a>
+                    <a href="#about" class="nav-link">About</a>
+                    <a href="#contact" class="nav-link">Contact</a>
+                    <div class="auth-buttons">
+                        <button class="btn btn-secondary" onclick="window.location.href='signin.html'">Sign In</button>
+                        <button class="btn btn-primary" onclick="window.location.href='signup.html'">Sign Up</button>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <h2 class="hero-title">
+                        Accelerate Your <span class="highlight">Scouting Journey</span>
+                    </h2>
+                    <p class="hero-subtitle">
+                        The ultimate free platform for scouts and scoutmasters to track advancement,
+                        manage troops, and streamline the scouting experience with modern technology.
+                    </p>
+                    <div class="hero-buttons">
+                        <button class="btn btn-primary btn-large" onclick="window.location.href='signup.html'">
+                            Get Started Free
+                        </button>
+                        <button class="btn btn-secondary btn-large" onclick="window.location.href='signin.html'">
+                            Sign In
+                        </button>
+                    </div>
+                </div>
+                <div class="hero-visual">
+                    <div class="compass-simple">
+                        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <radialGradient id="heroCompass" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" style="stop-color:#00D4FF;stop-opacity:0.8" />
+                                    <stop offset="70%" style="stop-color:#0078FF;stop-opacity:0.6" />
+                                    <stop offset="100%" style="stop-color:#001F3F;stop-opacity:1" />
+                                </radialGradient>
+                            </defs>
+                            <circle cx="100" cy="100" r="90" fill="url(#heroCompass)" stroke="#00D4FF" stroke-width="3"/>
+                            <polygon points="100,20 130,100 100,180 70,100" fill="url(#compassGradient)" stroke="url(#compassGradient)" stroke-width="2"/>
+                            <circle cx="100" cy="100" r="5" fill="#00D4FF"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-header">
+                <h3 class="section-title">Why Choose Scout Accelerator?</h3>
+                <p class="section-subtitle">Everything you need to excel in scouting, all in one place</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2L15.09 8.26L22 9L17 14L18.18 21L12 17.77L5.82 21L7 14L2 9L8.91 8.26L12 2Z" fill="#00D4FF"/>
+                        </svg>
+                    </div>
+                    <h4>Track Advancement</h4>
+                    <p>Monitor rank progress, completed requirements, and advancement towards Eagle Scout with detailed analytics</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M17 20C17 21.1046 16.1046 22 15 22H9C7.89543 22 7 21.1046 7 20V10C7 8.89543 7.89543 8 9 8H15C16.1046 8 17 8.89543 17 10V20Z" fill="#00D4FF"/>
+                            <path d="M9 6V4C9 2.89543 9.89543 2 11 2H13C14.1046 2 15 2.89543 15 4V6" fill="#00D4FF"/>
+                            <circle cx="12" cy="16" r="2" fill="#0A0A0A"/>
+                        </svg>
+                    </div>
+                    <h4>Troop Management</h4>
+                    <p>Create and manage troops, assign patrol leaders, and organize scouts efficiently</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M8 12L10.5 14.5L16 9" stroke="#00D4FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="12" cy="12" r="9" stroke="#00D4FF" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <h4>Sign-off System</h4>
+                    <p>Streamlined sign-off requests and approvals with notifications and scheduling</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M16 4H8C6.89543 4 6 4.89543 6 6V20C6 21.1046 6.89543 22 8 22H16C17.1046 22 18 21.1046 18 20V6C18 4.89543 17.1046 4 16 4Z" fill="#00D4FF"/>
+                            <path d="M12 2V4" stroke="#00D4FF" stroke-width="2" stroke-linecap="round"/>
+                            <circle cx="12" cy="18" r="1" fill="#0A0A0A"/>
+                        </svg>
+                    </div>
+                    <h4>Mobile Ready</h4>
+                    <p>Access your scouting data anywhere, anytime with our responsive mobile-first design</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 6V12L16 14" stroke="#00D4FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="12" cy="12" r="9" stroke="#00D4FF" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <h4>Event Planning</h4>
+                    <p>Schedule and organize troop events, meetings, and advancement sessions</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M9 12L11 14L15 10" stroke="#00D4FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="12" cy="12" r="9" stroke="#00D4FF" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <h4>Free Forever</h4>
+                    <p>Complete access to all features with no hidden fees or premium tiers</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Advancement Section -->
+    <section id="advancement" class="advancement">
+        <div class="container">
+            <div class="section-header">
+                <h3 class="section-title">Advance Through Ranks with Confidence</h3>
+                <p class="section-subtitle">Scout Accelerator makes rank advancement easier than ever before</p>
+            </div>
+            <div class="advancement-content">
+                <div class="advancement-main">
+                    <div class="advancement-text">
+                        <h4>Streamlined Rank Progression</h4>
+                        <p>Track your journey from Scout to Eagle with our comprehensive advancement system. Never lose track of requirements or wonder what's next on your path to the highest rank in Scouting.</p>
+
+                        <h4>Managed Sign-off Process</h4>
+                        <p>Submit sign-off requests directly through the platform and get notified when they're approved. No more lost paperwork or forgotten requirements. Everything is organized and accessible in one place.</p>
+
+                        <h4>Learn and Grow</h4>
+                        <p>Access learning resources, requirement explanations, and helpful guides all within the platform. Understand what you need to do and how to excel in each requirement.</p>
+                    </div>
+                    <div class="advancement-visual">
+                        <div class="rank-progress">
+                            <div class="rank-item">
+                                <div class="rank-badge">S</div>
+                                <div class="rank-name">Scout</div>
+                                <div class="rank-status completed">✓</div>
+                            </div>
+                            <div class="rank-item">
+                                <div class="rank-badge">T</div>
+                                <div class="rank-name">Tenderfoot</div>
+                                <div class="rank-status in-progress">⟳</div>
+                            </div>
+                            <div class="rank-item">
+                                <div class="rank-badge">2</div>
+                                <div class="rank-name">Second Class</div>
+                                <div class="rank-status">○</div>
+                            </div>
+                            <div class="rank-item">
+                                <div class="rank-badge">1</div>
+                                <div class="rank-name">First Class</div>
+                                <div class="rank-status">○</div>
+                            </div>
+                            <div class="rank-item">
+                                <div class="rank-badge">★</div>
+                                <div class="rank-name">Star</div>
+                                <div class="rank-status">○</div>
+                            </div>
+                            <div class="rank-item">
+                                <div class="rank-badge">◉</div>
+                                <div class="rank-name">Life</div>
+                                <div class="rank-status">○</div>
+                            </div>
+                            <div class="rank-item eagle">
+                                <div class="rank-badge">E</div>
+                                <div class="rank-name">Eagle</div>
+                                <div class="rank-status">○</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="advancement-benefits">
+                    <div class="benefit">
+                        <div class="benefit-icon">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M9 12L11 14L15 10" stroke="#00D4FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <circle cx="12" cy="12" r="9" stroke="#00D4FF" stroke-width="2"/>
+                            </svg>
+                        </div>
+                        <h5>Digital Tracking</h5>
+                        <p>All your progress saved securely in the cloud</p>
+                    </div>
+                    <div class="benefit">
+                        <div class="benefit-icon">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 8V12L15 15" stroke="#00D4FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <circle cx="12" cy="12" r="9" stroke="#00D4FF" stroke-width="2"/>
+                            </svg>
+                        </div>
+                        <h5>Instant Notifications</h5>
+                        <p>Get notified when sign-offs are approved</p>
+                    </div>
+                    <div class="benefit">
+                        <div class="benefit-icon">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 6V12L16 14" stroke="#00D4FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <circle cx="12" cy="12" r="9" stroke="#00D4FF" stroke-width="2"/>
+                            </svg>
+                        </div>
+                        <h5>Guided Learning</h5>
+                        <p>Resources and tips for each requirement</p>
+                    </div>
+                    <div class="benefit">
+                        <div class="benefit-icon">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" stroke="#00D4FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <h5>Accelerated Progress</h5>
+                        <p>Reach Eagle Scout faster with organized tracking</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about">
+        <div class="container">
+            <div class="about-content">
+                <div class="about-text">
+                    <h3 class="section-title">Modern Scouting for the Digital Age</h3>
+                    <p class="about-description">
+                        Scout Accelerator bridges traditional scouting values with modern technology.
+                        Our platform helps scoutmasters manage their troops more effectively while
+                        giving scouts the tools they need to advance through the ranks and achieve
+                        their scouting goals.
+                    </p>
+                    <p class="about-description">
+                        Built by scouts, for scouts - we understand the unique challenges of
+                        modern scouting and have created a solution that makes advancement tracking,
+                        troop management, and communication seamless and efficient.
+                    </p>
+                </div>
+                <div class="about-stats">
+                    <div class="stat-item">
+                        <div class="stat-number">100%</div>
+                        <div class="stat-label">Free to Use</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">∞</div>
+                        <div class="stat-label">Unlimited Scouts</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">24/7</div>
+                        <div class="stat-label">Always Available</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <div class="container">
+            <div class="cta-content">
+                <h3 class="cta-title">Ready to Accelerate Your Scouting Journey?</h3>
+                <p class="cta-subtitle">Join thousands of scouts and scoutmasters already using Scout Accelerator</p>
+                <button class="btn btn-primary btn-large" onclick="window.location.href='signup.html'">
+                    Get Started Today - It's Free!
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <svg class="compass-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="footerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#00D4FF;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#0078FF;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <circle cx="50" cy="50" r="45" fill="none" stroke="url(#footerGradient)" stroke-width="3"/>
+                        <polygon points="50,15 60,50 50,85 40,50" fill="url(#footerGradient)" stroke="url(#footerGradient)" stroke-width="1"/>
+                        <circle cx="50" cy="50" r="3" fill="#00D4FF"/>
+                    </svg>
+                    <span class="logo-text">Scout Accelerator</span>
+                </div>
+                <div class="footer-links">
+                    <a href="#features">Features</a>
+                    <a href="#about">About</a>
+                    <a href="#contact">Contact</a>
+                    <a href="signin.html">Sign In</a>
+                    <a href="signup.html">Sign Up</a>
+                </div>
+                <div class="footer-copyright">
+                    © 2024 Scout Accelerator. Free to use for all scouting organizations.
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+</body>
+</html>

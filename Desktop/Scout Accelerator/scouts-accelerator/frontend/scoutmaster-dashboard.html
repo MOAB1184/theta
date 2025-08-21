@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scoutmaster Dashboard - Scout Accelerator</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="images/compass-icon.svg">
+</head>
+<body>
+    <!-- Dashboard Header -->
+    <header class="dashboard-header">
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo">
+                    <svg class="compass-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="compassGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#00D4FF;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#0078FF;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <circle cx="50" cy="50" r="45" fill="none" stroke="url(#compassGradient)" stroke-width="3"/>
+                        <polygon points="50,15 60,50 50,85 40,50" fill="url(#compassGradient)" stroke="url(#compassGradient)" stroke-width="1"/>
+                        <circle cx="50" cy="50" r="3" fill="#00D4FF"/>
+                    </svg>
+                    <h1 class="logo-text">Scout Accelerator</h1>
+                </a>
+                <nav class="dashboard-nav">
+                    <a href="scoutmaster-dashboard.html" class="nav-link active">Dashboard</a>
+                    <a href="troop-management.html" class="nav-link">Troop Management</a>
+                    <a href="signoff-approvals.html" class="nav-link">Sign-off Approvals</a>
+                    <a href="conferences.html" class="nav-link">Conferences</a>
+                    <a href="profile.html" class="nav-link">Profile</a>
+                </nav>
+                <div class="header-actions">
+                    <button class="btn btn-secondary">Sign Out</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Dashboard Content -->
+    <main class="dashboard-main">
+        <div class="container">
+            <!-- Welcome Section -->
+            <section class="welcome-section">
+                <div class="welcome-content">
+                    <h2 class="welcome-title">Welcome back, <span id="scoutmasterName">Mr. Johnson</span></h2>
+                    <p class="welcome-subtitle">Troop 123 Scoutmaster Dashboard</p>
+                </div>
+                <div class="troop-info">
+                    <div class="troop-code-display">
+                        <span class="troop-code-label">Troop Code:</span>
+                        <span class="troop-code" id="troopCode">ABC123</span>
+                        <button class="btn-icon" onclick="copyTroopCode()" title="Copy Code">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M8 16H6C4.89543 16 4 15.1046 4 14V6C4 4.89543 4.89543 4 6 4H14C15.1046 4 16 4.89543 16 6V8" stroke="currentColor" stroke-width="2"/>
+                                <rect x="8" y="8" width="12" height="12" rx="2" stroke="currentColor" stroke-width="2"/>
+                            </svg>
+                        </button>
+                        <button class="btn-icon" onclick="renameTroop()" title="Rename Troop">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13" stroke="currentColor" stroke-width="2"/>
+                                <path d="M18.5 2.5L21 5L12 14H9V11L18.5 2.5Z" stroke="currentColor" stroke-width="2"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Dashboard Overview -->
+            <section class="dashboard-overview">
+                <div class="overview-grid">
+                    <!-- Troop Stats -->
+                    <div class="overview-card">
+                        <div class="card-header">
+                            <h3>Troop Statistics</h3>
+                        </div>
+                        <div class="card-content">
+                            <div class="stats-grid">
+                                <div class="stat-item">
+                                    <div class="stat-number" id="totalScouts">24</div>
+                                    <div class="stat-label">Total Scouts</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-number" id="activePatrols">3</div>
+                                    <div class="stat-label">Active Patrols</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-number" id="pendingSignoffs">8</div>
+                                    <div class="stat-label">Pending Sign-offs</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-number" id="upcomingEvents">2</div>
+                                    <div class="stat-label">Upcoming Events</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sign-off Approvals -->
+                    <div class="overview-card">
+                        <div class="card-header">
+                            <h3>Pending Sign-off Requests</h3>
+                            <button class="btn-link" onclick="window.location.href='signoff-approvals.html'">View All</button>
+                        </div>
+                        <div class="card-content">
+                            <div class="signoff-list" id="pendingSignoffsList">
+                                <div class="signoff-item">
+                                    <div class="signoff-info">
+                                        <h5>Alex Thompson</h5>
+                                        <p>Basic First Aid - Tenderfoot</p>
+                                        <span class="signoff-time">2 hours ago</span>
+                                    </div>
+                                    <div class="signoff-actions">
+                                        <button class="btn-approve" onclick="approveSignoff(this)">✓</button>
+                                        <button class="btn-deny" onclick="denySignoff(this)">✗</button>
+                                    </div>
+                                </div>
+                                <div class="signoff-item">
+                                    <div class="signoff-info">
+                                        <h5>Sam Wilson</h5>
+                                        <p>Fire Safety - Tenderfoot</p>
+                                        <span class="signoff-time">5 hours ago</span>
+                                    </div>
+                                    <div class="signoff-actions">
+                                        <button class="btn-approve" onclick="approveSignoff(this)">✓</button>
+                                        <button class="btn-deny" onclick="denySignoff(this)">✗</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Conference Requests -->
+                    <div class="overview-card">
+                        <div class="card-header">
+                            <h3>Scoutmaster Conference Requests</h3>
+                            <button class="btn-link" onclick="window.location.href='conferences.html'">Manage All</button>
+                        </div>
+                        <div class="card-content">
+                            <div class="conference-list" id="conferenceRequestsList">
+                                <div class="conference-item">
+                                    <div class="conference-info">
+                                        <h5>Mike Davis</h5>
+                                        <p>Scout Rank Advancement</p>
+                                        <span class="conference-status status-pending">Pending</span>
+                                    </div>
+                                    <div class="conference-actions">
+                                        <button class="btn-schedule" onclick="scheduleConference(this)">Schedule</button>
+                                    </div>
+                                </div>
+                                <div class="conference-item">
+                                    <div class="conference-info">
+                                        <h5>Chris Brown</h5>
+                                        <p>Tenderfoot Rank Advancement</p>
+                                        <span class="conference-status status-scheduled">Scheduled for tomorrow</span>
+                                    </div>
+                                    <div class="conference-actions">
+                                        <button class="btn-complete" onclick="completeConference(this)">Complete</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Troop Management -->
+            <section class="troop-management">
+                <div class="section-header">
+                    <h3>Troop Management</h3>
+                    <button class="btn btn-primary" onclick="openManagementPanel()">Manage Troop</button>
+                </div>
+
+                <div class="management-grid">
+                    <!-- Members List -->
+                    <div class="management-card">
+                        <div class="card-header">
+                            <h4>Troop Members</h4>
+                            <button class="btn-link" onclick="addMember()">Add Member</button>
+                        </div>
+                        <div class="card-content">
+                            <div class="members-list">
+                                <div class="member-item">
+                                    <div class="member-info">
+                                        <div class="member-avatar">JD</div>
+                                        <div class="member-details">
+                                            <h5>John Davis</h5>
+                                            <span class="member-rank">Scoutmaster</span>
+                                        </div>
+                                    </div>
+                                    <div class="member-actions">
+                                        <span class="member-status status-active">Active</span>
+                                    </div>
+                                </div>
+                                <div class="member-item">
+                                    <div class="member-info">
+                                        <div class="member-avatar">AT</div>
+                                        <div class="member-details">
+                                            <h5>Alex Thompson</h5>
+                                            <span class="member-rank">Tenderfoot</span>
+                                        </div>
+                                    </div>
+                                    <div class="member-actions">
+                                        <button class="btn-remove" onclick="removeMember(this)">Remove</button>
+                                    </div>
+                                </div>
+                                <div class="member-item">
+                                    <div class="member-info">
+                                        <div class="member-avatar">SW</div>
+                                        <div class="member-details">
+                                            <h5>Sam Wilson</h5>
+                                            <span class="member-rank">Tenderfoot</span>
+                                        </div>
+                                    </div>
+                                    <div class="member-actions">
+                                        <button class="btn-remove" onclick="removeMember(this)">Remove</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Patrols Management -->
+                    <div class="management-card">
+                        <div class="card-header">
+                            <h4>Patrol Management</h4>
+                            <button class="btn-link" onclick="createPatrol()">Create Patrol</button>
+                        </div>
+                        <div class="card-content">
+                            <div class="patrols-list">
+                                <div class="patrol-item">
+                                    <div class="patrol-info">
+                                        <div class="patrol-name">
+                                            <h5>Eagle Patrol</h5>
+                                            <span class="patrol-leader">Leader: Mike Davis</span>
+                                        </div>
+                                        <div class="patrol-stats">
+                                            <span class="patrol-members">6 members</span>
+                                        </div>
+                                    </div>
+                                    <div class="patrol-actions">
+                                        <button class="btn-manage" onclick="managePatrol(this)">Manage</button>
+                                    </div>
+                                </div>
+                                <div class="patrol-item">
+                                    <div class="patrol-info">
+                                        <div class="patrol-name">
+                                            <h5>Bear Patrol</h5>
+                                            <span class="patrol-leader">Leader: Chris Brown</span>
+                                        </div>
+                                        <div class="patrol-stats">
+                                            <span class="patrol-members">5 members</span>
+                                        </div>
+                                    </div>
+                                    <div class="patrol-actions">
+                                        <button class="btn-manage" onclick="managePatrol(this)">Manage</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Settings -->
+                    <div class="management-card">
+                        <div class="card-header">
+                            <h4>Troop Settings</h4>
+                        </div>
+                        <div class="card-content">
+                            <div class="settings-list">
+                                <div class="setting-item">
+                                    <div class="setting-info">
+                                        <h5>Eligible Sign-off Rank</h5>
+                                        <p>Scouts at or above this rank can sign off requirements</p>
+                                    </div>
+                                    <div class="setting-control">
+                                        <select id="eligibleRank" onchange="updateEligibleRank(this.value)">
+                                            <option value="first_class" selected>First Class</option>
+                                            <option value="star">Star</option>
+                                            <option value="life">Life</option>
+                                            <option value="eagle">Eagle</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="setting-item">
+                                    <div class="setting-info">
+                                        <h5>Senior Patrol Leader</h5>
+                                        <p>Assign SPL to help manage the troop</p>
+                                    </div>
+                                    <div class="setting-control">
+                                        <select id="splSelect" onchange="assignSPL(this.value)">
+                                            <option value="">Select Scout</option>
+                                            <option value="mike">Mike Davis</option>
+                                            <option value="chris">Chris Brown</option>
+                                            <option value="alex">Alex Thompson</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="js/scoutmaster-dashboard.js"></script>
+</body>
+</html>

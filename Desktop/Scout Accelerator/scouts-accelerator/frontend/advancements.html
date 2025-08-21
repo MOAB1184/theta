@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advancements - Scout Accelerator</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="images/compass-icon.svg">
+</head>
+<body>
+    <!-- Dashboard Header -->
+    <header class="dashboard-header">
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo">
+                    <svg class="compass-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="compassGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#00D4FF;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#0078FF;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <circle cx="50" cy="50" r="45" fill="none" stroke="url(#compassGradient)" stroke-width="3"/>
+                        <polygon points="50,15 60,50 50,85 40,50" fill="url(#compassGradient)" stroke="url(#compassGradient)" stroke-width="1"/>
+                        <circle cx="50" cy="50" r="3" fill="#00D4FF"/>
+                    </svg>
+                    <h1 class="logo-text">Scout Accelerator</h1>
+                </a>
+                <nav class="dashboard-nav">
+                    <a href="scout-dashboard.html" class="nav-link">Dashboard</a>
+                    <a href="advancements.html" class="nav-link active">Advancements</a>
+                    <a href="signoff-requests.html" class="nav-link">Sign-off Requests</a>
+                    <a href="profile.html" class="nav-link">Profile</a>
+                </nav>
+                <div class="header-actions">
+                    <button class="btn btn-secondary">Sign Out</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Advancements Content -->
+    <main class="advancements-main">
+        <div class="container">
+            <!-- Page Header -->
+            <section class="page-header">
+                <div class="header-content">
+                    <h1 class="page-title">Advancement Requirements</h1>
+                    <p class="page-subtitle">Track your progress and request sign-offs for each rank</p>
+                </div>
+                <div class="header-stats">
+                    <div class="stat-card">
+                        <div class="stat-number" id="currentRankDisplay">Tenderfoot</div>
+                        <div class="stat-label">Current Rank</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="completedReqs">6/10</div>
+                        <div class="stat-label">Requirements Done</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="progressPercent">60%</div>
+                        <div class="stat-label">Progress</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Rank Navigation -->
+            <section class="rank-navigation">
+                <div class="rank-tabs">
+                    <button class="rank-tab active" onclick="switchRank('scout')">Scout</button>
+                    <button class="rank-tab" onclick="switchRank('tenderfoot')">Tenderfoot</button>
+                    <button class="rank-tab" onclick="switchRank('second_class')">Second Class</button>
+                    <button class="rank-tab" onclick="switchRank('first_class')">First Class</button>
+                    <button class="rank-tab" onclick="switchRank('star')">Star</button>
+                    <button class="rank-tab" onclick="switchRank('life')">Life</button>
+                    <button class="rank-tab" onclick="switchRank('eagle')">Eagle</button>
+                </div>
+            </section>
+
+            <!-- Requirements Display -->
+            <section class="requirements-section">
+                <!-- Scout Rank -->
+                <div id="scout-requirements" class="rank-requirements active">
+                    <div class="rank-header">
+                        <div class="rank-info">
+                            <h2>Scout Rank</h2>
+                            <p>The first rank in Scouting - learn the basics and get started on your journey</p>
+                        </div>
+                        <div class="rank-actions">
+                            <button class="btn btn-outline" onclick="requestConference('scout')">Request Scoutmaster Conference</button>
+                        </div>
+                    </div>
+                    <div class="requirements-list">
+                        <div class="requirement-item completed">
+                            <div class="requirement-content">
+                                <div class="requirement-number">1</div>
+                                <div class="requirement-text">
+                                    <h4>Repeat from memory the Scout Oath, Scout Law, Scout motto, and Scout slogan.</h4>
+                                    <p>In your own words, explain their meaning.</p>
+                                </div>
+                            </div>
+                            <div class="requirement-actions">
+                                <span class="status-badge completed">✓ Completed</span>
+                            </div>
+                        </div>
+                        <div class="requirement-item completed">
+                            <div class="requirement-content">
+                                <div class="requirement-number">2</div>
+                                <div class="requirement-text">
+                                    <h4>Explain what Scout spirit is.</h4>
+                                    <p>Describe some ways you have shown Scout spirit by practicing the Scout Oath, Scout Law, Scout motto, and Scout slogan.</p>
+                                </div>
+                            </div>
+                            <div class="requirement-actions">
+                                <span class="status-badge completed">✓ Completed</span>
+                            </div>
+                        </div>
+                        <div class="requirement-item completed">
+                            <div class="requirement-content">
+                                <div class="requirement-number">3</div>
+                                <div class="requirement-text">
+                                    <h4>Demonstrate the Boy Scout sign, salute, and handshake.</h4>
+                                    <p>Explain when they should be used.</p>
+                                </div>
+                            </div>
+                            <div class="requirement-actions">
+                                <span class="status-badge completed">✓ Completed</span>
+                            </div>
+                        </div>
+                        <div class="requirement-item completed">
+                            <div class="requirement-content">
+                                <div class="requirement-number">4</div>
+                                <div class="requirement-text">
+                                    <h4>Describe the First Class Scout badge.</h4>
+                                    <p>Tell what each part stands for.</p>
+                                </div>
+                            </div>
+                            <div class="requirement-actions">
+                                <span class="status-badge completed">✓ Completed</span>
+                            </div>
+                        </div>
+                        <div class="requirement-item completed">
+                            <div class="requirement-content">
+                                <div class="requirement-number">5</div>
+                                <div class="requirement-text">
+                                    <h4>Repeat from memory the Outdoor Code.</h4>
+                                    <p>In your own words, explain what the Outdoor Code means to you.</p>
+                                </div>
+                            </div>
+                            <div class="requirement-actions">
+                                <span class="status-badge completed">✓ Completed</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tenderfoot Rank -->
+                <div id="tenderfoot-requirements" class="rank-requirements">
+                    <div class="rank-header">
+                        <div class="rank-info">
+                            <h2>Tenderfoot Rank</h2>
+                            <p>Build on your Scout skills with camping, hiking, and outdoor knowledge</p>
+                        </div>
+                        <div class="rank-actions">
+                            <button class="btn btn-outline" onclick="requestConference('tenderfoot')">Request Scoutmaster Conference</button>
+                        </div>
+                    </div>
+                    <div class="requirements-list">
+                        <div class="requirement-item in-progress">
+                            <div class="requirement-content">
+                                <div class="requirement-number">1</div>
+                                <div class="requirement-text">
+                                    <h4>Present yourself to your leader, prepared for an overnight camping trip.</h4>
+                                    <p>Show the personal and camping gear you will use. Show the right way to pack and carry it.</p>
+                                    <div class="lesson-note">
+                                        <strong>💡 Learn:</strong> Essential camping gear and packing techniques
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="requirement-actions">
+                                <button class="btn btn-primary" onclick="requestSignoff('Camping Preparation', 'tenderfoot', 1)">Request Sign-off</button>
+                            </div>
+                        </div>
+                        <div class="requirement-item">
+                            <div class="requirement-content">
+                                <div class="requirement-number">2</div>
+                                <div class="requirement-text">
+                                    <h4>Spend at least one night on a patrol or troop campout.</h4>
+                                    <p>Sleep in a tent you have helped pitch.</p>
+                                    <div class="lesson-note">
+                                        <strong>💡 Learn:</strong> Tent pitching, campout safety, and outdoor camping skills
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="requirement-actions">
+                                <button class="btn btn-primary" onclick="requestSignoff('Campout Experience', 'tenderfoot', 2)">Request Sign-off</button>
+                            </div>
+                        </div>
+                        <div class="requirement-item">
+                            <div class="requirement-content">
+                                <div class="requirement-number">3</div>
+                                <div class="requirement-text">
+                                    <h4>Tell how you practiced the Outdoor Code on a campout or outing.</h4>
+                                    <p>Show appreciation for the outdoors and conservation.</p>
+                                    <div class="lesson-note">
+                                        <strong>💡 Learn:</strong> Leave No Trace principles and outdoor ethics
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="requirement-actions">
+                                <button class="btn btn-primary" onclick="requestSignoff('Outdoor Code Practice', 'tenderfoot', 3)">Request Sign-off</button>
+                            </div>
+                        </div>
+                        <div class="requirement-item">
+                            <div class="requirement-content">
+                                <div class="requirement-number">4</div>
+                                <div class="requirement-text">
+                                    <h4>Demonstrate how to find directions using a compass.</h4>
+                                    <p>Show how to orient a map, and how to measure distances on a map.</p>
+                                    <div class="lesson-note">
+                                        <strong>💡 Learn:</strong> Basic navigation, map reading, and compass skills
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="requirement-actions">
+                                <button class="btn btn-primary" onclick="requestSignoff('Compass Navigation', 'tenderfoot', 4)">Request Sign-off</button>
+                            </div>
+                        </div>
+                        <div class="requirement-item">
+                            <div class="requirement-content">
+                                <div class="requirement-number">5</div>
+                                <div class="requirement-text">
+                                    <h4>Using a map and compass, complete an orienteering course that covers at least 1 mile.</h4>
+                                    <p>Show that you can follow a map and compass to get to a designated place.</p>
+                                    <div class="lesson-note">
+                                        <strong>💡 Learn:</strong> Advanced navigation and orienteering techniques
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="requirement-actions">
+                                <button class="btn btn-primary" onclick="requestSignoff('Orienteering Course', 'tenderfoot', 5)">Request Sign-off</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Second Class Rank -->
+                <div id="second_class-requirements" class="rank-requirements">
+                    <div class="rank-header">
+                        <div class="rank-info">
+                            <h2>Second Class Rank</h2>
+                            <p>Develop your outdoor skills and learn about nature and conservation</p>
+                        </div>
+                        <div class="rank-actions">
+                            <button class="btn btn-outline" onclick="requestConference('second_class')">Request Scoutmaster Conference</button>
+                            <button class="btn btn-outline" onclick="requestBoardOfReview('second_class')">Request Board of Review</button>
+                        </div>
+                    </div>
+                    <div class="requirements-list">
+                        <div class="requirement-item">
+                            <div class="requirement-content">
+                                <div class="requirement-number">1</div>
+                                <div class="requirement-text">
+                                    <h4>Hike 1 mile. Show that you know how to get ready for this hike.</h4>
+                                    <p>Show the right way to pack and carry it. Show the right hiking gear.</p>
+                                    <div class="lesson-note">
+                                        <strong>💡 Learn:</strong> Hiking preparation and safety
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="requirement-actions">
+                                <button class="btn btn-primary" onclick="requestSignoff('1-Mile Hike', 'second_class', 1)">Request Sign-off</button>
+                            </div>
+                        </div>
+                        <div class="requirement-item">
+                            <div class="requirement-content">
+                                <div class="requirement-number">2</div>
+                                <div class="requirement-text">
+                                    <h4>Learn the Heimlich maneuver and tell when it is used.</h4>
+                                    <p>Show first aid for a person who is choking.</p>
+                                    <div class="lesson-note">
+                                        <strong>💡 Learn:</strong> Emergency first aid techniques
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="requirement-actions">
+                                <button class="btn btn-primary" onclick="requestSignoff('First Aid - Choking', 'second_class', 2)">Request Sign-off</button>
+                            </div>
+                        </div>
+                        <div class="requirement-item">
+                            <div class="requirement-content">
+                                <div class="requirement-number">3</div>
+                                <div class="requirement-text">
+                                    <h4>Learn about the plants and wildlife in your area.</h4>
+                                    <p>Show that you can identify 10 species of plants and 5 species of wildlife.</p>
+                                    <div class="lesson-note">
+                                        <strong>💡 Learn:</strong> Local ecology and nature identification
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="requirement-actions">
+                                <button class="btn btn-primary" onclick="requestSignoff('Nature Study', 'second_class', 3)">Request Sign-off</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- First Class Rank -->
+                <div id="first_class-requirements" class="rank-requirements">
+                    <div class="rank-header">
+                        <div class="rank-info">
+                            <h2>First Class Rank</h2>
+                            <p>Master advanced outdoor skills and leadership fundamentals</p>
+                        </div>
+                        <div class="rank-actions">
+                            <button class="btn btn-outline" onclick="requestConference('first_class')">Request Scoutmaster Conference</button>
+                            <button class="btn btn-outline" onclick="requestBoardOfReview('first_class')">Request Board of Review</button>
+                        </div>
+                    </div>
+                    <div class="requirements-list">
+                        <div class="requirement-item">
+                            <div class="requirement-content">
+                                <div class="requirement-number">1</div>
+                                <div class="requirement-text">
+                                    <h4>Hike 1 mile. Show that you know how to get ready for this hike.</h4>
+                                    <p>Show the right way to pack and carry it. Show the right hiking gear.</p>
+                                    <div class="lesson-note">
+                                        <strong>💡 Learn:</strong> Advanced hiking techniques
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="requirement-actions">
+                                <button class="btn btn-primary" onclick="requestSignoff('Advanced Hike', 'first_class', 1)">Request Sign-off</button>
+                            </div>
+                        </div>
+                        <div class="requirement-item">
+                            <div class="requirement-content">
+                                <div class="requirement-number">2</div>
+                                <div class="requirement-text">
+                                    <h4>Demonstrate how to find directions using a compass.</h4>
+                                    <p>Show how to orient a map, and how to measure distances on a map.</p>
+                                    <div class="lesson-note">
+                                        <strong>💡 Learn:</strong> Advanced navigation skills
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="requirement-actions">
+                                <button class="btn btn-primary" onclick="requestSignoff('Advanced Navigation', 'first_class', 2)">Request Sign-off</button>
+                            </div>
+                        </div>
+                        <div class="requirement-item">
+                            <div class="requirement-content">
+                                <div class="requirement-number">3</div>
+                                <div class="requirement-text">
+                                    <h4>Using a map and compass, complete an orienteering course that covers at least 1 mile.</h4>
+                                    <p>Show that you can follow a map and compass to get to a designated place.</p>
+                                    <div class="lesson-note">
+                                        <strong>💡 Learn:</strong> Professional orienteering techniques
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="requirement-actions">
+                                <button class="btn btn-primary" onclick="requestSignoff('Advanced Orienteering', 'first_class', 3)">Request Sign-off</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Star Rank -->
+                <div id="star-requirements" class="rank-requirements">
+                    <div class="rank-header">
+                        <div class="rank-info">
+                            <h2>Star Rank</h2>
+                            <p>Earn merit badges and develop leadership skills</p>
+                        </div>
+                        <div class="rank-actions">
+                            <button class="btn btn-outline" onclick="requestConference('star')">Request Scoutmaster Conference</button>
+                            <button class="btn btn-outline" onclick="requestBoardOfReview('star')">Request Board of Review</button>
+                        </div>
+                    </div>
+                    <div class="requirements-list">
+                        <div class="requirement-item">
+                            <div class="requirement-content">
+                                <div class="requirement-number">1</div>
+                                <div class="requirement-text">
+                                    <h4>Earn 6 merit badges, including 4 from the required list for Eagle.</h4>
+                                    <p>Complete all requirements for these merit badges.</p>
+                                    <div class="lesson-note">
+                                        <strong>💡 Learn:</strong> Various skills through merit badge program
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="requirement-actions">
+                                <button class="btn btn-primary" onclick="requestSignoff('Merit Badges', 'star', 1)">Request Sign-off</button>
+                            </div>
+                        </div>
+                        <div class="requirement-item">
+                            <div class="requirement-content">
+                                <div class="requirement-number">2</div>
+                                <div class="requirement-text">
+                                    <h4>While a First Class Scout, take part in service project(s) totaling at least 6 hours of work.</h4>
+                                    <p>These hours are in addition to the Eagle Scout service project.</p>
+                                    <div class="lesson-note">
+                                        <strong>💡 Learn:</strong> Community service and leadership
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="requirement-actions">
+                                <button class="btn btn-primary" onclick="requestSignoff('Service Project', 'star', 2)">Request Sign-off</button>
+                            </div>
+                        </div>
+                        <div class="requirement-item">
+                            <div class="requirement-content">
+                                <div class="requirement-number">3</div>
+                                <div class="requirement-text">
+                                    <h4>Lead a Scoutmaster conference.</h4>
+                                    <p>Discuss your projects, leadership, and future plans.</p>
+                                    <div class="lesson-note">
+                                        <strong>💡 Learn:</strong> Leadership development and reflection
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="requirement-actions">
+                                <button class="btn btn-primary" onclick="requestSignoff('Scoutmaster Conference', 'star', 3)">Request Sign-off</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Life Rank -->
+                <div id="life-requirements" class="rank-requirements">
+                    <div class="rank-header">
+                        <div class="rank-info">
+                            <h2>Life Rank</h2>
+                            <p>Continue developing leadership and earn additional merit badges</p>
+                        </div>
+                        <div class="rank-actions">
+                            <button class="btn btn-outline" onclick="requestConference('life')">Request Scoutmaster Conference</button>
+                            <button class="btn btn-outline" onclick="requestBoardOfReview('life')">Request Board of Review</button>
+                        </div>
+                    </div>
+                    <div class="requirements-list">
+                        <div class="requirement-item">
+                            <div class="requirement-content">
+                                <div class="requirement-number">1</div>
+                                <div class="requirement-text">
+                                    <h4>Earn 5 more merit badges (so you have 11 in all), including any 3 more from the required list for Eagle.</h4>
+                                    <p>Complete all requirements for these merit badges.</p>
+                                    <div class="lesson-note">
+                                        <strong>💡 Learn:</strong> Advanced skills and knowledge
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="requirement-actions">
+                                <button class="btn btn-primary" onclick="requestSignoff('Additional Merit Badges', 'life', 1)">Request Sign-off</button>
+                            </div>
+                        </div>
+                        <div class="requirement-item">
+                            <div class="requirement-content">
+                                <div class="requirement-number">2</div>
+                                <div class="requirement-text">
+                                    <h4>While a Star Scout, take part in service project(s) totaling at least 6 hours of work.</h4>
+                                    <p>These hours are in addition to the Eagle Scout service project.</p>
+                                    <div class="lesson-note">
+                                        <strong>💡 Learn:</strong> Advanced community service
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="requirement-actions">
+                                <button class="btn btn-primary" onclick="requestSignoff('Service Project', 'life', 2)">Request Sign-off</button>
+                            </div>
+                        </div>
+                        <div class="requirement-item">
+                            <div class="requirement-content">
+                                <div class="requirement-number">3</div>
+                                <div class="requirement-text">
+                                    <h4>Lead a Scoutmaster conference.</h4>
+                                    <p>Discuss your projects, leadership, and future plans.</p>
+                                    <div class="lesson-note">
+                                        <strong>💡 Learn:</strong> Advanced leadership and planning
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="requirement-actions">
+                                <button class="btn btn-primary" onclick="requestSignoff('Scoutmaster Conference', 'life', 3)">Request Sign-off</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Eagle Rank -->
+                <div id="eagle-requirements" class="rank-requirements">
+                    <div class="rank-header">
+                        <div class="rank-info">
+                            <h2>Eagle Scout Rank</h2>
+                            <p>The highest award in Scouting - leadership, service, and character</p>
+                        </div>
+                        <div class="rank-actions">
+                            <button class="btn btn-outline" onclick="requestConference('eagle')">Request Scoutmaster Conference</button>
+                            <button class="btn btn-outline" onclick="requestBoardOfReview('eagle')">Request Board of Review</button>
+                        </div>
+                    </div>
+                    <div class="requirements-list">
+                        <div class="requirement-item">
+                            <div class="requirement-content">
+                                <div class="requirement-number">1</div>
+                                <div class="requirement-text">
+                                    <h4>Be active in your troop for at least 6 months as a Life Scout.</h4>
+                                    <p>Participate in troop activities and show leadership.</p>
+                                    <div class="lesson-note">
+                                        <strong>💡 Learn:</strong> Long-term commitment and leadership
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="requirement-actions">
+                                <button class="btn btn-primary" onclick="requestSignoff('Troop Activity', 'eagle', 1)">Request Sign-off</button>
+                            </div>
+                        </div>
+                        <div class="requirement-item">
+                            <div class="requirement-content">
+                                <div class="requirement-number">2</div>
+                                <div class="requirement-text">
+                                    <h4>Demonstrate Scout spirit by living the Scout Oath and Scout Law.</h4>
+                                    <p>Show Scout spirit in your daily life.</p>
+                                    <div class="lesson-note">
+                                        <strong>💡 Learn:</strong> Character development and integrity
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="requirement-actions">
+                                <button class="btn btn-primary" onclick="requestSignoff('Scout Spirit', 'eagle', 2)">Request Sign-off</button>
+                            </div>
+                        </div>
+                        <div class="requirement-item">
+                            <div class="requirement-content">
+                                <div class="requirement-number">3</div>
+                                <div class="requirement-text">
+                                    <h4>Earn a total of 21 merit badges.</h4>
+                                    <p>Including the required badges for Eagle Scout.</p>
+                                    <div class="lesson-note">
+                                        <strong>💡 Learn:</strong> Comprehensive skill development
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="requirement-actions">
+                                <button class="btn btn-primary" onclick="requestSignoff('Merit Badges', 'eagle', 3)">Request Sign-off</button>
+                            </div>
+                        </div>
+                        <div class="requirement-item">
+                            <div class="requirement-content">
+                                <div class="requirement-number">4</div>
+                                <div class="requirement-text">
+                                    <h4>Complete your Eagle Scout service project.</h4>
+                                    <p>Plan, develop, and give leadership to a project that benefits your community.</p>
+                                    <div class="lesson-note">
+                                        <strong>💡 Learn:</strong> Project management and community leadership
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="requirement-actions">
+                                <button class="btn btn-primary" onclick="requestSignoff('Eagle Service Project', 'eagle', 4)">Request Sign-off</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="js/advancements.js"></script>
+</body>
+</html>

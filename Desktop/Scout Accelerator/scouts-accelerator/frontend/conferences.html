@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scoutmaster Conferences - Scout Accelerator</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="images/compass-icon.svg">
+</head>
+<body>
+    <!-- Dashboard Header -->
+    <header class="dashboard-header">
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo">
+                    <svg class="compass-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="compassGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#00D4FF;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#0078FF;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <circle cx="50" cy="50" r="45" fill="none" stroke="url(#compassGradient)" stroke-width="3"/>
+                        <polygon points="50,15 60,50 50,85 40,50" fill="url(#compassGradient)" stroke="url(#compassGradient)" stroke-width="1"/>
+                        <circle cx="50" cy="50" r="3" fill="#00D4FF"/>
+                    </svg>
+                    <h1 class="logo-text">Scout Accelerator</h1>
+                </a>
+                <nav class="dashboard-nav">
+                    <a href="scoutmaster-dashboard.html" class="nav-link">Dashboard</a>
+                    <a href="troop-management.html" class="nav-link">Troop Management</a>
+                    <a href="signoff-approvals.html" class="nav-link">Sign-off Approvals</a>
+                    <a href="conferences.html" class="nav-link active">Conferences</a>
+                    <a href="profile.html" class="nav-link">Profile</a>
+                </nav>
+                <div class="header-actions">
+                    <button class="btn btn-secondary">Sign Out</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="dashboard-main">
+        <div class="container">
+            <!-- Page Header -->
+            <section class="page-header">
+                <div class="header-content">
+                    <h1 class="page-title">Scoutmaster Conferences</h1>
+                    <p class="page-subtitle">Schedule and manage advancement conferences</p>
+                </div>
+            </section>
+
+            <!-- Conference Management -->
+            <section class="conferences-section">
+                <div class="overview-grid">
+                    <div class="overview-card">
+                        <div class="card-header">
+                            <h3>Pending Requests</h3>
+                            <button class="btn btn-primary" onclick="scheduleConference()">Schedule Conference</button>
+                        </div>
+                        <div class="card-content">
+                            <div class="conference-list">
+                                <div class="conference-item">
+                                    <div class="conference-info">
+                                        <h5>Mike Davis</h5>
+                                        <p>Scout Rank Advancement</p>
+                                        <span class="conference-status status-pending">Pending</span>
+                                    </div>
+                                    <div class="conference-actions">
+                                        <button class="btn-schedule" onclick="scheduleConference(this)">Schedule</button>
+                                    </div>
+                                </div>
+                                <div class="conference-item">
+                                    <div class="conference-info">
+                                        <h5>Chris Brown</h5>
+                                        <p>Tenderfoot Rank Advancement</p>
+                                        <span class="conference-status status-pending">Pending</span>
+                                    </div>
+                                    <div class="conference-actions">
+                                        <button class="btn-schedule" onclick="scheduleConference(this)">Schedule</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="overview-card">
+                        <div class="card-header">
+                            <h3>Scheduled Conferences</h3>
+                            <span class="badge badge-info">3 scheduled</span>
+                        </div>
+                        <div class="card-content">
+                            <div class="conference-list">
+                                <div class="conference-item">
+                                    <div class="conference-info">
+                                        <h5>Alex Thompson</h5>
+                                        <p>First Class Rank Advancement</p>
+                                        <span class="conference-status status-scheduled">Scheduled for tomorrow at 3 PM</span>
+                                    </div>
+                                    <div class="conference-actions">
+                                        <button class="btn-complete" onclick="completeConference(this)">Complete</button>
+                                        <button class="btn-reschedule" onclick="rescheduleConference(this)">Reschedule</button>
+                                    </div>
+                                </div>
+                                <div class="conference-item">
+                                    <div class="conference-info">
+                                        <h5>Sam Wilson</h5>
+                                        <p>Second Class Rank Advancement</p>
+                                        <span class="conference-status status-scheduled">Scheduled for Friday at 4 PM</span>
+                                    </div>
+                                    <div class="conference-actions">
+                                        <button class="btn-complete" onclick="completeConference(this)">Complete</button>
+                                        <button class="btn-reschedule" onclick="rescheduleConference(this)">Reschedule</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="overview-card">
+                        <div class="card-header">
+                            <h3>Completed Conferences</h3>
+                            <span class="badge badge-success">15 completed</span>
+                        </div>
+                        <div class="card-content">
+                            <div class="conference-list">
+                                <div class="conference-item completed">
+                                    <div class="conference-info">
+                                        <h5>John Davis</h5>
+                                        <p>Scout Rank Advancement</p>
+                                        <span class="conference-status status-completed">Completed on March 15, 2024</span>
+                                    </div>
+                                    <div class="conference-status">
+                                        <span class="status-badge completed">Completed</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="js/scoutmaster-dashboard.js"></script>
+</body>
+</html>

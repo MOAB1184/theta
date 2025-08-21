@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Scout Accelerator</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="images/compass-icon.svg">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo">
+                    <svg class="compass-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="compassGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#00D4FF;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#0078FF;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <circle cx="50" cy="50" r="45" fill="none" stroke="url(#compassGradient)" stroke-width="3"/>
+                        <polygon points="50,15 60,50 50,85 40,50" fill="url(#compassGradient)" stroke="url(#compassGradient)" stroke-width="1"/>
+                        <circle cx="50" cy="50" r="3" fill="#00D4FF"/>
+                    </svg>
+                    <h1 class="logo-text">Scout Accelerator</h1>
+                </a>
+                <nav class="nav">
+                    <a href="index.html" class="nav-link">Home</a>
+                    <a href="signin.html" class="nav-link">Sign In</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sign Up Section -->
+    <section class="signup">
+        <div class="container">
+            <div class="signup-content">
+                <div class="signup-form-container">
+                    <div class="signup-header">
+                        <h2 class="signup-title">Join Scout Accelerator</h2>
+                        <p class="signup-subtitle">Create your account and start your scouting journey</p>
+                    </div>
+
+                    <form class="signup-form" id="signupForm">
+                        <!-- Step 1: Basic Information -->
+                        <div class="form-step" id="step1">
+                            <div class="form-group">
+                                <label for="fullName">Full Name</label>
+                                <input type="text" id="fullName" name="fullName" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="email">Email Address</label>
+                                <input type="email" id="email" name="email" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="password">Password</label>
+                                <input type="password" id="password" name="password" required>
+                                <div class="password-strength">
+                                    <div class="strength-bar" id="strengthBar"></div>
+                                </div>
+                                <div class="password-hint">Password must be at least 8 characters long</div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="confirmPassword">Confirm Password</label>
+                                <input type="password" id="confirmPassword" name="confirmPassword" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="role">I am a:</label>
+                                <select id="role" name="role" required>
+                                    <option value="">Select your role</option>
+                                    <option value="scout">Scout</option>
+                                    <option value="scoutmaster">Scoutmaster</option>
+                                </select>
+                            </div>
+
+                            <button type="button" class="btn btn-primary" onclick="nextStep(2)">Continue</button>
+                        </div>
+
+                        <!-- Step 2: Role-specific Information -->
+                        <div class="form-step" id="step2" style="display: none;">
+                            <!-- Scoutmaster Options -->
+                            <div id="scoutmasterOptions" style="display: none;">
+                                <div class="form-group">
+                                    <label>What would you like to do?</label>
+                                    <div class="radio-group">
+                                        <label class="radio-option">
+                                            <input type="radio" name="scoutmasterChoice" value="join" id="joinTroop">
+                                            <span>Join an existing troop</span>
+                                        </label>
+                                        <label class="radio-option">
+                                            <input type="radio" name="scoutmasterChoice" value="create" id="createTroop">
+                                            <span>Create a new troop</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div id="joinTroopSection" style="display: none;">
+                                    <div class="form-group">
+                                        <label for="troopCode">Troop Code</label>
+                                        <input type="text" id="troopCode" name="troopCode" placeholder="Enter troop code">
+                                    </div>
+                                </div>
+
+                                <div id="createTroopSection" style="display: none;">
+                                    <div class="form-group">
+                                        <label for="troopName">Troop Name</label>
+                                        <input type="text" id="troopName" name="troopName" placeholder="Enter troop name">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Scout Options -->
+                            <div id="scoutOptions" style="display: none;">
+                                <div class="form-group">
+                                    <label for="scoutTroopCode">Troop Code</label>
+                                    <input type="text" id="scoutTroopCode" name="scoutTroopCode" placeholder="Enter your troop code">
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="button" class="btn btn-secondary" onclick="prevStep(1)">Back</button>
+                                <button type="submit" class="btn btn-primary">Create Account</button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <div class="signup-footer">
+                        <p>Already have an account? <a href="signin.html" class="link">Sign In</a></p>
+                    </div>
+                </div>
+
+                <div class="signup-visual">
+                    <div class="compass-signup">
+                        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <radialGradient id="signupCompass" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" style="stop-color:#00D4FF;stop-opacity:0.8" />
+                                    <stop offset="70%" style="stop-color:#0078FF;stop-opacity:0.6" />
+                                    <stop offset="100%" style="stop-color:#001F3F;stop-opacity:1" />
+                                </radialGradient>
+                            </defs>
+                            <circle cx="100" cy="100" r="90" fill="url(#signupCompass)" stroke="#00D4FF" stroke-width="3"/>
+                            <polygon points="100,20 130,100 100,180 70,100" fill="url(#compassGradient)" stroke="url(#compassGradient)" stroke-width="2"/>
+                            <circle cx="100" cy="100" r="5" fill="#00D4FF"/>
+                        </svg>
+                    </div>
+
+                    <div class="signup-benefits">
+                        <div class="benefit-item">
+                            <div class="benefit-icon">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M9 12L11 14L15 10" stroke="#00D4FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <circle cx="12" cy="12" r="9" stroke="#00D4FF" stroke-width="2"/>
+                                </svg>
+                            </div>
+                            <div class="benefit-text">
+                                <h4>Free Forever</h4>
+                                <p>No hidden fees or premium tiers</p>
+                            </div>
+                        </div>
+
+                        <div class="benefit-item">
+                            <div class="benefit-icon">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 8V12L15 15" stroke="#00D4FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <circle cx="12" cy="12" r="9" stroke="#00D4FF" stroke-width="2"/>
+                                </svg>
+                            </div>
+                            <div class="benefit-text">
+                                <h4>Easy to Use</h4>
+                                <p>Simple interface designed for scouts</p>
+                            </div>
+                        </div>
+
+                        <div class="benefit-item">
+                            <div class="benefit-icon">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M17 20C17 21.1046 16.1046 22 15 22H9C7.89543 22 7 21.1046 7 20V10C7 8.89543 7.89543 8 9 8H15C16.1046 8 17 8.89543 17 10V20Z" fill="#00D4FF"/>
+                                    <path d="M9 6V4C9 2.89543 9.89543 2 11 2H13C14.1046 2 15 2.89543 15 4V6" fill="#00D4FF"/>
+                                </svg>
+                            </div>
+                            <div class="benefit-text">
+                                <h4>Troop Management</h4>
+                                <p>Organize your troop efficiently</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="js/signup.js"></script>
+</body>
+</html>
