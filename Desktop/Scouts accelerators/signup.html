@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Scout Accelerator</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="compass-3d">
+                        <div class="compass-face">
+                            <div class="compass-ring">
+                                <div class="direction-n">N</div>
+                                <div class="direction-e">E</div>
+                                <div class="direction-s">S</div>
+                                <div class="direction-w">W</div>
+                                <div class="compass-needle north-needle"></div>
+                                <div class="compass-needle south-needle"></div>
+                            </div>
+                        </div>
+                        <div class="compass-glow"></div>
+                    </div>
+                    <h1 class="brand-name">SCOUT ACCELERATOR</h1>
+                </div>
+                <nav class="nav">
+                    <a href="index.html" class="nav-link">Home</a>
+                    <a href="index.html#features" class="nav-link">Features</a>
+                    <a href="index.html#ranks" class="nav-link">Ranks</a>
+                    <a href="index.html#about" class="nav-link">About</a>
+                    <div class="auth-buttons">
+                        <button class="btn btn-secondary">Sign In</button>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Signup Section -->
+    <section class="signup-section">
+        <div class="container">
+            <div class="signup-container">
+                <div class="signup-form-container">
+                    <div class="signup-header">
+                        <h2 class="signup-title">Join Your Troop</h2>
+                        <p class="signup-subtitle">Start tracking your scouting journey and advance toward Eagle rank</p>
+                    </div>
+
+                    <div class="progress-container">
+                        <div class="progress-bar"></div>
+                    </div>
+
+                    <form class="signup-form" id="signupForm">
+                        <!-- Step 1: Basic Information -->
+                        <div class="form-step step-1" id="step1">
+                            <div class="form-group">
+                                <div class="input-wrapper">
+                                    <input type="text" id="fullName" name="fullName" class="form-input" required>
+                                    <label for="fullName" class="form-label">Full Name</label>
+                                    <div class="input-highlight"></div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-wrapper">
+                                    <input type="email" id="email" name="email" class="form-input" required>
+                                    <label for="email" class="form-label">Email Address</label>
+                                    <div class="input-highlight"></div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="section-label">I am a:</label>
+                                <div class="radio-group">
+                                    <label class="radio-option">
+                                        <input type="radio" name="userType" value="scoutmaster" id="scoutmaster" required>
+                                        <span class="radio-label">Scoutmaster</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" name="userType" value="scout" id="scout" required>
+                                        <span class="radio-label">Scout</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-actions">
+                                <div class="step-indicator">
+                                    <span>Step 1 of 3</span>
+                                    <div class="step-dots">
+                                        <div class="step-dot active"></div>
+                                        <div class="step-dot"></div>
+                                        <div class="step-dot"></div>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-primary" id="nextBtn">
+                                    Continue
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M7 17L17 7M17 7H7M17 7V17"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Scoutmaster Options -->
+                        <div class="form-step step-2" id="step2" style="display: none;">
+                            <div class="form-group">
+                                <label class="section-label">Troop Options:</label>
+                                <div class="radio-group">
+                                    <label class="radio-option">
+                                        <input type="radio" name="troopAction" value="join" id="joinTroop" required>
+                                        <span class="radio-label">Join Existing Troop</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" name="troopAction" value="create" id="createTroop" required>
+                                        <span class="radio-label">Create New Troop</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-group" id="troopCodeGroup" style="display: none;">
+                                <div class="input-wrapper">
+                                    <input type="text" id="troopCode" name="troopCode" class="form-input">
+                                    <label for="troopCode" class="form-label">Troop Code</label>
+                                    <div class="input-highlight"></div>
+                                </div>
+                            </div>
+                            <div class="form-group" id="troopNameGroup" style="display: none;">
+                                <div class="input-wrapper">
+                                    <input type="text" id="troopName" name="troopName" class="form-input">
+                                    <label for="troopName" class="form-label">Troop Name</label>
+                                    <div class="input-highlight"></div>
+                                </div>
+                            </div>
+                            <div class="form-actions">
+                                <div class="step-indicator">
+                                    <span>Step 2 of 3</span>
+                                    <div class="step-dots">
+                                        <div class="step-dot completed"></div>
+                                        <div class="step-dot active"></div>
+                                        <div class="step-dot"></div>
+                                    </div>
+                                </div>
+                                <div class="back-button-container">
+                                    <button type="button" class="btn btn-secondary back-btn" id="backBtn">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M19 12H5M12 19L5 12L12 5"/>
+                                        </svg>
+                                        Back
+                                    </button>
+                                </div>
+                                <div class="create-account-container">
+                                    <button type="submit" class="btn btn-primary create-account-btn">
+                                        Create Account
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M5 12H19M12 5L19 12L12 19"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Scout Options -->
+                        <div class="form-step step-3" id="step3" style="display: none;">
+                            <div class="form-group">
+                                <div class="input-wrapper">
+                                    <input type="text" id="scoutTroopCode" name="scoutTroopCode" class="form-input" required>
+                                    <label for="scoutTroopCode" class="form-label">Troop Code</label>
+                                    <div class="input-highlight"></div>
+                                </div>
+                            </div>
+                            <div class="form-actions">
+                                <div class="step-indicator">
+                                    <span>Step 3 of 3</span>
+                                    <div class="step-dots">
+                                        <div class="step-dot completed"></div>
+                                        <div class="step-dot completed"></div>
+                                        <div class="step-dot active"></div>
+                                    </div>
+                                </div>
+                                <div class="button-group">
+                                    <button type="button" class="btn btn-secondary" id="scoutBackBtn">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M19 12H5M12 19L5 12L12 5"/>
+                                        </svg>
+                                        Back
+                                    </button>
+                                    <button type="submit" class="btn btn-primary">
+                                        Create Account
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M5 12H19M12 5L19 12L12 19"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="signup-visual">
+                    <div class="visual-content">
+                        <div class="scout-signup-visual">
+                            <div class="eagle-badge">
+                                <div class="badge-center">🦅</div>
+                            </div>
+                            <div class="rank-path">
+                                <div class="path-line"></div>
+                                <div class="path-nodes">
+                                    <div class="path-node completed">S</div>
+                                    <div class="path-node completed">T</div>
+                                    <div class="path-node active">2</div>
+                                    <div class="path-node">1</div>
+                                    <div class="path-node">★</div>
+                                    <div class="path-node">★</div>
+                                    <div class="path-node">E</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="visual-text">
+                            <h3 class="brand-text">SCOUT ACCELERATOR</h3>
+                            <p class="brand-subtitle">Advancing Scouts to Eagle Rank</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="contact" class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <div class="compass-logo-small">
+                        <svg viewBox="0 0 50 50">
+                            <defs>
+                                <linearGradient id="compassGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#f5f5f5;stop-opacity:1" />
+                                </linearGradient>
+                            </defs>
+                            <circle cx="25" cy="25" r="22" fill="url(#compassGradient)" stroke="#00d4ff" stroke-width="1"/>
+                            <path d="M25 8 L28 20 L38 25 L28 30 L25 42 L22 30 L12 25 L22 20 Z" fill="#00d4ff"/>
+                        </svg>
+                    </div>
+                    <h3>SCOUT ACCELERATOR</h3>
+                    <p>Advancing Scouts to Eagle Rank</p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h4>For Scouts</h4>
+                        <a href="index.html#features">Track Progress</a>
+                        <a href="index.html#ranks">View Ranks</a>
+                        <a href="index.html">Join Troop</a>
+                    </div>
+                    <div class="footer-column">
+                        <h4>For Scoutmasters</h4>
+                        <a href="index.html#features">Troop Management</a>
+                        <a href="index.html#about">About</a>
+                        <a href="index.html">Create Troop</a>
+                    </div>
+                    <div class="footer-column">
+                        <h4>Support</h4>
+                        <a href="#">Help Center</a>
+                        <a href="index.html#contact">Contact Us</a>
+                        <a href="#">FAQ</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Scout Accelerator. All rights reserved.</p>
+                <div class="footer-legal">
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/script.js"></script>
+    <script src="js/signup.js"></script>
+</body>
+</html>
