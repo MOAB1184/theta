@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sign up - DuggAi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script>
+    window.tailwind = { config: { darkMode: 'class' } };
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    html, body { height: 100%; }
+    body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, 'Apple Color Emoji', 'Segoe UI Emoji'; }
+    .container { max-width: 1200px; }
+    .shadow-soft { box-shadow: 0 8px 24px rgba(16,24,40,.08), 0 2px 8px rgba(16,24,40,.06); }
+    .shadow-soft-dark { box-shadow: 0 8px 24px rgba(0,0,0,.35), 0 2px 10px rgba(0,0,0,.25); }
+  </style>
+</head>
+<body class="bg-white text-slate-900 antialiased dark:bg-zinc-950 dark:text-zinc-100">
+  <div class="min-h-full flex flex-col">
+    <header class="sticky top-0 z-50 border-b border-slate-200/80 bg-white/80 dark:bg-zinc-950/80 dark:border-white/10 backdrop-filter backdrop-blur-lg">
+      <div class="mx-auto container px-6 sm:px-8">
+        <div class="flex h-16 items-center justify-between gap-6">
+          <a href="index.html" class="flex items-center gap-2">
+            <img src="dogei logo.png" alt="DuggAi" class="h-8 w-8 rounded-lg" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+            <div class="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-600 via-indigo-500 to-emerald-500" style="display:none;"></div>
+            <span class="text-base sm:text-lg font-semibold">DuggAi</span>
+          </a>
+          <button id="themeToggle" class="rounded-lg border border-slate-200 dark:border-white/10 p-2 hover:bg-slate-50 dark:hover:bg-white/5" aria-label="Toggle theme">
+            <span id="sun" class="hidden dark:inline">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="h-5 w-5">
+                <circle cx="12" cy="12" r="4"></circle>
+                <path d="M12 2v2m0 16v2m10-10h-2M4 12H2m17.07 7.07L18 17m-12 0-1.07 2.07M18 7l1.07-2.07M6 7 4.93 4.93"></path>
+              </svg>
+            </span>
+            <span id="moon" class="inline dark:hidden">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="h-5 w-5">
+                <path d="M21 12.79A9 9 0 0 1 11.21 3 7 7 0 1 0 21 12.79Z"></path>
+              </svg>
+            </span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="flex-1 min-h-[85vh] flex items-center">
+      <div class="mx-auto container px-6 sm:px-8 py-20">
+        <div class="grid lg:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
+          <!-- Sign Up Form -->
+          <div class="mx-auto w-full max-w-lg rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-zinc-900 shadow-soft dark:shadow-soft-dark p-8 sm:p-10">
+            <div class="flex items-center gap-2">
+              <img src="dogei logo.png" alt="DuggAi" class="h-9 w-9 rounded-lg" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+              <div class="h-9 w-9 rounded-lg bg-gradient-to-br from-blue-600 via-indigo-500 to-emerald-500" style="display:none;"></div>
+              <div class="text-xl font-semibold">DuggAi</div>
+            </div>
+            <h1 class="mt-6 text-2xl sm:text-3xl font-bold">Create your account</h1>
+            <p class="mt-2 text-base text-slate-600 dark:text-zinc-300">Start your 14-day free trial - no credit card required</p>
+            <form class="mt-8 grid gap-4" onsubmit="event.preventDefault(); alert('Demo only - authentication not implemented')">
+              <div>
+                <label class="text-sm font-medium">Full name</label>
+                <input required class="mt-2 w-full rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-zinc-950 px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10" placeholder="Jane Doe"/>
+              </div>
+              <div>
+                <label class="text-sm font-medium">Email</label>
+                <input type="email" required class="mt-2 w-full rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-zinc-950 px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10" placeholder="you@company.com"/>
+              </div>
+              <div>
+                <label class="text-sm font-medium">Password</label>
+                <input type="password" required class="mt-2 w-full rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-zinc-950 px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10" placeholder="********" minlength="8"/>
+              </div>
+              <label class="flex items-center gap-2 text-sm">
+                <input type="checkbox" class="rounded" checked/>
+                I agree to the <a href="index.html#terms" class="underline">Terms</a>
+              </label>
+              <button class="mt-3 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-zinc-900 hover:bg-slate-800 dark:hover:bg-white/90 px-5 py-3.5 text-base font-semibold transition-all">Start Free Trial</button>
+            </form>
+            <p class="mt-6 text-sm text-center text-slate-600 dark:text-zinc-400">
+              Already have an account? <a href="signin.html" class="font-semibold text-slate-900 dark:text-white hover:underline">Sign in</a>
+            </p>
+            <p class="mt-4 text-xs text-slate-500 dark:text-zinc-400 text-center">By continuing you agree to our <a href="index.html#privacy" class="underline">Privacy Policy</a>.</p>
+          </div>
+
+          <!-- Preview Panel -->
+          <div class="hidden lg:block">
+            <div class="rounded-2xl border border-slate-200 dark:border-white/10 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-950 dark:to-zinc-900 shadow-soft dark:shadow-soft-dark p-8 overflow-hidden">
+              <div class="flex items-center gap-2 mb-6">
+                <svg class="h-6 w-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                <div class="font-bold text-lg">What You'll Get</div>
+              </div>
+              <div class="space-y-4">
+                <div class="flex items-start gap-3">
+                  <div class="h-8 w-8 rounded-lg bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
+                    <svg class="h-5 w-5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                  </div>
+                  <div>
+                    <div class="font-semibold">Proactive Actions</div>
+                    <div class="text-sm text-slate-600 dark:text-zinc-300 mt-1">AI drafts tasks before you ask</div>
+                  </div>
+                </div>
+                <div class="flex items-start gap-3">
+                  <div class="h-8 w-8 rounded-lg bg-blue-500/10 flex items-center justify-center flex-shrink-0">
+                    <svg class="h-5 w-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                  </div>
+                  <div>
+                    <div class="font-semibold">Enterprise Privacy</div>
+                    <div class="text-sm text-slate-600 dark:text-zinc-300 mt-1">Your data stays yours, always</div>
+                  </div>
+                </div>
+                <div class="flex items-start gap-3">
+                  <div class="h-8 w-8 rounded-lg bg-purple-500/10 flex items-center justify-center flex-shrink-0">
+                    <svg class="h-5 w-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                  </div>
+                  <div>
+                    <div class="font-semibold">Context-Aware Intelligence</div>
+                    <div class="text-sm text-slate-600 dark:text-zinc-300 mt-1">Understands your workflow</div>
+                  </div>
+                </div>
+                <div class="mt-6 p-4 rounded-lg bg-white/50 dark:bg-zinc-900/50 border border-slate-200 dark:border-white/10">
+                  <div class="text-sm font-semibold mb-2">14-Day Free Trial Includes:</div>
+                  <ul class="text-sm space-y-1 text-slate-600 dark:text-zinc-300">
+                    <li>- Unlimited proactive drafts</li>
+                    <li>- All integrations</li>
+                    <li>- Full feature access</li>
+                    <li>- No credit card required</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    function applyTheme(t){
+      document.documentElement.classList.toggle('dark', t === 'dark');
+      updateThemeButton();
+    }
+    function currentTheme(){
+      return localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    }
+    function toggleTheme(){
+      const next = currentTheme() === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('theme', next);
+      applyTheme(next);
+    }
+    function updateThemeButton(){
+      const isDark = document.documentElement.classList.contains('dark');
+      document.getElementById('sun')?.classList.toggle('hidden', !isDark);
+      document.getElementById('moon')?.classList.toggle('hidden', isDark);
+    }
+    applyTheme(currentTheme());
+    document.getElementById('themeToggle')?.addEventListener('click', toggleTheme);
+    window.addEventListener('storage', (e)=>{ if(e.key === 'theme') applyTheme(currentTheme()); });
+  </script>
+</body>
+</html>

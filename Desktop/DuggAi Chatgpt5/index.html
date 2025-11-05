@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DuggAi - Proactive AI that acts before you ask</title>
+  <meta name="description" content="DuggAi: The proactive AI that anticipates your needs, understands context, and executes - with enterprise privacy." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script>
+    // Tailwind CDN setup with dark mode class strategy
+    window.tailwind = { config: { darkMode: 'class' } };
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    html, body { height: 100%; }
+    body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, 'Apple Color Emoji', 'Segoe UI Emoji'; }
+    .container { max-width: 1200px; }
+    .glass { backdrop-filter: saturate(120%) blur(14px); -webkit-backdrop-filter: saturate(120%) blur(14px); }
+    .shadow-soft { box-shadow: 0 8px 24px rgba(16,24,40,.08), 0 2px 8px rgba(16,24,40,.06); }
+    .shadow-soft-dark { box-shadow: 0 8px 24px rgba(0,0,0,.35), 0 2px 10px rgba(0,0,0,.25); }
+    .header { transition: border-color .2s ease, background-color .2s ease, box-shadow .2s ease; }
+    .header[data-scrolled="true"] { box-shadow: 0 10px 30px rgba(16,24,40,.06); }
+    .hero-grad { background: radial-gradient(800px 400px at 10% -10%, rgba(59,130,246,.12), transparent 60%),
+                             radial-gradient(700px 400px at 90% 0%, rgba(16,185,129,.12), transparent 60%); }
+    .hero-grad-dark { background: radial-gradient(800px 400px at 10% -10%, rgba(59,130,246,.25), transparent 60%),
+                                  radial-gradient(700px 400px at 90% 0%, rgba(16,185,129,.25), transparent 60%); }
+    .marquee > div { animation: scroll 28s linear infinite; }
+    @keyframes scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+    .card { transition: transform .2s ease, box-shadow .2s ease; }
+    .card:hover { transform: translateY(-2px); box-shadow: 0 16px 40px rgba(16,24,40,.08); }
+    .card-dark:hover { transform: translateY(-2px); box-shadow: 0 16px 40px rgba(0,0,0,.35); }
+    .animate-in { opacity: 0; transform: translateY(16px); transition: opacity .6s ease, transform .6s ease; }
+    .animate-in.fade-left { transform: translateX(-18px); }
+    .animate-in.fade-right { transform: translateX(18px); }
+    .animate-in.is-visible { opacity: 1; transform: none; }
+    @media (prefers-reduced-motion: reduce) { .animate-in { opacity: 1 !important; transform: none !important; } }
+    .skeleton { position: relative; overflow: hidden; background: linear-gradient(90deg, rgba(0,0,0,.06), rgba(0,0,0,.08), rgba(0,0,0,.06)); }
+    .dark .skeleton { background: linear-gradient(90deg, rgba(255,255,255,.06), rgba(255,255,255,.1), rgba(255,255,255,.06)); }
+    .demo-tab-active { background-color: #0f172a; color: #ffffff; }
+    .dark .demo-tab-active { background-color: #ffffff; color: #0f172a; }
+    .mock-item-active { border-color: rgba(15,23,42,.45); background-color: rgba(15,23,42,.05); }
+    .dark .mock-item-active { border-color: rgba(255,255,255,.2); background-color: rgba(255,255,255,.08); }
+    .detail-tab-active { font-weight: 600; }
+  </style>
+</head>
+<body class="bg-white text-slate-900 antialiased dark:bg-zinc-950 dark:text-zinc-100">
+  <div id="app" class="min-h-full flex flex-col">
+    <!-- Header -->
+    <header id="header" class="header sticky top-0 z-50 border-b border-slate-200/80 bg-white/80 dark:bg-zinc-950/80 dark:border-white/10 glass">
+      <div class="mx-auto container px-4">
+        <div class="flex h-16 items-center justify-between gap-6">
+          <a href="index.html" class="flex items-center gap-2">
+            <img src="dogei logo.png" alt="DuggAi" class="h-8 w-8 rounded-lg" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+            <div class="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-600 via-indigo-500 to-emerald-500" style="display:none;"></div>
+            <span class="text-base sm:text-lg font-semibold">DuggAi</span>
+          </a>
+          <nav class="hidden md:flex items-center gap-6 text-sm text-slate-600 dark:text-zinc-300">
+            <a href="#features" class="hover:text-slate-900 dark:hover:text-white">Features</a>
+            <a href="pricing.html" class="hover:text-slate-900 dark:hover:text-white">Pricing</a>
+            <a href="#demo" class="hover:text-slate-900 dark:hover:text-white">Live Demo</a>
+            <a href="investors.html" class="hover:text-slate-900 dark:hover:text-white">Investors</a>
+          </nav>
+          <div class="hidden md:flex items-center gap-2">
+            <a href="signin.html" class="rounded-lg border border-slate-200 dark:border-white/10 px-3 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50 dark:text-white dark:hover:bg-white/5">Sign in</a>
+            <a href="signup.html" class="rounded-lg bg-slate-900 text-white px-4 py-2 text-sm font-semibold hover:bg-slate-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-white/90">Get started</a>
+            <button id="themeToggle" class="ml-2 rounded-lg border border-slate-200 dark:border-white/10 p-2 hover:bg-slate-50 dark:hover:bg-white/5" aria-label="Toggle theme">
+              <span id="sun" class="hidden dark:inline">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="h-5 w-5">
+                  <circle cx="12" cy="12" r="4"></circle>
+                  <path d="M12 2v2m0 16v2m10-10h-2M4 12H2m17.07 7.07L18 17m-12 0-1.07 2.07M18 7l1.07-2.07M6 7 4.93 4.93"></path>
+                </svg>
+              </span>
+              <span id="moon" class="inline dark:hidden">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="h-5 w-5">
+                  <path d="M21 12.79A9 9 0 0 1 11.21 3 7 7 0 1 0 21 12.79Z"></path>
+                </svg>
+              </span>
+            </button>
+          </div>
+          <button id="mobileOpen" class="md:hidden rounded-lg p-2 hover:bg-slate-100 dark:hover:bg-white/10" aria-label="Open menu">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-6 w-6"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+          </button>
+        </div>
+      </div>
+      <!-- Mobile -->
+      <div id="mobileDrawer" class="hidden md:hidden border-t border-slate-200 bg-white dark:bg-zinc-950 dark:border-white/10">
+          <nav class="mx-auto container px-4 py-4 flex flex-col gap-3 text-sm">
+            <a href="#features" onclick="toggleDrawer(false)">Features</a>
+            <a href="pricing.html" onclick="toggleDrawer(false)">Pricing</a>
+            <a href="#demo" onclick="toggleDrawer(false)">Live Demo</a>
+            <a href="investors.html" onclick="toggleDrawer(false)">Investors</a>
+          <div class="mt-3 flex gap-2">
+            <a href="signin.html" onclick="toggleDrawer(false)" class="rounded-lg border border-slate-200 dark:border-white/10 px-3 py-2">Sign in</a>
+            <a href="signup.html" onclick="toggleDrawer(false)" class="rounded-lg bg-slate-900 text-white px-4 py-2 dark:bg-white dark:text-zinc-900">Get started</a>
+          </div>
+          <button onclick="toggleTheme()" class="mt-2 rounded-lg border border-slate-200 dark:border-white/10 p-2">Toggle theme</button>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Main router outlet -->
+    <main id="view" class="flex-1"></main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-200/80 dark:border-white/10">
+      <div class="mx-auto container px-6 sm:px-8 py-16 sm:py-20">
+          <div class="grid gap-10 md:grid-cols-5">
+            <div class="md:col-span-2">
+              <div class="flex items-center gap-2">
+                <img src="dogei logo.png" alt="DuggAi" class="h-8 w-8 rounded-lg" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+                <div class="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-600 via-indigo-500 to-emerald-500" style="display:none;"></div>
+                <div class="text-lg font-semibold">DuggAi</div>
+              </div>
+              <p class="mt-3 text-sm text-slate-600 dark:text-zinc-400 max-w-sm">The proactive AI that anticipates your needs.</p>
+              <p class="mt-6 text-xs text-slate-500 dark:text-zinc-500">&copy; 2025 DuggAi. All rights reserved.</p>
+            </div>
+          <div>
+            <h4 class="text-sm font-semibold">Product</h4>
+            <ul class="mt-3 space-y-2 text-sm text-slate-600 dark:text-zinc-400">
+              <li><a href="#features" class="hover:text-slate-900 dark:hover:text-white">Features</a></li>
+              <li><a href="#demo" class="hover:text-slate-900 dark:hover:text-white">Live Demo</a></li>
+              <li><a href="pricing.html" class="hover:text-slate-900 dark:hover:text-white">Pricing</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="text-sm font-semibold">Company</h4>
+            <ul class="mt-3 space-y-2 text-sm text-slate-600 dark:text-zinc-400">
+              <li><a href="#about" class="hover:text-slate-900 dark:hover:text-white">About</a></li>
+              <li><a href="#contact" class="hover:text-slate-900 dark:hover:text-white">Contact</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="text-sm font-semibold">Legal</h4>
+            <ul class="mt-3 space-y-2 text-sm text-slate-600 dark:text-zinc-400">
+              <li><a href="#privacy" class="hover:text-slate-900 dark:hover:text-white">Privacy</a></li>
+              <li><a href="#terms" class="hover:text-slate-900 dark:hover:text-white">Terms</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    // THEME
+    function applyTheme(t, { refresh = false } = {}){
+      document.documentElement.classList.toggle('dark', t === 'dark');
+      updateThemeButton();
+      if(refresh && window.__homeHydrated && typeof renderHomePage === 'function'){
+        renderHomePage();
+      }
+    }
+    function currentTheme(){ return localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); }
+    function toggleTheme(){
+      const next = currentTheme() === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('theme', next);
+      applyTheme(next, { refresh: true });
+      revealNow();
+    }
+    function updateThemeButton(){
+      const isDark = document.documentElement.classList.contains('dark');
+      document.getElementById('sun')?.classList.toggle('hidden', !isDark);
+      document.getElementById('moon')?.classList.toggle('hidden', isDark);
+    }
+    applyTheme(currentTheme());
+
+    // HEADER
+    const drawer = document.getElementById('mobileDrawer');
+    const openBtn = document.getElementById('mobileOpen');
+    function toggleDrawer(force) {
+      const shouldOpen = typeof force === 'boolean' ? force : drawer.classList.contains('hidden');
+      drawer.classList.toggle('hidden', !shouldOpen);
+    }
+    openBtn?.addEventListener('click', () => toggleDrawer());
+    document.getElementById('themeToggle')?.addEventListener('click', toggleTheme);
+    window.addEventListener('storage', (e)=>{ if(e.key==='theme') applyTheme(currentTheme(), { refresh: true }); });
+    const header = document.getElementById('header');
+    const setScrolled = () => header?.setAttribute('data-scrolled', window.scrollY > 8 ? 'true' : 'false');
+    setScrolled();
+    window.addEventListener('scroll', setScrolled);
+
+    // ---------- PAGE TEMPLATES ----------
+    function Hero(){
+      return `
+      <section class="border-b border-slate-200/80 dark:border-white/10 ${document.documentElement.classList.contains('dark') ? 'hero-grad-dark' : 'hero-grad'}" data-animate>
+        <div class="mx-auto container px-6 sm:px-8 py-20 sm:py-28 lg:py-32">
+          <div class="grid gap-12 lg:gap-16 md:grid-cols-2 items-center">
+            <div class="animate-in fade-left">
+              <p class="inline-flex items-center gap-2 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 px-3 py-1 text-xs font-medium text-slate-600 dark:text-zinc-300">
+                <span class="inline-block h-2 w-2 rounded-full bg-emerald-500"></span>
+                The world's first <span class="font-semibold">Pro-Active AI</span>
+              </p>
+              <h1 class="mt-6 text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-[1.1] tracking-tight">
+                Proactive AI that knows what you want <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-500 to-emerald-500">before you ask</span>
+              </h1>
+              <p class="mt-6 text-lg sm:text-xl text-slate-600 dark:text-zinc-300 max-w-xl leading-relaxed">Stop prompting. DuggAi anticipates, understands context across your tools, and executes with one click.</p>
+              <div class="mt-8 flex flex-col sm:flex-row gap-4">
+                <a href="signup.html" class="rounded-lg bg-slate-900 text-white px-6 py-3.5 text-base font-semibold hover:bg-slate-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-white/90">Start 14-day free</a>
+                <a href="#demo" class="rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-transparent px-6 py-3.5 text-base font-semibold hover:bg-slate-50 dark:hover:bg-white/5">Try live demo</a>
+              </div>
+              <div class="mt-5 text-sm text-slate-500 dark:text-zinc-400">No credit card required . Enterprise privacy</div>
+            </div>
+            <div class="animate-in fade-right">
+              ${CompactMockUI()}
+            </div>
+          </div>
+        </div>
+      </section>`;
+    }
+    function CompactMockUI(){
+      const isDark = document.documentElement.classList.contains('dark');
+      const shellBorder = isDark ? 'border-white/10 bg-zinc-900 shadow-soft-dark' : 'border-slate-200 bg-white shadow-soft';
+      const innerBorder = isDark ? 'border-white/10' : 'border-slate-200';
+      return `<div class="rounded-2xl border ${shellBorder} overflow-hidden">
+        <div class="flex items-center justify-between border-b ${innerBorder} px-4 py-3 bg-slate-50/60 dark:bg-zinc-950/40">
+          <div class="flex items-center gap-2">
+            <div class="h-6 w-6 rounded-md bg-gradient-to-br from-blue-600 to-indigo-500"></div>
+            <div class="text-sm font-semibold">DuggAi Workspace</div>
+          </div>
+          <div class="flex items-center gap-2 text-xs">
+            <span class="rounded border ${innerBorder} px-2 py-0.5">Gmail</span>
+            <span class="rounded border ${innerBorder} px-2 py-0.5">Calendar</span>
+          </div>
+        </div>
+        <div class="p-4">
+          <div class="text-xs text-slate-500 dark:text-zinc-400 mb-3">Proactive Drafts (3)</div>
+          <div class="space-y-2">
+            <div class="rounded-lg border ${innerBorder} bg-white dark:bg-zinc-950 p-3 text-xs">
+              <div class="font-medium flex items-center gap-2">
+                <span class="inline-flex h-4 w-4 items-center justify-center rounded border ${innerBorder} text-[9px]">A</span>
+                Draft reply to "Project Sync"
+              </div>
+              <div class="mt-1 text-slate-600 dark:text-zinc-400 text-[11px]">Propose agenda for Fri 10:30 AM</div>
+            </div>
+            <div class="rounded-lg border ${innerBorder} bg-white dark:bg-zinc-950 p-3 text-xs">
+              <div class="font-medium flex items-center gap-2">
+                <span class="inline-flex h-4 w-4 items-center justify-center rounded border ${innerBorder} text-[9px]">B</span>
+                Reschedule 1:1 with Alex
+              </div>
+              <div class="mt-1 text-slate-600 dark:text-zinc-400 text-[11px]">Move to Mon 2:00-2:30 PM</div>
+            </div>
+            <div class="rounded-lg border ${innerBorder} bg-white dark:bg-zinc-950 p-3 text-xs">
+              <div class="font-medium flex items-center gap-2">
+                <span class="inline-flex h-4 w-4 items-center justify-center rounded border ${innerBorder} text-[9px]">C</span>
+                Create tasks from doc
+              </div>
+              <div class="mt-1 text-slate-600 dark:text-zinc-400 text-[11px]">Extract 4 TODOs from "Vision v3"</div>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    function Logos(){
+      return `<section class="border-b border-slate-200/80 dark:border-white/10 ${document.documentElement.classList.contains('dark') ? 'bg-zinc-950' : ''}" data-animate>
+        <div class="mx-auto container px-6 sm:px-8 py-12 sm:py-16 animate-in">
+          <p class="text-center text-sm uppercase tracking-wider text-slate-500 dark:text-zinc-400 font-semibold">Works with your stack</p>
+          <div class="marquee overflow-hidden mt-6">
+            <div class="flex gap-12 sm:gap-16 whitespace-nowrap will-change-transform text-lg font-medium text-slate-400 dark:text-zinc-500">
+              <span>Google</span><span>Slack</span><span>GitHub</span><span>Notion</span><span>Salesforce</span><span>Jira</span>
+              <span>Google</span><span>Slack</span><span>GitHub</span><span>Notion</span><span>Salesforce</span><span>Jira</span>
+            </div>
+          </div>
+        </div>
+      </section>`;
+    }
+
+    function Features(){
+      return `<section class="border-b border-slate-200/80 dark:border-white/10" data-animate>
+        <div class="mx-auto container px-6 sm:px-8 py-20 sm:py-28">
+          <div class="max-w-3xl mx-auto text-center animate-in mb-16">
+            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">Everything you need. Out of the box.</h2>
+            <p class="mt-4 text-lg sm:text-xl text-slate-600 dark:text-zinc-300">Spin up proactive workflows fast; scale with privacy, observability, and control.</p>
+          </div>
+          <div class="mt-12 grid gap-8 md:grid-cols-3 max-w-7xl mx-auto">
+            ${FeatureCard('01','Instant Action Suggestions','AI analyzes your calendar, emails, and tasks to suggest actions before you even ask.')}
+            ${FeatureCard('02','Context-Aware Intelligence','Understands your work patterns and priorities to deliver perfectly timed recommendations.')}
+            ${FeatureCard('03','One-Click Execution','Execute, modify, or dismiss AI suggestions with a single click-no prompting required.')}
+          </div>
+        </div>
+      </section>`;
+    }
+    function FeatureCard(no,title,desc){
+      const base = 'rounded-2xl border p-8 card animate-in';
+      const cls = document.documentElement.classList.contains('dark') ? `${base} border-white/10 bg-zinc-900 card-dark` : `${base} border-slate-200 bg-white shadow-soft`;
+      return `<div class="${cls}"><div class="text-sm font-bold text-slate-500 dark:text-zinc-400">${no}</div><h3 class="mt-4 text-xl font-bold">${title}</h3><p class="mt-3 text-base leading-relaxed text-slate-600 dark:text-zinc-300">${desc}</p></div>`
+    }
+
+    function Problem(){
+      return `<section class="border-b border-slate-200/80 dark:border-white/10 ${document.documentElement.classList.contains('dark') ? 'bg-zinc-950' : 'bg-slate-50'}" data-animate>
+        <div class="mx-auto container px-6 sm:px-8 py-20 sm:py-28">
+          <div class="grid gap-12 lg:gap-16 md:grid-cols-2 items-start">
+            <div class="animate-in fade-left">
+              <h2 class="text-3xl sm:text-4xl font-bold">The Biggest Problem</h2>
+              <p class="mt-4 text-lg sm:text-xl text-slate-600 dark:text-zinc-300 leading-relaxed">AI has no context. It can't understand what you're working on, what you need next, or how to help without constant prompting.</p>
+              <ul class="mt-8 space-y-4 text-base sm:text-lg text-slate-700 dark:text-zinc-300">
+                <li class="flex items-start gap-3">
+                  <span class="text-red-500 text-xl flex-shrink-0">x</span>
+                  <span><span class="font-semibold">No Context</span> - AI works in isolation, unable to understand your workflow.</span>
+                </li>
+                <li class="flex items-start gap-3">
+                  <span class="text-red-500 text-xl flex-shrink-0">x</span>
+                  <span><span class="font-semibold">Constant Prompting</span> - You must explain everything repeatedly.</span>
+                </li>
+                <li class="flex items-start gap-3">
+                  <span class="text-red-500 text-xl flex-shrink-0">x</span>
+                  <span><span class="font-semibold">Generic Responses</span> - One-size-fits-all suggestions miss the mark.</span>
+                </li>
+                <li class="flex items-start gap-3">
+                  <span class="text-red-500 text-xl flex-shrink-0">x</span>
+                  <span><span class="font-semibold">Reactive Only</span> - Waits for commands instead of anticipating.</span>
+                </li>
+              </ul>
+            </div>
+            <div class="animate-in fade-right rounded-2xl border ${document.documentElement.classList.contains('dark') ? 'border-white/10 bg-zinc-900 shadow-soft-dark' : 'border-slate-200 bg-white shadow-soft'} p-6 sm:p-8">
+              <div class="grid gap-5 sm:grid-cols-2">
+                ${MiniPoint('Complete Context','Understands projects, meetings, emails, patterns.')}
+                ${MiniPoint('Proactive Intel','Predicts tasks and suggests next actions.')}
+                ${MiniPoint('Enterprise Privacy','E2E encryption, no training, self-hosting.')}
+                ${MiniPoint('Control','One-click Execute / Modify / Dismiss.')}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>`;
+    }
+    function MiniPoint(title, body){
+      return `<div class="rounded-xl border ${document.documentElement.classList.contains('dark') ? 'border-white/10 bg-zinc-950' : 'border-slate-200 bg-slate-50'} p-5 sm:p-6">
+        <div class="text-base font-bold">${title}</div>
+        <div class="mt-2 text-sm sm:text-base text-slate-600 dark:text-zinc-300 leading-relaxed">${body}</div>
+      </div>`
+    }
+
+    function Solution(){
+      return `<section class="border-b border-slate-200/80 dark:border-white/10" data-animate>
+        <div class="mx-auto container px-6 sm:px-8 py-20 sm:py-28">
+          <div class="max-w-3xl mx-auto text-center animate-in mb-16">
+            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">How We Solve It</h2>
+            <p class="mt-4 text-lg sm:text-xl text-slate-600 dark:text-zinc-300">Our proactive AI understands your complete context and anticipates your needs before you ask.</p>
+          </div>
+          <div class="mt-12 grid gap-8 md:grid-cols-3 max-w-7xl mx-auto">
+            ${FeatureCard('','Complete Context Awareness','Understands your projects, meetings, emails, and work patterns.')}
+            ${FeatureCard('','Proactive Intelligence','Anticipates tasks and suggests actions before you ask.')}
+            ${FeatureCard('','Enterprise Privacy','End-to-end encryption and self-hosting options.')}
+          </div>
+        </div>
+      </section>`;
+    }
+
+    function CTA(){
+      return `<section data-animate>
+        <div class="mx-auto container px-6 sm:px-8 py-20 sm:py-28">
+          <div class="rounded-3xl border ${document.documentElement.classList.contains('dark') ? 'border-white/10 bg-zinc-900 shadow-soft-dark' : 'border-slate-200 bg-gradient-to-br from-slate-50 to-white shadow-soft'} p-10 md:p-16 lg:p-20 text-center animate-in">
+            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold">Ready to Experience Proactive AI?</h2>
+            <p class="mt-5 text-lg sm:text-xl text-slate-600 dark:text-zinc-300 max-w-2xl mx-auto">Start your 14-day free trial today. No credit card required.</p>
+            <div class="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+              <a href="signup.html" class="rounded-lg ${document.documentElement.classList.contains('dark') ? 'bg-white text-zinc-900 hover:bg-white/90' : 'bg-slate-900 text-white hover:bg-slate-800'} px-8 py-4 text-base font-semibold">Start Free Trial</a>
+              <a href="#demo" class="rounded-lg border ${document.documentElement.classList.contains('dark') ? 'border-white/10 bg-transparent hover:bg-white/5' : 'border-slate-200 bg-white hover:bg-slate-50'} px-8 py-4 text-base font-semibold">View Live Demo</a>
+            </div>
+          </div>
+        </div>
+      </section>`;
+    }
+
+    // ==== LIVE DEMO (Proactive Actions + AI Agent) ====
+    function Demo(){
+      return `<section id="demo" class="border-b border-slate-200/80 dark:border-white/10 ${document.documentElement.classList.contains('dark') ? 'bg-zinc-950' : 'bg-slate-50'}" data-animate>
+        <div class="mx-auto container px-6 sm:px-8 py-20 sm:py-28">
+          <div class="max-w-4xl mx-auto text-center animate-in mb-12">
+            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">See it in action</h2>
+            <p class="mt-5 text-lg sm:text-xl text-slate-600 dark:text-zinc-300 leading-relaxed">DuggAi continuously watches <b>Gmail</b>, <b>Google Calendar</b>, <b>Drive</b>, and your tools. It drafts tasks with a full preview and <b>asks for your approval</b> before doing anything. Once approved, it executes instantly.</p>
+            <ul class="mt-6 text-sm sm:text-base text-slate-600 dark:text-zinc-400 flex flex-wrap gap-6 justify-center">
+              <li class="flex items-center gap-2">
+                <svg class="h-5 w-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                Draft -> Approve -> Execute
+              </li>
+              <li class="flex items-center gap-2">
+                <svg class="h-5 w-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                Source-aware context
+              </li>
+              <li class="flex items-center gap-2">
+                <svg class="h-5 w-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                Privacy-safe (no training)
+              </li>
+            </ul>
+          </div>
+          ${MockUI()}
+        </div>
+      </section>`;
+    }
+
+    function MockUI(){
+      return `<div class="mt-6 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-zinc-900 shadow-soft dark:shadow-soft-dark overflow-hidden animate-in">
+        <!-- Header -->
+        <div class="flex items-center justify-between border-b border-slate-200 dark:border-white/10 px-5 py-4 bg-slate-50/60 dark:bg-zinc-950/40">
+          <div class="flex items-center gap-3">
+            <img src="dogei logo.png" alt="DuggAi" class="h-8 w-8 rounded-lg" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+            <div class="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-500" style="display:none;"></div>
+            <div class="text-base font-bold">DuggAi Workspace</div>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="hidden md:flex items-center gap-2 text-xs">
+              <span class="inline-flex items-center gap-1.5 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-zinc-900 px-3 py-1">
+                <span class="inline-block h-2 w-2 rounded-full bg-emerald-500"></span>
+                <span class="font-medium">Live</span>
+              </span>
+              <span class="rounded-full border border-slate-200 dark:border-white/10 px-3 py-1">Gmail</span>
+              <span class="rounded-full border border-slate-200 dark:border-white/10 px-3 py-1">Calendar</span>
+              <span class="rounded-full border border-slate-200 dark:border-white/10 px-3 py-1">Slack</span>
+            </div>
+            <img alt="user" class="h-9 w-9 rounded-full ring-2 ring-slate-200 dark:ring-white/10" src="https://api.dicebear.com/8.x/identicon/svg?seed=duggai" />
+          </div>
+        </div>
+
+        <!-- Mode Tabs: Proactive Actions | AI Agent -->
+        <div class="border-b border-slate-200 dark:border-white/10 bg-white dark:bg-zinc-950">
+          <div class="px-5 py-3 flex items-center gap-3">
+            <button class="demo-tab demo-tab-active rounded-lg px-4 py-2.5 text-sm font-semibold transition-all" data-demo="actions">
+              <span class="flex items-center gap-2">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                Proactive Actions
+              </span>
+            </button>
+            <button class="demo-tab rounded-lg px-4 py-2.5 text-sm font-semibold transition-all text-slate-600 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-white/5" data-demo="agent">
+              <span class="flex items-center gap-2">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                AI Agent
+              </span>
+            </button>
+            <div class="ml-auto flex items-center gap-2">
+              <button id="run-all" class="rounded-lg border border-slate-200 dark:border-white/10 px-4 py-2 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-white/5 transition-all">Approve All</button>
+              <button id="sort-btn" class="rounded-lg border border-slate-200 dark:border-white/10 p-2 hover:bg-slate-50 dark:hover:bg-white/5 transition-all" aria-label="Sort by score">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="grid md:grid-cols-[1fr,420px] min-h-[600px]">
+          <!-- List Section -->
+          <section id="list" class="p-5 border-r border-slate-200 dark:border-white/10">
+            <div class="flex items-center justify-between mb-4">
+              <h3 id="listTitle" class="text-lg font-bold text-slate-900 dark:text-zinc-100">Proactive Drafts</h3>
+              <span class="text-sm text-slate-500 dark:text-zinc-400" id="itemCount">Loading...</span>
+            </div>
+            <div id="items" class="grid gap-3"></div>
+          </section>
+
+          <!-- Detail Panel -->
+          <aside id="detail" class="p-5 bg-slate-50/50 dark:bg-zinc-950/50">
+            <div id="detailTitle" class="text-base font-bold mb-4">Preview</div>
+            <div class="rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-zinc-900 overflow-hidden">
+              <nav class="flex border-b border-slate-200 dark:border-white/10 text-sm">
+                <button class="detail-tab detail-tab-active flex-1 px-4 py-3 border-r border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5" data-tab="preview">Preview</button>
+                <button class="detail-tab flex-1 px-4 py-3 border-r border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5" data-tab="params">Params</button>
+                <button class="detail-tab flex-1 px-4 py-3 hover:bg-slate-50 dark:hover:bg-white/5" data-tab="log">Log</button>
+              </nav>
+              <div id="detailBody" class="p-4 text-sm text-slate-700 dark:text-zinc-300 min-h-[300px]">
+                <div class="flex flex-col items-center justify-center h-full text-center text-slate-400 dark:text-zinc-500">
+                  <svg class="h-12 w-12 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/></svg>
+                  <p class="font-medium">Select an action to preview</p>
+                </div>
+              </div>
+            </div>
+            <div class="mt-4 hidden flex-col gap-2" id="detailBtns">
+              <button id="approveBtn" class="w-full rounded-lg bg-slate-900 text-white px-4 py-3 text-sm font-semibold hover:bg-slate-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-white/90 transition-all">Approve and Execute</button>
+              <div class="grid grid-cols-2 gap-2">
+                <button id="modifyBtn" class="rounded-lg border border-slate-200 dark:border-white/10 px-4 py-2.5 text-sm font-medium hover:bg-slate-50 dark:hover:bg-white/5 transition-all">Edit</button>
+                <button id="dismissBtn" class="rounded-lg border border-slate-200 dark:border-white/10 px-4 py-2.5 text-sm font-medium hover:bg-slate-50 dark:hover:bg-white/5 transition-all">Dismiss</button>
+              </div>
+            </div>
+          </aside>
+        </div>
+
+        <div id="toast" class="pointer-events-none fixed inset-x-0 bottom-6 z-50 mx-auto hidden w-fit rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-zinc-900 text-slate-900 dark:text-zinc-100 px-4 py-2.5 text-sm font-medium shadow-soft dark:shadow-soft-dark"></div>
+      </div>`;
+    }
+
+
+
+    // ---------- HOME PAGE ----------
+    function renderHomePage(){
+      const view = document.getElementById('view');
+      view.innerHTML = `${Hero()}${Demo()}${Logos()}${Features()}${Problem()}${Solution()}${CTA()}`;
+      initMockUI();
+      setupReveals();
+    }
+
+    // ---------- DATA ----------
+    const suggestions = [
+      {
+        id: 'gml-1',
+        kind: 'draft',
+        source: 'Gmail',
+        badge: 'Email',
+        title: 'Draft reply to "Project Sync"',
+        action: 'Send email',
+        desc: 'Propose agenda and confirm Fri 10:30 AM.',
+        score: 92,
+        requiresApproval: true,
+        preview: `Subject: Project Sync Agenda\n\nHi team,\nHere is a quick agenda for Friday 10:30:\n- Updates by owner\n- Risks and blockers\n- Next steps\n\n- Sent by DuggAi`,
+        params: { to:'team@company.com', cc:'', draft:true }
+      },
+      {
+        id: 'cal-2',
+        kind: 'draft',
+        source: 'Calendar',
+        badge: 'Event',
+        title: 'Reschedule 1:1 with Alex',
+        action: 'Move meeting',
+        desc: 'Next open slot Mon 2:00-2:30 PM.',
+        score: 87,
+        requiresApproval: true,
+        preview: 'Event: 1:1 with Alex\nFrom: Fri 3:00 PM\nTo: Mon 2:00-2:30 PM\nLocation: Zoom',
+        params: { eventId:'1-1-alex', from:'Fri 3:00', to:'Mon 2:00-2:30' }
+      },
+      {
+        id: 'drv-3',
+        kind: 'draft',
+        source: 'Drive',
+        badge: 'Doc',
+        title: 'Create task from design doc comments',
+        action: 'Create tasks',
+        desc: 'Extract 4 TODOs from "Vision v3".',
+        score: 83,
+        requiresApproval: true,
+        preview: 'Tasks:\n1) Clarify KPI baseline\n2) Update wireframe 12\n3) Add AB test plan\n4) Request legal review',
+        params: { doc:'Vision v3', tasks:4 }
+      },
+      {
+        id: 'slk-4',
+        kind: 'draft',
+        source: 'Slack',
+        badge: 'Message',
+        title: 'Draft standup summary',
+        action: 'Post summary',
+        desc: 'Summarize #eng-daily messages since yesterday.',
+        score: 78,
+        requiresApproval: true,
+        preview: 'Standup summary for #eng-daily:\n- Shipping new onboarding flow\n- Blocking issue resolved\n- Ready for QA handoff',
+        params: { channel:'#eng-daily' }
+      },
+      {
+        id: 'ntn-5',
+        kind: 'draft',
+        source: 'Notion',
+        badge: 'Page',
+        title: 'Fill weekly status page',
+        action: 'Update page',
+        desc: 'Pre-fill "Q4 Week 5" with Jira and GitHub stats.',
+        score: 74,
+        requiresApproval: true,
+        preview: 'Status: On track\nVelocity: 28\nRisks: None',
+        params: { page:'Q4 Week 5' }
+      },
+      {
+        id: 'crm-6',
+        kind: 'draft',
+        source: 'Salesforce',
+        badge: 'Update',
+        title: 'Log follow up with Acme Corp',
+        action: 'Create note',
+        desc: 'Capture call summary and assign next touchpoint.',
+        score: 79,
+        requiresApproval: true,
+        preview: 'Note: Spoke with Dana at Acme. Next demo scheduled for Thu 11:00 AM. Highlight pricing questions.',
+        params: { account:'Acme Corp', followUp:'Thu 11:00 AM' }
+      },
+      {
+        id: 'ops-7',
+        kind: 'draft',
+        source: 'Asana',
+        badge: 'Task',
+        title: 'Assign bug triage owner',
+        action: 'Assign task',
+        desc: 'Recommend Alex based on workload data.',
+        score: 76,
+        requiresApproval: true,
+        preview: 'Task: Bug triage owner\nAssignee: Alex Chen\nDue: Wed 4:00 PM\nNotes: Align with release train.',
+        params: { project:'Platform Ops', assignee:'Alex Chen' }
+      }
+    ];
+
+    const agentRuns = [
+      {
+        id: 'agt-1',
+        kind: 'agent',
+        source: 'Agent',
+        badge: 'Playbook',
+        title: 'Launch Prep Assistant',
+        desc: 'Review calendar, block focus time, email agenda, prep doc.',
+        score: 90,
+        status: 'Ready to launch',
+        steps: [
+          { name:'Scan calendar for conflicts', status:'pending' },
+          { name:'Block focus time', status:'pending' },
+          { name:'Draft agenda email', status:'pending' },
+          { name:'Create prep doc', status:'pending' }
+        ],
+        preview:'Launch prep playbook with 4 coordinated steps ready.',
+        params:{ dryRun:true }
+      },
+      {
+        id: 'agt-2',
+        kind: 'agent',
+        source: 'Agent',
+        badge: 'Workflow',
+        title: 'Candidate Loop Orchestrator',
+        desc: 'Schedule panel, email confirmations, collect feedback forms.',
+        score: 84,
+        status: 'Standing by',
+        steps: [
+          { name:'Find interviewer availability', status:'pending' },
+          { name:'Propose times to candidate', status:'pending' },
+          { name:'Send calendar invites', status:'pending' },
+          { name:'Create feedback forms', status:'pending' }
+        ],
+        preview:'Candidate loop workflow ready to schedule interviews end-to-end.',
+        params:{ sla:'24h' }
+      },
+      {
+        id: 'agt-3',
+        kind: 'agent',
+        source: 'Agent',
+        badge: 'Automation',
+        title: 'Customer Health Monitor',
+        desc: 'Check NPS trends, surface risky accounts, draft follow ups.',
+        score: 81,
+        status: 'Watching accounts',
+        steps: [
+          { name:'Pull NPS survey responses', status:'pending' },
+          { name:'Flag accounts below threshold', status:'pending' },
+          { name:'Draft outreach emails', status:'pending' },
+          { name:'Post summary to Slack', status:'pending' }
+        ],
+        preview:'Customer health automation queued with outreach drafts ready.',
+        params:{ segment:'Enterprise' }
+      }
+    ];
+
+    // ---------- INITIALIZATION ----------
+    document.addEventListener('DOMContentLoaded', () => {
+      renderHomePage();
+      window.__homeHydrated = true;
+      updateThemeButton();
+    });
+
+    // ---------- MOCK UI LOGIC ----------
+    function initMockUI(){
+      const itemsEl = document.getElementById('items');
+      if(!itemsEl) return;
+
+      const toast = document.getElementById('toast');
+      const listTitle = document.getElementById('listTitle');
+      const itemCount = document.getElementById('itemCount');
+      const runAllBtn = document.getElementById('run-all');
+      const sortBtn = document.getElementById('sort-btn');
+      const approveBtn = document.getElementById('approveBtn');
+      const modifyBtn = document.getElementById('modifyBtn');
+      const dismissBtn = document.getElementById('dismissBtn');
+      const detailTitle = document.getElementById('detailTitle');
+      const detailBody = document.getElementById('detailBody');
+      const detailBtns = document.getElementById('detailBtns');
+      const demoTabs = Array.from(document.querySelectorAll('.demo-tab'));
+      const detailTabs = Array.from(document.querySelectorAll('.detail-tab'));
+
+      let mode = 'actions';
+      let current = null;
+
+      const renderPlaceholder = () => {
+        const message = mode === 'actions'
+          ? 'Select a proactive action to preview'
+          : 'Select an agent playbook to inspect';
+        detailTitle.textContent = mode === 'actions' ? 'Preview' : 'Agent Preview';
+        detailBody.innerHTML = `
+          <div class="flex flex-col items-center justify-center h-full text-center text-slate-400 dark:text-zinc-500" data-empty>
+            <svg class="h-12 w-12 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/>
+            </svg>
+            <p class="font-medium">${message}</p>
+          </div>`;
+        detailBtns?.classList.add('hidden');
+        detailTabs.forEach(tab => tab.classList.toggle('detail-tab-active', tab.dataset.tab === 'preview'));
+      };
+
+      const highlightSelection = () => {
+        document.querySelectorAll('[data-item-id]').forEach(el => {
+          el.classList.toggle('mock-item-active', current && el.dataset.itemId === current.id);
+        });
+      };
+
+      const setActiveDemoTab = () => {
+        demoTabs.forEach(tab => tab.classList.toggle('demo-tab-active', tab.dataset.demo === mode));
+      };
+
+      const updateCount = (list) => {
+        if(!itemCount) return;
+        if(!list.length){
+          itemCount.textContent = 'No items';
+        } else if(mode === 'actions'){
+          itemCount.textContent = `${list.length} pending`;
+        } else {
+          itemCount.textContent = `${list.length} active`;
+        }
+      };
+
+      const handlePick = (item) => {
+        current = item;
+        openDetail(item);
+        highlightSelection();
+      };
+
+      const render = (autoSelect = false) => {
+        const list = mode === 'actions' ? suggestions : agentRuns;
+        listTitle.textContent = mode === 'actions' ? 'Proactive Drafts' : 'Agent Playbooks';
+        updateCount(list);
+        if(runAllBtn){
+          runAllBtn.textContent = mode === 'actions' ? 'Approve All' : 'Run All Agents';
+        }
+        renderItems(itemsEl, list, handlePick, current ? current.id : null, mode);
+        setActiveDemoTab();
+
+        if(autoSelect){
+          if(list.length){
+            handlePick(list[0]);
+          } else {
+            current = null;
+            renderPlaceholder();
+          }
+        } else if(!current || !list.find(entry => entry.id === current.id)){
+          current = null;
+          renderPlaceholder();
+        } else {
+          highlightSelection();
+        }
+      };
+
+      demoTabs.forEach(button => {
+        button.addEventListener('click', () => {
+          if(mode === button.dataset.demo) return;
+          mode = button.dataset.demo;
+          showToast((mode === 'actions' ? 'Proactive Actions' : 'AI Agent') + ' ready', toast);
+          render(true);
+        });
+      });
+
+      detailTabs.forEach(button => {
+        button.addEventListener('click', () => {
+          detailTabs.forEach(tab => tab.classList.toggle('detail-tab-active', tab === button));
+          const target = button.dataset.tab;
+          detailBody.querySelectorAll('[data-body]').forEach(section => {
+            section.classList.toggle('hidden', section.dataset.body !== target);
+          });
+        });
+      });
+
+      runAllBtn?.addEventListener('click', () => {
+        const list = mode === 'actions' ? suggestions : agentRuns;
+        if(!list.length){
+          showToast('Nothing to run right now.', toast);
+          return;
+        }
+        if(mode === 'actions'){
+          list.forEach(item => item.requiresApproval = false);
+          showToast(`Approved all ${list.length} drafts`, toast);
+        } else {
+          list.forEach(agent => runAgent(agent, toast));
+          showToast(`Launching ${list.length} agents`, toast);
+        }
+        render();
+      });
+
+      sortBtn?.addEventListener('click', () => {
+        if(mode === 'actions'){
+          suggestions.sort((a,b) => b.score - a.score);
+        } else {
+          agentRuns.sort((a,b) => b.score - a.score);
+        }
+        render();
+        showToast('Sorted by priority score', toast);
+      });
+
+      approveBtn?.addEventListener('click', () => {
+        if(!current) return;
+        if(current.kind === 'draft'){
+          current.requiresApproval = false;
+          appendLog(current, 'Approved and executed');
+          showToast('Executed: ' + current.title, toast);
+        } else {
+          runAgent(current, toast);
+        }
+      });
+
+      modifyBtn?.addEventListener('click', () => {
+        if(!current) return;
+        const newText = prompt('Modify preview before executing:', current.preview);
+        if(newText !== null){
+          current.preview = newText;
+          openDetail(current);
+          showToast('Draft updated', toast);
+        }
+      });
+
+      dismissBtn?.addEventListener('click', () => {
+        if(!current) return;
+        const list = current.kind === 'draft' ? suggestions : agentRuns;
+        const idx = list.findIndex(entry => entry.id === current.id);
+        if(idx > -1){
+          list.splice(idx, 1);
+        }
+        current = null;
+        render(true);
+        showToast('Dismissed: ' + current.title, toast);
+      });
+
+      window.__refreshMockUI = () => render();
+      render(true);
+    }
+
+    function renderItems(container, list, onPick, selectedId, mode){
+      const isDark = document.documentElement.classList.contains('dark');
+      const border = isDark ? 'border-white/10' : 'border-slate-200';
+      container.innerHTML = '';
+      list.forEach((item, idx) => {
+        const el = document.createElement('button');
+        el.type = 'button';
+        el.dataset.itemId = item.id;
+        el.className = `text-left rounded-xl border ${border} bg-white dark:bg-zinc-950 p-4 hover:bg-slate-50 dark:hover:bg-white/5 focus:outline-none card animate-in`;
+        const meta = mode === 'actions'
+          ? `${item.badge} | Score ${item.score}`
+          : `${item.steps.length} steps | Score ${item.score}`;
+        const status = mode === 'actions'
+          ? (item.requiresApproval ? 'Requires approval' : 'Auto-approved')
+          : (item.status || 'Ready to launch');
+        el.innerHTML = `
+          <div class="flex items-center justify-between gap-3">
+            <div class="font-medium flex items-center gap-2">
+              <span class="inline-flex h-5 w-5 items-center justify-center rounded border ${border} text-[10px]">${String.fromCharCode(65 + idx)}</span>
+              ${escapeHtml(item.title)}
+            </div>
+            <span class="rounded-full border ${border} px-2 py-0.5 text-xs text-slate-600 dark:text-zinc-300">${escapeHtml(meta)}</span>
+          </div>
+          <div class="mt-1 text-sm text-slate-600 dark:text-zinc-300">${escapeHtml(item.desc)}</div>
+          <div class="mt-2 flex items-center justify-between text-xs text-slate-500 dark:text-zinc-400">
+            <span>${escapeHtml(status)}</span>
+            <span>${escapeHtml(item.source || (mode === 'actions' ? 'Workspace' : 'Agent'))}</span>
+          </div>`;
+        if(item.id === selectedId){
+          el.classList.add('mock-item-active');
+        }
+        el.addEventListener('click', () => onPick(item));
+        container.appendChild(el);
+        requestAnimationFrame(() => el.classList.add('is-visible'));
+      });
+    }
+
+    function openDetail(item){
+      const detailBody = document.getElementById('detailBody');
+      const detailBtns = document.getElementById('detailBtns');
+      const detailTitle = document.getElementById('detailTitle');
+      detailTitle.textContent = item.kind === 'draft' ? 'Draft Preview' : 'Agent Preview';
+
+      let previewContent;
+      if(item.kind === 'draft'){
+        previewContent = `<pre class="whitespace-pre-wrap text-sm leading-relaxed">${escapeHtml(item.preview)}</pre>`;
+      } else {
+        previewContent = `
+          <div class="space-y-3">
+            ${item.steps.map((step, idx) => `
+              <div class="flex items-start gap-3">
+                <span class="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full border border-slate-200 dark:border-white/10 text-[11px] ${step.status === 'done' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300' : ''}">${step.status === 'done' ? '&#10003;' : idx + 1}</span>
+                <div>
+                  <div class="font-medium text-sm text-slate-700 dark:text-zinc-200">${escapeHtml(step.name)}</div>
+                  <div class="text-xs text-slate-500 dark:text-zinc-400">${step.status === 'done' ? 'Completed' : 'Pending'}</div>
+                </div>
+              </div>`).join('')}
+          </div>
+          <div class="mt-4 rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-zinc-950 px-4 py-3 text-xs text-slate-600 dark:text-zinc-300">
+            ${escapeHtml(item.preview)}
+          </div>`;
+      }
+
+      const params = `<pre class="whitespace-pre-wrap text-xs leading-relaxed">${escapeHtml(JSON.stringify(item.params, null, 2))}</pre>`;
+      const log = `<div id="log-${item.id}" class="space-y-1 text-xs text-slate-500 dark:text-zinc-400"><div>No logs yet.</div></div>`;
+
+      detailBody.innerHTML = `
+        <div class="space-y-4">
+          <div data-body="preview">${previewContent}</div>
+          <div data-body="params" class="hidden">${params}</div>
+          <div data-body="log" class="hidden">${log}</div>
+        </div>`;
+      detailBtns?.classList.remove('hidden');
+      document.querySelectorAll('.detail-tab').forEach(tab => {
+        tab.classList.toggle('detail-tab-active', tab.dataset.tab === 'preview');
+      });
+    }
+
+    function appendLog(item, message){
+      const id = `log-${item.id}`;
+      const el = document.getElementById(id);
+      if(el){
+        el.innerHTML = `<div>[${new Date().toLocaleTimeString()}] ${escapeHtml(message)}</div>` + el.innerHTML;
+      }
+    }
+
+    function runAgent(agt, toast){
+      appendLog(agt, 'Starting playbook...');
+      agt.status = 'In progress';
+      window.__refreshMockUI?.();
+      agt.steps.forEach((st, i)=> setTimeout(()=>{
+        st.status = 'done';
+        appendLog(agt, 'Completed step: ' + st.name);
+        window.__refreshMockUI?.();
+        if(i === agt.steps.length-1){
+          agt.status = 'Completed';
+          appendLog(agt, 'Playbook complete');
+          showToast('Agent complete: ' + agt.title, toast);
+          window.__refreshMockUI?.();
+        }
+      }, 400 * (i+1)));
+    }
+
+    function showToast(text, el){
+      el.textContent = text; el.classList.remove('hidden');
+      clearTimeout(el.__t); el.__t = setTimeout(()=> el.classList.add('hidden'), 1600);
+    }
+
+    function escapeHtml(str){
+      return String(str).replace(/[&<>"']/g, s=> ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[s]));
+    }
+
+    // Simple reveal on scroll
+    function setupReveals(){
+      const els = document.querySelectorAll('[data-animate] .animate-in');
+      const io = new IntersectionObserver((entries)=>{
+        entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('is-visible'); io.unobserve(e.target); } });
+      }, {rootMargin:'-10% 0px -10% 0px'});
+      els.forEach(el=> io.observe(el));
+    }
+    function revealNow(){ document.querySelectorAll('.animate-in').forEach(el=> el.classList.add('is-visible')); }
+
+  </script>
+</body>
+</html>
