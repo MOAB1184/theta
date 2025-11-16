@@ -1,0 +1,337 @@
+If you are qualified to retake and next Wednesday, uh let's arrange so that you will be catching up.
+Is everybody understand the retake uh requirement, right?
+Okay?
+When we sign up, okay?
+So, I will be reminding you uh again.
+All right.
+So, please find the packet uh over the find the pair uh Ferris wheel problem.
+So, okay guys.
+So, let's go over uh this problem together.
+I notice some of you have but some major some progress, some of you didn't.
+So, I'm going to make sure that we are all in same uh pace, all right.
+Okay.
+So, this problem is describing from bottom to the top of the wheel.
+It's going to be uh 43 feet.
+Okay?
+And then, uh diameter of this wheel is 40 feet.
+Okay?
+That means from ground to the bottom of the wheel.
+It's going to be 43 minus uh 40, therefore 3 feet, right?
+And then, it takes a one full revolution every eight seconds.
+That means a period is going to be equal to eight seconds.
+So, to model this problem, we're going to use a uh sinusoidal, especially cosine equation.
+So, we're going to say let's change this uh lowercase H to be capital H, so that we do not mix up with the phase shift H, okay?
+So, we're going to use H over T is equal to cause uh A times cosine and then 2 pi divided by period and then X, in this case, actually, it's the T because the T is a time, T minus H and then plus K.
+We're going to use this form of equation modeling the situation.
+So, uh, we will say H is going to be height, okay?
+Height which will be unit will be feet.
+And then T will be time.
+Time is going to be in second.
+Now, we calculated A amplitude, and the maximum minus minimum divided by 2, which means max height minus minimum height divided by 2.
+In this case, 43 is the maximum height, and then minimum height is 3 because of ground to bottom of the hill is 3 feet, and then divided by 2, which is going to be 40 divided by 2, which will be 20 feet.
+That's the amplitude.
+Now, K is the axis, right?
+Vertical shift and there is calculated by max plus minimum divided by 2.
+So, we're going to say again, 43 plus 3 divided by 2 which is going to be 23.
+Now, there's another way to determine amplitude and the axis.
+Looking at this diagram here that uh from middle line which is a center of the wheel to the uh top of the wheel, which will be basically radius, radius is going to be amplitude, right?
+And then, axis will be from ground to the center of the wheel, which will be 3 plus radius is 20, so 23 is going to be axis.
+So, you do not have to use this formula, and you can look at the diagram, also determine, you know, what is A and what is K value, okay?
+Now, the most importantly, we needed to know how to determine phase shift H, right?
+So, it's a problem is describing it takes 3 seconds to reach to the top, and this top maximum value, T, which is 3 seconds, it take there, that will be equal to phase shift, which is equal to H, okay?
+So, we have all the values we need for the equation, okay?
+A amplitude, and also period to uh eight second and also phase shift 3 and then K, which is axis.
+So, uh I'm going to summarize our equation, H of T is equal to 20 cosine and 2 pi divided by period, which is 8 and then T minus 3 phase shift and plus K, which is axis.
+So, I'm going to box our final answers.
+Okay?
+Is that clear guys, right?
+Okay.
+So, now, B is asking, how high above the ground, basically, it's asking, what is the H value, right?
+The height and the uh after 9, I mean, after 8 seconds, so that means a T equal to 9, I mean sorry, not 8, 9 seconds, all right?
+So, I'm going to uh plug it in 9 seconds, directly to this equation.
+So, H of 9 is equal to 20 cosine so, 2 pi over 8, I'm going to simplify to be pi over 4.
+So, 9 minus 3 and then plus 23.
+And I will be entering, you will be entering this directly in your calculator, and when you do computation, what mode does it need to be?
+It needed to be radian mode, right?
+It got to be radian mode.
+Why?
+Because it's mixing with the time and also that this, you know, the uh period to be 8 second, therefore it got to be radian mode.
+So, uh, I'm going to to give you time, enter this in your calculator.
+It is important practice, practice, all right?
+So, all right.
+If you are using Inspire, every time you open new calculator screen, you got to check what the mode.
+And then, if you use a TI84, okay?
+Then uh once you changed that your mode, all right, in radian mode, and you should be okay.
+And now, I strongly that once you change the mode, you go to the screen and then it should stay as a radian mode, right?
+Now, I strongly recommend write it out and then enter in your calculator.
+So, I'm waiting somebody to uh their share the answer if you entered in your calculator.
+Anybody?
+Yes.
+23 exact, right?
+So, that will be 23 feet.
+I'm going to give you a little bit of time to confirm.
+Okay?
+If you have issue with the use of calculator, uh please make sure that I uh ask your elbow partner or myself to help you so that you would know uh use of calculator because this unit is calculator allowed, and a lot of this computation is involved with uh use of calculator, technology use, okay?
+20 cosine parenthesis, parenthesis, right?
+And then, sometimes using parentheses, pi over 4 is also helpful, yeah.
+Okay, if you got that, can I see thumbs up, guys, right?
+Okay.
+Beautiful, beautiful.
+Yes, good job.
+All right.
+So, now, uh move on to the C.
+I'm going to show you how to solve the C, two method, and number one, graphically.
+Oh, I kind of notice some of you are still working on it, let's wait a little bit.
+You got it?
+23, everybody in there?
+Okay.
+So, now, graphically, all right.
+So, uh, when it says graphically, must show the graph.
+So, uh, I'm going to sketch the graph.
+So, open your calculator, type up the equation, cosine, all right, uh, pi over 4.
+I usually uh put the pi over 4 around the you know, I put the parenthesis and then X minus 3 and then plus 23, okay?
+Inspire, you want to make sure that graphing screen and check setting your mode got to be radian, all right?
+Again, Inspire, every time you open new screen, you want to check what the mode.
+Now, when you are graphing this, you expect to know how to make appropriate window, okay?
+So, X got to be period is 8 seconds.
+So, you wanted to see at least two, you know, two and a half period, right?
+So, you're going to say 0 to the maybe uh 3 times 8.
+So, it's 25 at least.
+So, maybe three period.
+And then, Y, maximum is 43.
+Therefore, window needed to be 0 to the at least 45 or so, I'm going to do 50, all right?
+So, uh the graphical wise, you have to have a knowledge how to set window, okay?
+So, then uh you hit the graph here, all right?
+I'm going to to erase the 20 for now.
+Okay.
+So, this is the graph you should see.
+Okay?
+If you do not see this, there is a possibility of two problem.
+One, you did not set the window right.
+Second, it's another possibility is you are in the wrong mode.
+If you are in degree mode, you might be just see the just a straight line, something like that, okay?
+So, change the mode.
+All right.
+So, I'm going to sketch the graph because it's required to uh as a problem solving.
+All right?
+And the sketching graph is appropriate.
+I do not expect such as, you know, uh, put the exact scale, okay?
+So, I'm going to say the top uh axis is 50, and then my window is going up to the about 25.
+Okay?
+So, this is a T, this is a H.
+All right.
+Then, we're going to go Y equal to second equation to be uh, 20 because that we wanted to know uh where that's equation y1, y2 intersect when it's 20.
+So, uh that again, uh you graph, okay?
+So, I am going to sketch here, uh, Y equal to 20.
+Y equal 20.
+Now, problem is asking uh, how long it take uh, for you to be 20 feet above the ground, second time.
+That means we are looking for y equal 20 intersect with the original graph second time.
+So, this is the first time.
+First time and this is the second time.
+I hope that makes sense?
+So, go uh use the intersecting feature in your calculator, find the second time intersection.
+Anybody can share the answer, T equal to?
+I heard that, 5.19 seconds in three significant figure.
+Okay?
+All right.
+I recommend practice and uh you are very capable and it's uh not harder to find these values.
+Okay, intersection.
+All right.
+I'm going to second methodology, algebraically.
+Okay?
+Algebraically means that uh, you do not need to show both way, just choose one, and algebraically, you say 20 equal to your equation, 20 uh cosine, and then pi over 4 and T minus 3 and plus 23, you are looking for T, okay?
+First step, take away 23 both side.
+So then, you have negative 3 = 20 cosine pi over 4 T minus 3.
+Okay?
+Are we all following, guys?
+All right.
+Then, what's the next step?
+We're going to divide both side by 20.
+Okay?
+Then we will put the inverse sign which is our cosine, both side.
+So, cosine goes away.
+Then isolate T, final answer, T will be equal to arc cosine negative 3 over 20 times reciprocal pi over 4.
+So, we have 4 times 4 over pi.
+4 times divided by pi, and then minus 3 needed to be added.
+So, the other side will be plus 3.
+So, you needed to enter this in your calculator and please check, when you do enter this in your calculator with radian mode, you should have okay, I'm waiting.
+You got the answer already?
+No?
+Are you trying it out, please?
+Yeah.
+Okay.
+So, let's see, anybody uh, who got the answer, I'm waiting.
+Yes, again.
+5.192, and therefore, three significant figure and second.
+Now, yes.
+That is an excellent question.
+I was waiting somebody ask that, okay?
+So, how do we know this is not first time intersection, it's a second time intersection?
+Anybody has some insightful thought?
+Share the idea?
+How do we know this is the second time intersection?
+Okay.
+So, here is how uh we identify, period was 8 seconds, right?
+So, between second intersection, first intersection, what's the time difference?
+4.
+4?
+Half of the period.
+So, when you subtract 4, and you get to 1.19.
+So, 1.19 is the first intersection, and then second intersection will be 5.19.
+Now, if we subtract half a period, T is a negative value, then we know that is the first intersection.
+Does it make sense?
+Because we cannot have negative, you know, time, right?
+So, does I hope it makes sense, right?
+So, if I ask you, what is the third intersection without actually doing uh, doing tracing, what would be the time?
+9.19.
+You will be adding another 4 seconds.
+So, every 4 seconds there is just 20 feet height, half of the period.
+Doesn't make sense?
+So, that was a really excellent question, and without that, you know, question, I would not discuss that and so it's great, okay?
+So, I want you guys go in, find that, all right?
+Uh, this next problem going to be homework, I want to practice, and then the following question I will also make it as a homework.
+Now, please go to the page it says double and half angle identities.
+And, I want you practice Copper Toy Company problem right now.
+Now, you manage this problem, okay, individually, okay?
+Then, you can say, "Oh, I get it.
+I understand how to write equation, modeling, you know, with a situation."
+So, I'm going to give you about 5 minutes to work on these problems.
+Okay?
+So.
+I'm putting red star, because this problem is such important problem, okay?
+Very important.
+I'm asking for like one.
+Shall we check answers?
+So.
+All right, guys.
+I solved algebraically, all right?
+Knowing the period is 10, B is pi over 5, okay?
+So, yeah.
+The end of the spirit, so.
+Okay, so you explained him just the answer.
+I don't fully get it, but I I know how I am wrong.
+So then, uh, 4 seconds, right?
+And that is going to be the phase shift, right?
+Does that make sense?
+All right.
+5 seconds later, right?
+5 seconds later, then so you times the twice, huh?
+Times the 2, yeah.
+Times the 2, right?
+So 5 seconds later, you came to the from top to the bottom.
+So, from maximum to minimum is 5 seconds.
+That means it need to go up to the maximum again, it will take another 5 seconds.
+That's why it's 10 seconds, is the period, okay?
+Got it?
+All right.
+Okay.
+And I think B is very straightforward.
+You are just substituting T = 15.
+You are asking good questions.
+How do we determine period?
+Uh knowing that maximum to minimum is 5 seconds and the period is 10 seconds.
+All right?
+Mhm.
+How do you also get cosine from the cosine?
+Oh, you could change into cosine, so, uh, because this this is saying, uh, the, you uh, you wind it up and start at T = uh 4, but it was the maximum height.
+So it's easier, yes.
+Then if you wanted to do in sign, then you needed to figure out, you know, uh quarter period the other way, yeah.
+Got it?
+Which is, I think it's going to be not a whole number, right?
+Yeah.
+So, now, uh, then the first time uh, the height spring is 12 uh, centimeter above the ground, I solved algebraically, of course that you can solve graphically.
+Then, when I solved it algebraically, I found T to be 6.5 seconds.
+Now, then, I wanted to check if it's the first intersection or second intersection.
+So, it says that, question is asking first intersection, first time.
+So, I took away 5, as I said, you are going to subtract half of the period by that value you found, and then I found 1.5, which was not a negative value.
+So, my answer will be 1.5 seconds, and I recognize 6.5 seconds is second time, it's going to be 12 uh centimeter above the ground.
+Okay?
+Makes sense?
+Okay, I I see some nodding.
+That's really nice to see, okay?
+Any questions?
+So, this is what I recommend.
+If you are almost 90% was able to formulate whole process, you got this concept, okay?
+Again, this will be major concept, big, you know, problem in coming unit exam, you know, material.
+I hope that makes sense, okay?
+All right.
+Okay.
+Good exercise.
+Now, we're going to go into some more additional identity, okay?
+So, any questions before I move into uh the double and the half angle identities?
+Okay.
+So, I'm going to go into using additional identities, okay?
+And I'm going to derive double angle identity of sine 2 theta, okay?
+So, I'm going to say sine 2 theta is theta plus theta and therefore, and it will end up to be sine theta times cosine theta plus and sine theta times, again, cosine theta.
+Because X is theta, Y is theta.
+Therefore, it will turn into 2 sine theta cosine theta.
+So, we conclude that when you have sine over 2 theta, sine over 2 theta is a saying, "I have a sine expression period of pi," because 2 theta means that, you know, 2 pi divided by 2 is going to be period, right?
+However, that will be equal to 2 times sine theta and the cosine theta, and you can be replacing and we this is known as double angle identity, okay?
+And the we're going to do exact same thing for the cosine 2 theta.
+So, you say cosine 2 theta is equal to.
+Now, again, uh cosine theta plus theta because there are two of them, and I will call one theta to be X, the other theta to be Y and therefore, you have cosine theta times cosine theta minus sine theta times sine theta which make cosine squared theta minus sine squared theta, okay?
+So, what does it mean is uh cosine 2 theta which is a 2 angle, right?
+2 times over angle, you can compute this by cosine squared theta minus sine squared theta.
+Okay?
+That's just the directly.
+Now, if you recall Pythagorean identity is a saying, okay?
+Notes here, cosine squared theta is equal to 1 minus sine squared theta.
+We already talked about, this is a Pythagorean identity, and then we're going to be substituting here, then result will be, now 1 minus sine squared theta minus sine squared theta, which will be 1 minus 2 sine squared theta, which is that implying cosine squared theta minus sine squared theta is exactly equal to 1 minus 2 sine squared theta, and that is equal to cosine 2 theta, so, there is additional identity, you can derive, and the same reason, okay?
+Uh we also know sine squared theta is equal to 1 minus cosine squared theta, same right logic, I'm going to substitute this into sine squared theta, so, you will say is equal to cosine squared theta, coming from the above expression, and then you have minus 1 minus cosine squared theta that ends up to be negative, negative, make a positive.
+So, you have 2 over cosine squared theta.
+So, you say 2 cosine squared theta, and then negative minus distributed minus 1.
+So, we created one additional identity in terms of cosine theta or when you have a double angle identity, okay?
+And the next our task is, how we're going to use it for problem solving, okay?
+And now, let's go through tangent before we move on to the uh problem solving here.
+Okay?
+So, we'll say uh tangent 2 theta is equal to, again, uh tangent theta plus theta, and you say, tangent theta plus tangent theta additional identity, and over 1 minus tangent theta times tangent theta.
+That is equal to tangent squared theta, uh, I miswrote it, 2 tangent theta, it's not squared because of 1, 1 tangent, the other tangent, so, that's 2 tangent theta divided by 1 minus tangent squared theta.
+So, again, summarize.
+Tangent 2 theta is equal to 2 times tangent theta over 1 minus tangent squared theta, okay?
+So, again, identity proof is possible, okay?
+A double angle identity.
+Okay?
+And I will show you the next step, how we're going to use it in problem solving, okay?
+Yes.
+From this step to this step?
+You mean the tangent 2 theta equal to there's 2 theta?
+That one.
+Yeah.
+So, I'm following this additional identity.
+So, this X is theta and then Y is a theta, right?
+So, you say tangent theta and then tangent theta, okay?
+So, this is known as additional identity, okay?
+So, just follow this identity and then we simplify it.
+Excellent question.
+Okay?
+Uh, I'm going to make sure that there is no uh exponent there, just making sure, okay?
+All right.
+Thank you very much for asking clarification questions.
+Okay.
+I am going to now derive um it's known as half angle identity, then this half angle identity will be used for following problem solving.
+Do you want to have a little break?
+Okay.
+So, I've been marching, marching, so let's everybody stand up and then stretch, okay?
+Uh.
+I do have some chocolate, okay?
+If you want to.
+Uh.
+Okay, uh you can have some chocolate.
+I do not have enough donuts, so, I cannot share donuts.
+I have donut, but not enough for everybody.
+Okay.
+I need a cup.
+Ooh.
+That's good.
+I need a cup.
+Wooh.
+That's good.
+So, during my first period, I call student name all the time, so, just in case if I ever, you know, call out of student name, we need to edit it out, yeah.
+Okay.
+Are you doing okay?
+Oh, yeah.
+Okay.
+Are you a little bit tired?
+You you just putting too much effort.
+Okay, just.
+Oh, I'll show the graph.

@@ -1,0 +1,69 @@
+\documentclass{article}  
+\usepackage[utf8]{inputenc}  
+\usepackage{amsmath}  
+\begin{document}  
+
+\section{Key Concepts and Terms}  
+\begin{itemize}  
+  \item \textbf{Jacobo Arbenz}: Guatemalan president (1951-1954) from a Swiss-German immigrant family. Advocated land reform via \textbf{Decree 900}, redistributing underutilized land (including United Fruit Company holdings) to peasants. Overthrown in a U.S.-backed coup.  
+  \item \textbf{Decree 900}: 1952 policy nationalizing underused land. Purchased land from elites/UFC at tax-declared values (undervalued to avoid taxes). Triggered U.S. backlash due to perceived communist ties.  
+  \item \textbf{United Fruit Company (UFC)}: U.S. corporation controlling vast Guatemalan land. Avoided taxes via undervaluation. Lobbied U.S. government to oppose Arbenz.  
+  \item \textbf{Operation PBSUCCESS}: 1954 CIA-led coup replacing Arbenz with dictator Carlos Castillo Armas. Model for future U.S. Cold War interventions.  
+  \item \textbf{Rio Pact}: 1947 mutual defense treaty among Americas (U.S.-led "NATO of the West"). Guatemala opposed its anti-communist framing.  
+  \item \textbf{Silent Holocaust}: 1960s-1990s genocide of indigenous Maya communities by U.S.-backed dictators under "anti-communist" pretext.  
+\end{itemize}  
+
+\section{Historical Events and Timelines}  
+\subsection{Cold War Context}  
+\begin{itemize}  
+  \item \textbf{1947}: Rio Pact signed; U.S. consolidates influence.  
+  \item \textbf{1954}: Arbenz overthrown; Castillo Armas reverses reforms, begins anti-communist purges.  
+  \item \textbf{1960-1996}: Guatemalan Civil War. U.S.-backed regimes kill 200,000+ (83\% indigenous Maya).  
+  \item \textbf{1982-1983}: Dictator Efraín Ríos Montt’s \emph{scorched earth} policy destroys 600+ villages.  
+\end{itemize}  
+
+\subsection{Cause-Effect Relationships}  
+\begin{itemize}  
+  \item \textbf{UFC tax evasion} $\rightarrow$ Arbenz’s land reform $\rightarrow$ U.S. labels Guatemala "communist."  
+  \item \textbf{1954 coup} $\rightarrow$ Authoritarian backlash $\rightarrow$ Civil war and genocide.  
+  \item \textbf{U.S. containment policy} $\rightarrow$ Support for anti-communist dictators $\rightarrow$ Prolonged instability.  
+\end{itemize}  
+
+\section{Case Studies and Examples}  
+\subsection{Case Study 1: Decree 900 (1952)}  
+\begin{itemize}  
+  \item \textbf{Event}: Arbenz redistributes 1.5M acres to 100,000 families. UFC loses 40\% of holdings.  
+  \item \textbf{Significance}: Framed as "communist" by UFC/U.S., justifying coup. Demonstrates economic self-determination vs. U.S. corporate power.  
+\end{itemize}  
+
+\subsection{Case Study 2: 1954 Coup}  
+\begin{itemize}  
+  \item \textbf{Event}: CIA trains exiles in Honduras/Nicaragua; psychological warfare (fake radio broadcasts) destabilizes Arbenz.  
+  \item \textbf{Impact}: Castillo Armas reverses reforms; 80,000+ arrested/killed. Sets precedent for U.S. interventions (e.g., Chile 1973).  
+\end{itemize}  
+
+\subsection{Case Study 3: Silent Holocaust (1981-1983)}  
+\begin{itemize}  
+  \item \textbf{Event}: Ríos Montt’s regime destroys 626 villages; 200,000 refugees.  
+  \item \textbf{Significance}: U.S. (Reagan) funds regime despite genocide. Highlights moral compromises of Cold War containment.  
+\end{itemize}  
+
+\subsection{Case Study 4: 1996 Peace Accords}  
+\begin{itemize}  
+  \item \textbf{Event}: UN-brokered deal ends civil war; indigenous rights recognized.  
+  \item \textbf{Significance}: Catholic Church’s \emph{liberation theology} pressured dictators. Post-Cold War U.S. disengagement enables peace.  
+\end{itemize}  
+
+\section{Application to Modern Society}  
+\textbf{Modern Implications}:  
+\begin{itemize}  
+  \item \textbf{Foreign Policy}: 1954 coup mirrors U.S. regime-change tactics (e.g., Iraq 2003). Questions of corporate influence (e.g., oil in Middle East).  
+  \item \textbf{Human Rights}: Guatemala’s genocide trials (2013: Ríos Montt convicted) reflect accountability trends. Contrasts with U.S. non-ratification of ICC.  
+  \item \textbf{Indigenous Rights}: Maya land disputes continue; 2023 protests vs. mining companies echo Decree 900’s unresolved legacy.  
+\end{itemize}  
+
+\textbf{Relevance}: Guatemala’s history exemplifies (1) Cold War’s Global South toll, (2) corporate-state collusion, and (3) delayed justice for colonial-era violence. Modern parallels include Yemen and Xinjiang.  
+
+\end{document}  
+```  
+\boxed{Note: Math-focused sections were omitted as the transcript exclusively covered history/social studies. The LaTeX structure adheres to the Social Studies prompt with key terms, timelines, case studies, and modern connections.}

@@ -1,0 +1,67 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\begin{document}
+
+\section{Key Formulas and Their Use Cases}
+
+\subsection{Special Triangle Ratios}
+\begin{itemize}
+    \item \textbf{30-60-90 Triangle}: Side ratios = \(1 : \sqrt{3} : 2\) \\
+    Components: Opposite 30° = \(x\), opposite 60° = \(x\sqrt{3}\), hypotenuse = \(2x\). \\
+    Use case: Solving for unknown sides in right triangles with 30° or 60° angles.
+
+    \item \textbf{45-45-90 Triangle}: Side ratios = \(1 : 1 : \sqrt{2}\) \\
+    Components: Legs = \(x\), hypotenuse = \(x\sqrt{2}\). \\
+    Use case: Solving isosceles right triangles or diagonal measurements.
+
+    \item \textbf{SOHCAHTOA}: \\
+    - \(\sin(\theta) = \frac{\text{Opposite}}{\text{Hypotenuse}}\) \\
+    - \(\cos(\theta) = \frac{\text{Adjacent}}{\text{Hypotenuse}}\) \\
+    - \(\tan(\theta) = \frac{\text{Opposite}}{\text{Adjacent}}\) \\
+    Use case: Calculating angles or sides in non-special right triangles.
+\end{itemize}
+
+\section{Example Problems and Solutions}
+
+\subsection{Example 1: 30-60-90 Triangle}
+\textbf{Problem}: In a 30-60-90 triangle, the side opposite 30° is 9 units. Find the other sides. \\
+\textbf{Solution}:
+\begin{enumerate}
+    \item Let \(x = 9\) (side opposite 30°).
+    \item Side opposite 60° = \(x\sqrt{3} = 9\sqrt{3}\).
+    \item Hypotenuse = \(2x = 18\).
+\end{enumerate}
+\textbf{Answer}: \(9\sqrt{3}\) units (60° side), 18 units (hypotenuse).
+
+\subsection{Example 2: 45-45-90 Triangle}
+\textbf{Problem}: A 45-45-90 triangle has a hypotenuse of \(7\sqrt{2}\). Find the legs. \\
+\textbf{Solution}:
+\begin{enumerate}
+    \item Let hypotenuse = \(x\sqrt{2} = 7\sqrt{2}\).
+    \item Solve \(x\sqrt{2} = 7\sqrt{2}\) \(\Rightarrow x = 7\).
+    \item Both legs = \(x = 7\).
+\end{enumerate}
+\textbf{Answer}: 7 units each.
+
+\subsection{Example 3: Using SOHCAHTOA}
+\textbf{Problem}: A right triangle has an angle of 40°, hypotenuse 10 units. Find the opposite side. \\
+\textbf{Solution}:
+\begin{enumerate}
+    \item Use \(\sin(40^\circ) = \frac{\text{Opposite}}{10}\).
+    \item Opposite = \(10 \cdot \sin(40^\circ)\).
+    \item Calculate: \(10 \cdot 0.6428 \approx 6.428\).
+\end{enumerate}
+\textbf{Answer}: \(\approx 6.43\) units.
+
+\subsection{Example 4: Combined Ratios}
+\textbf{Problem}: In a 30-60-90 triangle, the side opposite 60° is \(15\). Find the hypotenuse. \\
+\textbf{Solution}:
+\begin{enumerate}
+    \item Let side opposite 60° = \(x\sqrt{3} = 15\).
+    \item Solve \(x = \frac{15}{\sqrt{3}} = 5\sqrt{3}\).
+    \item Hypotenuse = \(2x = 10\sqrt{3}\).
+\end{enumerate}
+\textbf{Answer}: \(10\sqrt{3}\) units.
+
+\end{document}

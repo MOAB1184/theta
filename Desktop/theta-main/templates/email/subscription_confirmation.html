@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            color: #c084fc;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #c084fc;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .footer {
+            margin-top: 30px;
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+        }
+        .plan-details {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">ThetaSummary</div>
+    </div>
+    
+    <p>Hello {{ username }},</p>
+    
+    <p>Thank you for subscribing to ThetaSummary! Your {{ subscription_type|title }} plan is now active.</p>
+    
+    <div class="plan-details">
+        <h3>Your Plan Details:</h3>
+        <ul>
+            <li>Plan Type: {{ subscription_type|title }}</li>
+            <li>Summaries per day: {{ plan_limits.summaries_per_day }}</li>
+            <li>Summaries per month: {{ plan_limits.summaries_per_month }}</li>
+        </ul>
+    </div>
+    
+    <p>You can now start using all the features of your plan. If you have any questions or need assistance, please don't hesitate to contact our support team.</p>
+    
+    <div style="text-align: center;">
+        <a href="{{ url_for('dashboard', _external=True) }}" class="button">Go to Dashboard</a>
+    </div>
+    
+    <div class="footer">
+        <p>This email was sent by ThetaSummary. Please do not reply to this email.</p>
+    </div>
+</body>
+</html> 

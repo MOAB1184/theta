@@ -1,0 +1,394 @@
+/* General Reset & Base Styles */
+body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    margin: 0;
+    background-color: #18191c; /* Very dark desaturated blue/grey */
+    color: #c1c2c5; /* Light grey for general text */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+/* App Container - Switches between initial and active chat states */
+#app-container {
+    width: 100%;
+    max-width: 800px; /* Max width for initial centered content */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center; /* Center content vertically in initial state */
+    transition: all 0.3s ease-out; /* Smooth transition between states */
+}
+
+/* Main Content Area (Greeting, Input, Chips) */
+#main-content {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px; /* Add some padding for initial state */
+}
+
+/* Greeting Area - Visible in initial state */
+.greeting-area {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.greeting-asterisk {
+    /* Removed for Grok-like style, can be added back if desired */
+    display: none; 
+}
+
+.greeting-text {
+    font-size: 1.9em; /* Slightly adjusted */
+    color: #e3e4e6; /* Brighter grey/off-white */
+    font-weight: 500; /* Slightly bolder for heading */
+}
+
+/* Input Container & Textarea */
+#input-container {
+    width: 100%;
+    background-color: #212225; /* Darker input area background */
+    border: 1px solid #303134; /* Subtle border for input area */
+    border-radius: 12px;
+    padding: 10px 15px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column; /* Stack textarea and controls */
+}
+
+#user-input {
+    width: 100%;
+    min-height: 50px; /* Default height, will auto-resize */
+    max-height: 200px; /* Max height before scrolling */
+    background-color: transparent;
+    color: #d1d2d5; /* Light text for input */
+    border: none;
+    outline: none;
+    resize: none;
+    font-size: 1em;
+    line-height: 1.5;
+    overflow-y: auto; /* Scroll within textarea if max-height exceeded */
+}
+
+#user-input::placeholder {
+    color: #7a7b7d; /* Softer grey for placeholder */
+}
+
+/* Input Controls */
+#input-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 8px;
+    margin-top: 5px;
+    /* border-top: 1px solid #4a4b57; /* Optional separator */
+}
+
+.left-controls, .right-controls {
+    display: flex;
+    align-items: center;
+}
+
+.control-button {
+    background-color: transparent;
+    border: none;
+    color: #8e9297; /* Medium grey for control icons */
+    border-radius: 6px;
+    padding: 6px;
+    margin: 0 4px;
+    cursor: pointer;
+    font-size: 1.1em;
+}
+
+.control-button:hover {
+    background-color: #2f3136; /* Subtle hover for control buttons */
+}
+
+.model-name {
+    font-size: 0.85em;
+    color: #8e9297;
+    margin-right: 10px;
+    padding: 4px 8px;
+    background-color: #2a2d31; /* Dark background for model name */
+    border: 1px solid #3a3d42; /* Subtle border */
+    border-radius: 6px;
+}
+
+#send-button {
+    background-color: #007bff; /* Bright blue accent */
+    color: white;
+    border: none;
+    font-weight: 500; /* Medium weight */
+    font-size: 1.1em; /* Adjusted size */
+    padding: 7px 12px; /* Adjusted padding */
+    border-radius: 8px;
+    cursor: pointer;
+}
+#send-button:hover {
+    background-color: #0069d9; /* Darker blue on hover */
+}
+
+#theta-voice-button {
+    background-color: transparent; /* Match other control buttons initial state */
+    color: #8e9297;
+    border: 1px solid #3a3d42;
+    padding: 7px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9em; /* Slightly smaller to fit text */
+    margin-right: 8px; /* Space before send button */
+}
+
+#theta-voice-button:hover {
+    background-color: #2f3136;
+    border-color: #45494e;
+}
+
+/* Chat Box - Hidden in initial state */
+#chat-box {
+    display: none; /* Hidden initially */
+    width: 100%;
+    flex-grow: 1; /* Takes available space in chat-active */
+    background-color: transparent; /* Match body background in chat view */
+    padding: 0 20px; /* Padding for messages within chatbox */
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column; /* Ensures newest messages are at the bottom */
+}
+
+.message {
+    margin-bottom: 12px;
+    padding: 10px 15px;
+    border-radius: 18px;
+    line-height: 1.4;
+    max-width: 70%; /* Grok-like message width */
+    word-wrap: break-word;
+    font-size: 0.95em;
+}
+
+.user-message {
+    background-color: #007bff; /* Bright blue for user messages */
+    color: white;
+    align-self: flex-end;
+    margin-left: auto;
+}
+
+.bot-message {
+    background-color: #2a2d31; /* Dark grey for bot messages */
+    color: #d1d2d5; /* Light text for bot messages */
+    align-self: flex-start;
+    margin-right: auto;
+    border: 1px solid #3a3d42; /* Subtle border for bot messages */
+}
+
+/* --- Chat Active State --- */
+#app-container.chat-active {
+    max-width: 100vw;
+    height: 100vh;
+    justify-content: space-between; /* Pushes chat-box up, main-content (input) down */
+    padding: 0; /* Remove padding for full screen effect */
+}
+
+#app-container.chat-active .greeting-area,
+#app-container.chat-active #suggestion-chips {
+    display: none; /* Hide greeting and chips in chat mode */
+}
+
+#app-container.chat-active #main-content {
+    /* This becomes the bottom input bar */
+    order: 2; /* Ensure it's at the bottom */
+    width: 100%;
+    padding: 10px 0; /* Vertical padding, no horizontal for full width bg */
+    background-color: #18191c; /* Match body background */
+    margin-bottom: 0;
+    flex-shrink: 0; /* Prevent shrinking */
+    box-shadow: 0 -1px 5px rgba(0,0,0,0.15); /* Slightly adjusted subtle shadow */
+}
+
+#app-container.chat-active #input-container {
+    max-width: 800px; /* Center the input field within the full-width bar */
+    margin: 0 auto;
+    margin-bottom: 0; /* Remove bottom margin when in bar */
+    box-shadow: none; /* Remove individual shadow, main-content has it */
+    background-color: #212225; /* Consistent with initial input area bg */
+    border: 1px solid #303134; /* Consistent with initial input area border */
+}
+
+#app-container.chat-active #chat-box {
+    display: flex; /* Show chat box */
+    order: 1; /* Ensure it's above main-content */
+    max-width: 800px; /* Center chat content */
+    margin: 0 auto; /* Center chat content */
+    padding-top: 20px; /* Space from top of viewport */
+}
+
+/* Custom Scrollbar for WebKit Browsers (Consistent) */
+#chat-box::-webkit-scrollbar, #user-input::-webkit-scrollbar {
+    width: 8px;
+}
+
+#chat-box::-webkit-scrollbar-track, #user-input::-webkit-scrollbar-track {
+    background: rgba(0,0,0,0.1);
+}
+
+#chat-box::-webkit-scrollbar-thumb, #user-input::-webkit-scrollbar-thumb {
+    background-color: #3a3d42; /* Darker scrollbar thumb */
+    border-radius: 4px;
+}
+
+#chat-box::-webkit-scrollbar-thumb:hover, #user-input::-webkit-scrollbar-thumb:hover {
+    background-color: #45494e; /* Lighter scrollbar thumb on hover */
+}
+
+/* Hide old header if it was ever there */
+#chat-header { display: none; }
+
+/* KaTeX specific styling adjustments if needed - often fine by default */
+.katex {
+    font-size: 1.05em; /* Make KaTeX output slightly larger if needed */
+    color: inherit; /* Inherit color from parent (.bot-message) */
+}
+
+.bot-message .katex {
+    color: #d1d2d5; /* Ensure KaTeX in bot messages uses the bot message text color */
+}
+
+/* Voice Mode UI */
+#voice-mode-ui {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #171717; /* Deeper black background */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center; /* Center everything vertically */
+    z-index: 1000;
+    overflow: hidden; /* Prevent scrolling */
+}
+
+#voice-mode-ui.hidden {
+    display: none;
+}
+
+.voice-mode-header {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center; /* Center title */
+    padding: 20px;
+    z-index: 10; /* Above particles */
+}
+
+.voice-mode-title {
+    color: #f0f0f0;
+    font-size: 1.8rem;
+    font-weight: 400;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+#close-voice-mode {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    color: #8e9297;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 5px;
+    opacity: 0.7;
+}
+
+#close-voice-mode:hover {
+    opacity: 1;
+}
+
+#particle-animation-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#particle-canvas {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+#voice-controls {
+    position: absolute;
+    bottom: 50px;
+    display: flex;
+    gap: 50px; /* Wider space between buttons */
+    z-index: 10; /* Above particles */
+}
+
+.voice-control-button {
+    background-color: rgba(30, 30, 30, 0.8); /* Dark with slight transparency */
+    border: none;
+    color: #fff;
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: transform 0.2s, background-color 0.2s;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.voice-control-button:hover {
+    background-color: rgba(40, 40, 40, 0.9);
+    transform: scale(1.05);
+}
+
+#call-button {
+    background-color: rgba(40, 40, 40, 0.9);
+}
+
+#call-button:hover {
+    background-color: rgba(60, 60, 60, 0.95);
+}
+
+#mic-button {
+    background-color: rgba(40, 40, 40, 0.9);
+}
+
+#mic-button:hover {
+    background-color: rgba(60, 60, 60, 0.95);
+}
+
+/* You can create a pulsing effect for the mic button when active */
+.mic-active {
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(70, 199, 255, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(70, 199, 255, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(70, 199, 255, 0);
+    }
+} 

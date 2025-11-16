@@ -1,0 +1,49 @@
+```latex
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\begin{document}
+
+\section{Key Concepts and Terms}
+\subsection{Definitions and Key Terms}
+\begin{itemize}
+    \item \textbf{Decree 900 (1952)}: Land reform policy in Guatemala that nationalized uncultivated land from elites and foreign corporations (e.g., United Fruit Company) for redistribution to peasants. Significance: Triggered U.S. intervention due to perceived communist alignment.
+    \item \textbf{Operation PBSUCCESS (1954)}: CIA-backed coup overthrowing President Jacobo Arbenz. Established U.S. Cold War precedent for covert regime change in Latin America.
+    \item \textbf{Rio Pact (1947)}: Mutual defense treaty among Western Hemisphere nations, framed as a "Latin American NATO." Reinforced U.S. anti-communist influence.
+    \item \textbf{Peaceful Coexistence}: Khrushchev-era Soviet policy avoiding direct conflict with capitalist states while supporting communist movements abroad. Contrasted with Stalin’s confrontational approach.
+    \item \textbf{Silent Holocaust (1960s–1990s)}: Guatemalan military's systematic killing of 80,000+ indigenous Maya people during its civil war, enabled by U.S. support for anti-communist regimes.
+\end{itemize}
+
+\section{Historical Events and Timelines}
+\subsection{Major Events}
+\begin{itemize}
+    \item \textbf{1952–1954}: Arbenz implements Decree 900 → UFCO lobbies U.S. government → CIA trains exiles → Arbenz overthrown.
+    \item \textbf{1960–1996}: Guatemalan Civil War. U.S.-backed dictators target indigenous communities suspected of supporting leftist guerrillas.
+    \item \textbf{1982–1983}: Ríos Montt’s \emph{scorched-earth} campaigns kill 10,000+ Maya civilians monthly, funded by Reagan administration.
+\end{itemize}
+
+\subsection{Cause-Effect Relationships}
+\begin{itemize}
+    \item U.S. fear of communism → Support for authoritarian regimes → Long-term destabilization and human rights violations in Guatemala.
+    \item Decree 900’s land redistribution → UFCO’s financial losses → Corporate lobbying → Eisenhower approves coup.
+\end{itemize}
+
+\section{Case Studies and Examples}
+\subsection{Case Study 1: 1954 Coup}
+\begin{itemize}
+    \item \textbf{Event}: CIA trains 480 exiles in Honduras/Nicaragua, stages fake invasions, and bombs Guatemala City.
+    \item \textbf{Impact}: Repeal of Decree 900; Castillo Armas’ dictatorship reverses reforms, killing 80,000 "communists."
+\end{itemize}
+
+\subsection{Case Study 2: 1982–1983 Genocide}
+\begin{itemize}
+    \item \textbf{Event}: Ríos Montt’s Operation Sophia destroys 600+ Maya villages using U.S. helicopters and weapons.
+    \item \textbf{Impact}: UN later classifies this as genocide; U.S. apologizes in 1999 for supporting "repressive regimes."
+\end{itemize}
+
+\section{Application to Modern Society}
+\subsection{Modern-Day Relevance}
+U.S. Cold War interventions in Guatemala set patterns for contemporary foreign policy (e.g., Syria, Venezuela). The 1954 coup demonstrated how corporate interests (UFCO) could align with anti-communist rhetoric to justify regime change—a template repeated in Iran (1953) and Chile (1973). Guatemala’s civil war also exemplifies how \emph{indigenous rights} remain secondary to geopolitical agendas; similar dynamics occur in Bolivia’s 2019 coup and Amazon land disputes. The CIA’s role in Operation PBSUCCESS directly parallels modern debates about drone strikes and proxy wars, raising ethical questions about \textbf{covert action} in democracies.
+
+\end{document}
+```

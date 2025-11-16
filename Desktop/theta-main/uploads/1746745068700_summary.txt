@@ -1,0 +1,117 @@
+**Assumption:** Since no transcript was provided, this is a **sample math summary** based on common algebra/calculus concepts. Replace content with actual transcript material when available.
+
+```latex
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\begin{document}
+
+\section{Key Formulas and Their Use Cases}
+\textbf{1. Quadratic Formula:}
+\[ x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a} \]
+\begin{itemize}
+    \item \textbf{Components:} Solves equations of form \( ax^2 + bx + c = 0 \). \( a \), \( b \), and \( c \) are coefficients.
+    \item \textbf{Use Case:} Finding roots of parabolic motion trajectories or optimization problems.
+\end{itemize}
+
+\textbf{2. Pythagorean Theorem:}
+\[ a^2 + b^2 = c^2 \]
+\begin{itemize}
+    \item \textbf{Components:} Relates sides of a right triangle. \( c \) is the hypotenuse.
+    \item \textbf{Use Case:} Calculating distances in 2D geometry or engineering layouts.
+\end{itemize}
+
+\textbf{3. Power Rule for Derivatives:}
+\[ \frac{d}{dx} x^n = nx^{n-1} \]
+\begin{itemize}
+    \item \textbf{Components:} Finds instantaneous rate of change for polynomial functions.
+    \item \textbf{Use Case:} Analyzing velocity in kinematics or profit maximization in economics.
+\end{itemize}
+
+\textbf{4. Integral of a Function:}
+\[ \int_a^b f(x)dx = F(b) - F(a) \]
+\begin{itemize}
+    \item \textbf{Components:} \( F(x) \) is the antiderivative of \( f(x) \).
+    \item \textbf{Use Case:} Calculating areas under curves or total work done by a variable force.
+\end{itemize}
+
+\section{Example Problems and Solutions}
+
+\subsection{Example 1: Quadratic Equation}
+\textbf{Problem:} Solve \( 2x^2 + 5x - 3 = 0 \).
+
+\textbf{Solution:}
+\begin{enumerate}
+    \item Identify coefficients: \( a = 2 \), \( b = 5 \), \( c = -3 \).
+    \item Substitute into quadratic formula:
+    \[
+    x = \frac{ -5 \pm \sqrt{5^2 - 4(2)(-3)} }{2(2)}
+    \]
+    \item Simplify discriminant:
+    \[
+    \sqrt{25 + 24} = \sqrt{49} = 7
+    \]
+    \item Compute solutions:
+    \[
+    x = \frac{-5 + 7}{4} = \frac{2}{4} = 0.5 \quad \text{and} \quad x = \frac{-5 - 7}{4} = -3
+    \]
+\end{enumerate}
+\textbf{Final Answer:} \( x = 0.5 \) and \( x = -3 \).
+
+\subsection{Example 2: Pythagorean Theorem}
+\textbf{Problem:} A right triangle has legs \( a = 3 \) and \( b = 4 \). Find the hypotenuse \( c \).
+
+\textbf{Solution:}
+\begin{enumerate}
+    \item Apply theorem:
+    \[
+    c^2 = 3^2 + 4^2 = 9 + 16 = 25
+    \]
+    \item Solve for \( c \):
+    \[
+    c = \sqrt{25} = 5
+    \]
+\end{enumerate}
+\textbf{Final Answer:} \( c = 5 \).
+
+\subsection{Example 3: Derivative Using Power Rule}
+\textbf{Problem:} Find \( f'(x) \) if \( f(x) = 4x^3 - 2x^2 + 7x - 1 \).
+
+\textbf{Solution:}
+\begin{enumerate}
+    \item Differentiate term-by-term:
+    \[
+    \frac{d}{dx}(4x^3) = 12x^2, \quad \frac{d}{dx}(-2x^2) = -4x, \quad \frac{d}{dx}(7x) = 7, \quad \frac{d}{dx}(-1) = 0
+    \]
+    \item Combine results:
+    \[
+    f'(x) = 12x^2 - 4x + 7
+    \]
+\end{enumerate}
+\textbf{Final Answer:} \( f'(x) = 12x^2 - 4x + 7 \).
+
+\subsection{Example 4: Definite Integral}
+\textbf{Problem:} Evaluate \( \int_0^2 (3x^2 + 2x) dx \).
+
+\textbf{Solution:}
+\begin{enumerate}
+    \item Find antiderivative:
+    \[
+    F(x) = x^3 + x^2 + C
+    \]
+    \item Apply limits:
+    \[
+    F(2) - F(0) = (2^3 + 2^2) - (0 + 0) = 8 + 4 = 12
+    \]
+\end{enumerate}
+\textbf{Final Answer:} \( 12 \).
+
+\end{document}
+```
+
+**Notes:**  
+1. This template assumes a math-focused transcript. Adjust formulas and problems based on actual lecture content (e.g., trigonometry, statistics).  
+2. Use `\boxed{}` from the `amssymb` package to highlight final answers if desired.  
+3. Replace placeholders (e.g., kinematics, economics) with domain-specific examples from the transcript.

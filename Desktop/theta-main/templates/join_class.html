@@ -1,0 +1,238 @@
+ï»¿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join Class - ThetaSummary</title>
+    <style>
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0;
+        }
+        body { 
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+        .join-class-card {
+            background: #1a1a1a;
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.18);
+        }
+        .page-title {
+            font-size: 1.8rem;
+            color: #ffffff;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 24px;
+        }
+        .form-label {
+            display: block;
+            color: #a0a0a0;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            background: #242424;
+            border: 1px solid #333;
+            border-radius: 6px;
+            color: #ffffff;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: #4f8cff;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #4f8cff;
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.2s;
+            width: 100%;
+            text-align: center;
+        }
+        .btn:hover {
+            background: #2563eb;
+        }
+        .error-message {
+            color: #ff4d4d;
+            margin-top: 8px;
+            font-size: 0.9rem;
+        }
+        .back-link {
+            display: inline-block;
+            color: #7bb6ff;
+            text-decoration: none;
+            margin-top: 16px;
+            font-size: 0.95rem;
+        }
+        .back-link:hover {
+            color: #a7d3ff;
+            text-decoration: underline;
+        }
+        .instructions {
+            color: #a0a0a0;
+            margin-bottom: 24px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+            /* Theta glass theme overrides */
+        :root {
+            --theta-bg: #030203;
+            --theta-surface: #101014;
+            --theta-panel: #161621;
+            --theta-text: #f7f7ff;
+            --theta-muted: #9ba0b5;
+            --theta-accent: #c084fc;
+            --theta-accent-strong: #a855f7;
+            --theta-border: rgba(255,255,255,0.08);
+        }
+
+        body {
+            background: radial-gradient(circle at top, rgba(124,58,237,0.18), transparent), var(--theta-bg);
+            color: var(--theta-text);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            color: var(--theta-text);
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+
+        p, label, span, li {
+            color: var(--theta-muted);
+        }
+
+        a {
+            color: var(--theta-text);
+        }
+
+        .btn, button, input[type='submit'] {
+            border-radius: 999px;
+            border: 1px solid transparent;
+            font-weight: 500;
+            padding: 10px 20px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn-primary, button.btn-primary {
+            background: linear-gradient(135deg, var(--theta-accent), var(--theta-accent-strong));
+            color: #050505;
+            box-shadow: 0 20px 40px rgba(129,97,255,0.25);
+        }
+
+        .btn-secondary, .btn-ghost, button.btn-secondary, .btn-outline {
+            background: rgba(255,255,255,0.05);
+            color: var(--theta-text);
+            border-color: var(--theta-border);
+        }
+
+        .btn:hover, button:hover, input[type='submit']:hover {
+            transform: translateY(-1px);
+        }
+
+        .card, .panel, .info-card, .content-card, .form-card, .summary-card, .section-card {
+            background: var(--theta-surface);
+            border-radius: 24px;
+            border: 1px solid var(--theta-border);
+            box-shadow: 0 25px 60px rgba(4,4,7,0.45);
+        }
+
+        .sidebar {
+            background: rgba(7,7,12,0.9);
+            border-right: 1px solid var(--theta-border);
+        }
+
+        .topbar, .header, .navbar {
+            background: rgba(7,7,12,0.85);
+            border-bottom: 1px solid var(--theta-border);
+            backdrop-filter: blur(18px);
+        }
+
+        input, select, textarea {
+            background: var(--theta-panel);
+            border: 1px solid var(--theta-border);
+            border-radius: 12px;
+            padding: 12px 14px;
+            color: var(--theta-text);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255,255,255,0.02);
+            border-radius: 18px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+        }
+
+        tr:hover {
+            background: rgba(255,255,255,0.02);
+        }
+
+        .pill, .badge, .chip, .tag, .status-tag {
+            border-radius: 999px;
+            padding: 6px 12px;
+            border: 1px solid rgba(255,255,255,0.15);
+            color: var(--theta-muted);
+            background: rgba(255,255,255,0.05);
+            font-size: 0.8rem;
+            letter-spacing: 0.05em;
+        }
+
+        footer {
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="join-class-card">
+            <h1 class="page-title">Join a Class</h1>
+            <p class="instructions">Enter the class code provided by your teacher to join their class. The code should be 6 characters long and may contain letters and numbers.</p>
+            
+            {% if error %}
+            <div class="error-message">{{ error }}</div>
+            {% endif %}
+            
+            <form method="POST" action="{{ url_for('join_class') }}">
+                <div class="form-group">
+                    <label class="form-label" for="class_code">Class Code</label>
+                    <input type="text" id="class_code" name="class_code" class="form-input" placeholder="Enter class code" required maxlength="6" pattern="[A-Z0-9]{6}" title="Please enter a 6-character code containing only uppercase letters and numbers">
+                </div>
+                <button type="submit" class="btn">Join Class</button>
+            </form>
+            
+            <a href="{{ url_for('dashboard') }}" class="back-link">Ã¢â Â Back to Dashboard</a>
+        </div>
+    </div>
+</body>
+</html> 
+

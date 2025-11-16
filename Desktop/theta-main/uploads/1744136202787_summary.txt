@@ -1,0 +1,80 @@
+```latex
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\begin{document}
+
+\section{Key Formulas and Their Use Cases}
+Below are essential mathematical formulas covered in the class:
+
+\begin{itemize}
+    \item \textbf{Quadratic Formula}: 
+    \[ x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a} \]
+    \emph{Use case}: Solves quadratic equations of the form \( ax^2 + bx + c = 0 \). Example: Calculating projectile motion trajectories.
+
+    \item \textbf{Pythagorean Theorem}: 
+    \[ a^2 + b^2 = c^2 \]
+    \emph{Use case}: Determines the hypotenuse of a right triangle. Example: Measuring diagonal distances in construction.
+
+    \item \textbf{Law of Cosines}: 
+    \[ c^2 = a^2 + b^2 - 2ab\cos(C) \]
+    \emph{Use case}: Finds unknown sides/angles in non-right triangles. Example: Navigation or triangulation.
+
+    \item \textbf{Area of a Circle}: 
+    \[ A = \pi r^2 \]
+    \emph{Use case}: Calculates space within circular boundaries. Example: Material estimation for circular structures.
+\end{itemize}
+
+\section{Example Problems and Solutions}
+\subsection{Problem 1: Quadratic Equation}
+\textbf{Problem}: Solve \( 2x^2 - 4x - 6 = 0 \).
+
+\textbf{Solution}:
+\begin{align*}
+    x &= \frac{-(-4) \pm \sqrt{(-4)^2 - 4(2)(-6)}}{2(2)} \\
+    x &= \frac{4 \pm \sqrt{16 + 48}}{4} \\
+    x &= \frac{4 \pm \sqrt{64}}{4} \\
+    x &= \frac{4 \pm 8}{4} \\
+    x &= 3 \quad \text{or} \quad x = -1
+\end{align*}
+\textbf{Explanation}: Applied the quadratic formula. Simplified discriminant (\( \sqrt{64} = 8 \)) and solved for both roots. Final answers: \( \boxed{3} \) and \( \boxed{-1} \).
+
+\subsection{Problem 2: Pythagorean Theorem}
+\textbf{Problem}: A right triangle has legs \( a = 3 \) and \( b = 4 \). Find the hypotenuse \( c \).
+
+\textbf{Solution}:
+\begin{align*}
+    c^2 &= 3^2 + 4^2 \\
+    c^2 &= 9 + 16 \\
+    c^2 &= 25 \\
+    c &= \sqrt{25} \\
+    c &= 5
+\end{align*}
+\textbf{Explanation}: Substituted known values into \( a^2 + b^2 = c^2 \). Solved for \( c \). Final answer: \( \boxed{5} \).
+
+\subsection{Problem 3: Law of Cosines}
+\textbf{Problem}: In triangle \( ABC \), sides \( a = 5 \), \( b = 7 \), and angle \( C = 60^\circ \). Find side \( c \).
+
+\textbf{Solution}:
+\begin{align*}
+    c^2 &= 5^2 + 7^2 - 2(5)(7)\cos(60^\circ) \\
+    c^2 &= 25 + 49 - 70 \times 0.5 \\
+    c^2 &= 74 - 35 \\
+    c^2 &= 39 \\
+    c &= \sqrt{39} \approx 6.24
+\end{align*}
+\textbf{Explanation}: Applied the Law of Cosines. Calculated \( \cos(60^\circ) = 0.5 \). Final answer: \( \boxed{6.24} \).
+
+\subsection{Problem 4: Area of a Circle}
+\textbf{Problem}: Calculate the area of a circle with radius \( 4.5 \) meters.
+
+\textbf{Solution}:
+\begin{align*}
+    A &= \pi (4.5)^2 \\
+    A &= \pi \times 20.25 \\
+    A &\approx 63.62 \, \text{m}^2
+\end{align*}
+\textbf{Explanation}: Squared the radius and multiplied by \( \pi \). Final answer: \( \boxed{63.62 \, \text{m}^2} \).
+
+\end{document}
+```

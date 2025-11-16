@@ -1,0 +1,97 @@
+**LaTeX Summary Document**  
+
+```latex
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\begin{document}
+
+\section{Key Concepts and Terms}
+\subsection*{Definitions and Key Terms}
+\begin{itemize}
+    \item \textbf{Decolonization}: The process by which African colonies gained independence from European powers post-World War II. Significance: Ended formal colonial rule but led to challenges like ethnic conflict and economic dependency.
+    
+    \item \textbf{Cold War}: A geopolitical struggle between the U.S. and Soviet Union (1947–1991). Relevance: Superpowers exploited African nations as proxies, destabilizing post-independence governments (e.g., Congo Crisis).
+    
+    \item \textbf{Apartheid}: A system of institutionalized racial segregation in South Africa (1948–1994). Significance: Symbolized global racial injustice and inspired anti-colonial solidarity.
+    
+    \item \textbf{Ethnic Conflict}: Tensions between ethnic groups exacerbated by colonial “divide and rule” policies. Example: Nigerian Civil War (1967–1970) rooted in colonial-era divisions.
+    
+    \item \textbf{Neocolonialism}: Continued economic/cultural dominance of former colonizers post-independence. Example: French influence in Senegal via resource extraction and political interference.
+    
+    \item \textbf{Wind of Change Speech}: British PM Harold Macmillan’s 1960 address acknowledging decolonization’s inevitability. Impact: Accelerated African independence movements.
+\end{itemize}
+
+\section{Historical Events and Timelines}
+\subsection*{Major Events}
+\begin{itemize}
+    \item \textbf{1957}: Ghana gains independence under Kwame Nkrumah, inspiring Pan-Africanism.
+    \item \textbf{1960}: “Year of Africa” – 17 nations declare independence; Congo’s independence leads to chaos after Patrice Lumumba’s assassination (1961).
+    \item \textbf{1960s–1970s}: French neocolonialism entrenches economic control in Senegal and Algeria.
+    \item \textbf{1994}: End of apartheid in South Africa; Nelson Mandela becomes president.
+\end{itemize}
+
+\subsection*{Cause-Effect Relationships}
+\begin{itemize}
+    \item \textbf{Colonial “Divide and Rule”} $\rightarrow$ Post-independence ethnic conflicts (e.g., Rwandan Genocide).
+    \item \textbf{Cold War Proxy Battles} $\rightarrow$ Instability in Congo, Angola, and Mozambique.
+    \item \textbf{Economic Exploitation} $\rightarrow$ Persistent poverty and dependency on foreign aid.
+\end{itemize}
+
+\section{Case Studies and Examples}
+\subsection*{Case Study 1: Ghana’s Independence (1957)}
+\begin{itemize}
+    \item \textbf{Description}: First sub-Saharan colony to gain independence, led by Kwame Nkrumah.
+    \item \textbf{Significance}: Modeled non-violent resistance and Pan-African unity.
+    \item \textbf{Theme}: Nationalism as a unifying force against colonialism.
+\end{itemize}
+
+\subsection*{Case Study 2: Congo Crisis (1960–1965)}
+\begin{itemize}
+    \item \textbf{Description}: Assassination of PM Patrice Lumumba by U.S./Belgium-backed factions.
+    \item \textbf{Significance}: Exemplified Cold War interference and resource exploitation.
+    \item \textbf{Theme}: Fragility of post-colonial states facing external manipulation.
+\end{itemize}
+
+\subsection*{Case Study 3: Nigerian Civil War (1967–1970)}
+\begin{itemize}
+    \item \textbf{Description}: Ethnic conflict between Igbo separatists and Nigerian government.
+    \item \textbf{Significance}: Highlighted colonial-era divisions and resource disputes.
+    \item \textbf{Theme}: Challenges of building national identity post-independence.
+\end{itemize}
+
+\subsection*{Case Study 4: French Neocolonialism in Senegal}
+\begin{itemize}
+    \item \textbf{Description}: France retained economic control via currency (CFA franc) and political influence.
+    \item \textbf{Significance}: Demonstrated neocolonialism’s enduring economic grip.
+    \item \textbf{Theme}: Continuity of exploitation despite formal independence.
+\end{itemize}
+
+\section{Application to Modern Society}
+\subsection*{Modern-Day Relevance}
+\textbf{China’s Role in Africa}: China’s resource extraction and infrastructure investments echo European colonialism, raising debates about debt dependency (e.g., Belt and Road Initiative).  
+
+\textbf{Tax Havens and Capital Flight}: An estimated \$854 billion lost from Africa (1970–2008) via illicit financial flows to Western tax havens, perpetuating poverty.  
+
+\textbf{Ethnic Conflicts}: Colonial borders still fuel violence (e.g., Sudan’s civil war).  
+
+\textbf{Neocolonialism}: Multinational corporations (e.g., Shell in Nigeria) continue resource exploitation with local elite complicity.  
+
+\textbf{Democratic Progress}: Botswana and Senegal exemplify stable governance, countering stereotypes of African “failure.”
+
+\section*{Key Takeaways}
+\begin{itemize}
+    \item Decolonization was incomplete, as economic and political dependencies persist.
+    \item Cold War interference entrenched instability in post-colonial states.
+    \item Ethnic conflicts stem from colonial policies, not inherent tribal divisions.
+    \item Modern Africa faces dual challenges: neocolonial exploitation and building equitable governance.
+\end{itemize}
+
+\end{document}
+``` 
+
+**Notes**:  
+- Structured per the Social Studies Transcript Summary Prompt.  
+- Special characters (e.g., \$ for currency) are properly escaped.  
+- Case studies and timelines emphasize cause-effect relationships and modern parallels.  
+- No math examples included, as the transcript focuses on history/social studies.

@@ -1,0 +1,202 @@
+Okay, here's the last page of the IB exit ticket.
+If you are doing re-take in class, then this exit sheet, you got to do at home and then submit it.
+Does it make sense?
+It's a it's not optional, we have to uh it is a you're going to turn it, so you're either in class or at home.
+Okay.
+Anybody have any questions?
+Yes.
+Um for the test, is it going to be um like pretty much the same questions that?
+I will let you know.
+Yeah, that's why I am I'm putting up uh many practice.
+So, I am including uh you're going to get.
+Okay, all right, guys.
+So uh to uh chemical please and the class we are going to have a discussion.
+Okay?
+Okay.
+If you do not have a calculator make good notes in your uh notebooks, okay?
+So, what.
+If you do not have it, you need to make sure, okay?
+Adam begins by rolling a single die, which you don't.
+Okay.
+So, there are 6 numbers, so that means that uh he the chance of winning is 1/6, right?
+And then, uh if he doesn't win, then he gives the dice ask uh dies.
+Daniel, Daniel rolls even numbers.
+That means that uh even numbers to 4, 6, so his the chance of winning is uh probability of 1/2.
+But that's not the card, that's the way it's going to be a generative.
+So then until somebody to win, okay?
+So, we needed to draw a tree diagram, okay?
+So, the first die, okay, uh Adam wins is 1/6.
+Okay?
+Adam doesn't win, is going to be 5/6.
+Okay?
+So when Adam doesn't win, uh then Daniel plays.
+Okay?
+So Daniel plays and then Daniel is winning is 2, 4, 6 out of 6 numbers.
+So it will be uh 1/2 and Daniel is done winning, right?
+However, uh the chance is if Daniel doesn't win, it's also 1/2, right?
+Because it will be 1, 3, 5.
+So then if Daniel doesn't win, and then Adam will have a chance again to play.
+So the Adam uh second try it wins is uh the answer is a independent 1/6 and the chance if he will not win is again 5/6.
+So then Daniel plays, right?
+So then Daniel plays again and then Daniel wins the game which will be ending in 1/2 but uh he doesn't win, is going to be also 1/2 then Adam has another chance, right?
+So then uh Adam plays, and Adam wins will be 1/6 and then this will be third trial, okay?
+And then um, he doesn't win it's 5/6 and doesn't win and the Daniel plays and it's going dot dot dot.
+Like that.
+So our goal is it's asking, what is the probability Adam wins on nth trial?
+That's what the question is, okay?
+So, I'm going to summarize this tree diagram.
+So, the first uh that trial, he wins it's just 1/6.
+And then second trial, he wins, I'm going to follow tree diagram here, he will follow this tree diagram, all tree diagrams is always a multiplication.
+So, it will be uh 5/6 times 1/2 times 1/6.
+That is you know, chances of him winning and second trial and then third trial he will win is I followed this tree diagram again and I need to end up here.
+So I follow this tree diagram here and then this is where it ends and again it's all multiplication.
+So it's 5/6 times 1/2, uh then again 5/6 because that's what I have and then times 1/2 and then he will end up with 1/6.
+Okay?
+So, it's going dot dot dot n trial, okay?
+So, uh notice that I multiply these oh I, I passed the wrong thing.
+Sorry.
+So sorry, okay, I, we passed together.
+Oh, my god.
+1/2 and 1/6.
+I multiply the this 1/6 and then third trial, I multiply this and this.
+And these are three, these are all same numbers.
+So, if I write down, it's I call it sequences, okay?
+Sequences.
+This is a pattern I see.
+Uh, 1/6 and then multiply this is 5/12 times 1/6, then 5/12 squared times 1/6 and they continue the dot dot dot.
+So, uh I want to express the nth.
+This is the first, second, third, nth expression will be what?
+5/12 to the what?
+What power?
+I heard the correct answer.
+N-1 times 6.
+So, that is our answer.
+So, we call this is expression of sequences and tree diagram, it's like a open-ending probability, that's how we express probability.
+So, if we say what is the Adam uh, probability Adam will be win 9th term, then I will just put it in 9 here.
+So, what's the probability Adam will be win 100 terms, then our code will be 100 here.
+Yes.
+Uh and is it the formula is for the end, can it be times 1/6?
+Oh, oh you are right.
+It's uh I I thought I both have uh 1/6 but I, I
+That's good.
+You are very uh paying attention, that's very good.
+I've probably said it but I misunderstood.
+Uh, does it make sense, right?
+So, we have a second, practice uh end the practice so.
+Is that clear, guys?
+Okay.
+Now, look at the second question.
+This says what's the probability Adam wins the game?
+That means uh, or just in general, pretend this game is going just forever and what's the probability and uh Adam will win.
+So that means that I am going to add all this probability.
+These are you know, probability.
+So you will say uh probability uh then equals infinity.
+You're going to the infinity, okay?
+So then you will say I express this as the last sequence serious.
+Why?
+Because are we do 1/6 plus and 5/12 times 1/6, plus and then 5/12 squared times 1/6 and next one will be 2, n dot dot dot, right?
+So it goes forever to the infinity, okay?
+So then uh this the infinite series, P is uh uh n goes to infinity is going to be A1 divided by 1-R, so stop talking.
+I were up to raise my voice, it's very tiring, okay?
+So, A1 over 1 - R when R is less than one.
+Remember that, this uh formula?
+So, basically either you have to memorize this formula or in sequence and series a formula used.
+So you have to look it up, okay?
+So, therefore, uh this is a probability uh Adam wins, okay, Adam wins it's going to be following this formula first term is 1/6 and then uh R is going to be 5/12 correct, and then 1 - 5/12.
+So, uh the numerator I will change into 2/12 over and then you will have a 7/12 and then 12/12, cancels out, okay?
+So, uh then you will have 2/7.
+It's uh you know, it's less than half, so it's not like uh the uh he has advantage but that's not so, okay?
+Does it make sense, guys?
+All right.
+So sequences and series apply, this is I found they was in reduce event and uh this probably just uh I will review it.
+Okay.
+So, going to the next page.
+Um.
+If we are lucky guys.
+Uh number 2.
+Uh, I think I'm just going to race the uh C the reason is that um this problem comes up uh the next page later here and here.
+And the same problem, you know.
+Uh, this is much better problem than uh question of these.
+So it's a the same scenario.
+So, I want you to number one and two, uh number two only do A and B, okay?
+Go ahead.
+All right, can I.
+What?
+Yes.
+Sometimes you don't think to be.
+Just just uh.
+This.
+So, uh hopefully you find the answer.
+No, I'm ready, okay?
+Let's see how much time.
+Okay.
+So what you got?
+You would say yes.
+I can't hear you.
+Okay, there's a two scenarios, right?
+Uh either you choose uh, you know, uh a or be and then you have to go from uh there, okay?
+All right.
+Okay, so I will give you a chance to do number two now.
+Please go to C.
+C is not very big question.
+They're going to do it on its conditional probability.
+You should do it.
+Do not think today, thinking oh if you got caught, friends by chance, God am I going to just throw out of the train so therefore, no longer probability.
+Now you have the food and you can see.
+Okay.
+You got caught and then you pay.
+You you just.
+Yeah.
+Oh.
+It's probability.
+Ben diagram.
+It's what you said, a tree diagram as a strategy to solve a probability problem and the Venn diagram as a strategy to solve a probability problem.
+So, some scenario, Venn diagram is much easier than uh I mean, it's appropriate and some scenario, tree diagram is appropriate for problem solving, okay?
+And so it's a at times you have to make a decision which it would be better strategy solving uh the the uh problem given scenario.
+And.
+It's a cut.
+You got caught.
+And so it doesn't say only, it says cut by french guys.
+Okay?
+So, uh it's not does not say only that he got caught these condition.
+Okay?
+You can be caught by one or both.
+Okay?
+So, uh the tree diagram and it kind of, you know, I, I made it for you, so I hope that this is what you got, okay?
+We kind of be like this, right?
+Okay.
+So, the uh the problem, I mean the condition he got caught the probability is to these are three, you know, the uh condition.
+It's this, the bottom is only one not caught.
+You could have one minus 0.8 * 0.7.
+You see it will give you the exact same, you add all of these.
+That's the condition you got cut, right?
+And then, um the the cut by French guy will be this french  and this right?
+Okay?
+So,  we're going to look at the problem, right?
+And the number to, uh exit problem yeah, this  we have  the number 2 is to act the problem yeah.
+Look the, all the empty sets, then the probability.
+I I think yeah right, uh this is the empty set and the probability, it's a this means empty set, okay?
+Therefore probability, I think zero is appropriate.
+You're right.
+Yeah.
+So um now, let's draw the Venn diagram, or this example is not all the Venn diagram, right?
+I like pizza and who likes ice coffee?
+Pizza and.
+And then, how many students likes pizza?
+How many students like pizza?
+One.
+All right.
+So then uh probability who likes uh what is that?
+Oh, 3/25.
+and then probability that likes the uh ice coffee, that means probability, pizza intersect with ice coffee divided by the probability of ice coffee, this is the condition of and the amount students who like ice coffee and how many students also likes pizza?
+That's how we that's what it is.
+So, who likes the ice coffee is the first.
+Okay?
+That's the condition which will be in this case, uh how many are there?
+We will have a 16 out of 25, if you chose not to put the 16 out of 25, I'm okay and then among these uh who like both, will be 6 out of 25.
+25, 25 cancels out, which is the 6 out of 16 and I'm okay, you write down directly 6 out of 16, okay?
+So therefore, simplify from will be uh 3/8.
+That's the answer.
+Okay.
+Sample two, practice it again, draw tree diagram.
+I showed you how to draw tree diagram for sample two, it's we just did this problem, so practice tree diagram again.

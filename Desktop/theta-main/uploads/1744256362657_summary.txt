@@ -1,0 +1,64 @@
+**Final Answer** (Proper LaTeX Document):
+
+```latex
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\begin{document}
+
+\section{Key Concepts and Terms}
+\subsection{Definitions and Key Terms}
+\begin{itemize}
+    \item \textbf{Colonial Soldiers}: Non-white troops recruited or conscripted from colonies to fight for European powers in World War I. Many were forced into service, and their participation exposed inequalities, fueling later anti-colonial movements.
+    \item \textbf{National Self-Determination}: A principle in Woodrow Wilson’s \emph{14 Points} advocating for nations to govern themselves. Colonized populations reinterpreted this to demand independence, challenging imperial regimes.
+    \item \textbf{Indirect Colonial Rule}: A system where colonial powers governed through local leaders (e.g., French use of African chiefs). This allowed exploitation while minimizing direct conflict but created resentment.
+    \item \textbf{Leninism/Communism}: Ideology from the Russian Revolution (1917) promoting class equality. Inspired anti-colonial leaders to oppose Western imperialism and capitalist exploitation.
+\end{itemize}
+
+\section{Historical Events and Timelines}
+\subsection{Major Events and Causes}
+\begin{itemize}
+    \item \textbf{World War I (1914–1918)}: Colonial soldiers (e.g., 1.5 million Indians, Senegalese laborers) fought for European powers. Exposure to European weaknesses and unfulfilled promises of equality post-war sparked resistance.
+    \item \textbf{Wilson’s 14 Points (1918)}: Advocated self-determination but excluded colonies. Colonized elites used its rhetoric to legitimize independence demands.
+    \item \textbf{Russian Revolution (1917)}: Communist ideology spread globally, inspiring anti-colonial movements (e.g., Vietnam’s Ho Chi Minh) to link liberation with anti-capitalism.
+    \item \textbf{1916 Irish Rising}: Early decolonization violence against British rule, highlighting colonial hypocrisy and inspiring others.
+\end{itemize}
+
+\section{Case Studies and Examples}
+\subsection{Case Study 1: Indian Independence Movement}
+\begin{itemize}
+    \item \textbf{Event}: Indian soldiers returned from WWI faced continued British oppression, leading to mass protests (e.g., 1919 Amritsar Massacre).
+    \item \textbf{Significance}: Demonstrated the gap between colonial rhetoric and reality, mobilizing figures like Gandhi.
+\end{itemize}
+
+\subsection{Case Study 2: Senegal’s Forced Recruitment}
+\begin{itemize}
+    \item \textbf{Event}: French coercion of Senegalese villagers (arresting families to force enlistment).
+    \item \textbf{Significance}: Highlighted colonial brutality, fostering post-war resistance in West Africa.
+\end{itemize}
+
+\subsection{Case Study 3: Irish War of Independence (1919–1921)}
+\begin{itemize}
+    \item \textbf{Event}: Armed conflict after the 1916 Rising, leading to partial Irish independence.
+    \item \textbf{Significance}: Proved colonial regimes could be challenged militarily, inspiring others.
+\end{itemize}
+
+\subsection{Case Study 4: Vietnamese Anti-French Movements}
+\begin{itemize}
+    \item \textbf{Event}: Post-WWI activism influenced by communism (e.g., Ho Chi Minh’s Viet Minh).
+    \item \textbf{Significance}: Linked national liberation with global socialist movements, challenging French rule.
+\end{itemize}
+
+\section{Application to Modern Society}
+\subsection{Modern-Day Relevance}
+\textbf{Legacy of Colonialism}: Former colonies (e.g., India, Senegal) still grapple with economic disparities and cultural erasure from colonial policies. Movements like \emph{Black Lives Matter} echo anti-colonial critiques of systemic racism.\\
+\textbf{Self-Determination Conflicts}: Regions like Kashmir and Palestine continue to cite Wilsonian principles to demand sovereignty, showing unresolved colonial-era disputes.\\
+\textbf{Ideological Influence}: Communist movements in Nepal and the Philippines retain ties to Lenin’s anti-imperialist rhetoric, illustrating the Russian Revolution’s enduring impact.
+
+\end{document}
+``` 
+
+**Explanation**:  
+- The LaTeX document adheres to the **Social Studies Transcript Summary Prompt**, emphasizing historical cause-effect (e.g., WWI colonial soldiers → decolonization), key terms (e.g., "indirect rule"), and modern ties (e.g., BLM).  
+- Case studies highlight specific regions and link to broader themes (e.g., Irish independence as a model).  
+- Proper LaTeX formatting uses `\section`, `\subsection`, and `itemize` for clarity, with `\textbf` and `\emph` for emphasis. Special characters (e.g., accents in "Senegalese") are handled via UTF-8 encoding.

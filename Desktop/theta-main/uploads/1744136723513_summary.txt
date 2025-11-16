@@ -1,0 +1,114 @@
+\documentclass{article}  
+\usepackage[utf8]{inputenc}  
+\usepackage{amsmath}  
+\begin{document}  
+
+\section{Key Formulas and Their Use Cases}  
+\subsection{Sinusoidal Height Function}  
+The general form of a cosine function for vertical motion modeling is:  
+\[  
+H(t) = A \cos\left(\frac{2\pi}{P}(t - H)\right) + K  
+\]  
+\begin{itemize}  
+  \item \textbf{Amplitude (\(A\))}: Half the difference between maximum and minimum heights. Calculated as \(A = \frac{\text{max} - \text{min}}{2}\).  
+  \item \textbf{Period (\(P\))}: Time for one full revolution (given as 8 seconds in the problem).  
+  \item \textbf{Phase Shift (\(H\))}: Horizontal displacement (time to first reach the maximum height).  
+  \item \textbf{Vertical Shift (\(K\))}: Midline of motion, calculated as \(K = \frac{\text{max} + \text{min}}{2}\).  
+\end{itemize}  
+
+\textbf{Use Case}: This formula models periodic motion (e.g., Ferris wheels, tides). The Ferris wheel problem uses these parameters to express height \(H(t)\) over time.  
+
+\section{Example Problems and Solutions}  
+\subsection{Problem 1: Deriving the Height Equation}  
+\textbf{Problem}: A Ferris wheel has a diameter of 40 feet, sits 3 feet above ground, takes 8 seconds per revolution, and reaches its first maximum height at \(t = 3\) seconds. Write the height equation \(H(t)\).  
+
+\textbf{Solution}:  
+\begin{enumerate}  
+  \item Calculate amplitude (\(A\)):  
+  \[  
+  A = \frac{\text{max} - \text{min}}{2} = \frac{43 - 3}{2} = 20 \text{ feet}  
+  \]  
+  \item Calculate vertical shift (\(K\)):  
+  \[  
+  K = \frac{\text{max} + \text{min}}{2} = \frac{43 + 3}{2} = 23 \text{ feet}  
+  \]  
+  \item Determine angular coefficient (\(\frac{2\pi}{P}\)):  
+  \[  
+  \frac{2\pi}{8} = \frac{\pi}{4}  
+  \]  
+  \item Incorporate phase shift (\(H = 3\)):  
+  \[  
+  H(t) = 20 \cos\left(\frac{\pi}{4}(t - 3)\right) + 23  
+  \]  
+\end{enumerate}  
+\textbf{Final Answer}: \(H(t) = 20 \cos\left(\frac{\pi}{4}(t - 3)\right) + 23\).  
+
+\subsection{Problem 2: Calculating Height at a Specific Time}  
+\textbf{Problem}: Using the equation from Problem 1, find the height at \(t = 9\) seconds.  
+
+\textbf{Solution}:  
+\begin{enumerate}  
+  \item Substitute \(t = 9\) into \(H(t)\):  
+  \[  
+  H(9) = 20 \cos\left(\frac{\pi}{4}(9 - 3)\right) + 23  
+  \]  
+  \item Simplify the argument:  
+  \[  
+  \frac{\pi}{4} \times 6 = \frac{3\pi}{2}  
+  \]  
+  \item Compute cosine:  
+  \[  
+  \cos\left(\frac{3\pi}{2}\right) = 0  
+  \]  
+  \item Solve:  
+  \[  
+  H(9) = 20(0) + 23 = 23 \text{ feet}  
+  \]  
+\end{enumerate}  
+\textbf{Final Answer}: 23 feet.  
+
+\subsection{Problem 3: Solving for Time When Height = 20 Feet}  
+\textbf{Problem}: Using the same equation, find the second time \(t\) when the height is 20 feet.  
+
+\textbf{Solution}:  
+\begin{enumerate}  
+  \item Set \(H(t) = 20\):  
+  \[  
+  20 = 20 \cos\left(\frac{\pi}{4}(t - 3)\right) + 23  
+  \]  
+  \item Subtract 23:  
+  \[  
+  -3 = 20 \cos\left(\frac{\pi}{4}(t - 3)\right)  
+  \]  
+  \item Divide by 20:  
+  \[  
+  \cos\left(\frac{\pi}{4}(t - 3)\right) = -\frac{3}{20}  
+  \]  
+  \item Take arccosine:  
+  \[  
+  \frac{\pi}{4}(t - 3) = \cos^{-1}\left(-\frac{3}{20}\right) \approx 1.722 \text{ radians}  
+  \]  
+  \item Solve for \(t\):  
+  \[  
+  t - 3 = \frac{1.722 \times 4}{\pi} \approx 2.192 \Rightarrow t \approx 5.192 \text{ seconds}  
+  \]  
+\end{enumerate}  
+\textbf{Final Answer}: \(t \approx 5.19\) seconds (second intersection due to period symmetry).  
+
+\subsection{Problem 4: Finding the Period from a Graph}  
+\textbf{Problem}: A Ferris wheel’s height function has consecutive maxima at \(t = 2\) and \(t = 10\). Find its period and angular coefficient \(B\).  
+
+\textbf{Solution}:  
+\begin{enumerate}  
+  \item Calculate period (\(P\)):  
+  \[  
+  P = 10 - 2 = 8 \text{ seconds}  
+  \]  
+  \item Compute \(B\):  
+  \[  
+  B = \frac{2\pi}{P} = \frac{2\pi}{8} = \frac{\pi}{4}  
+  \]  
+\end{enumerate}  
+\textbf{Final Answer}: Period = 8 seconds, \(B = \frac{\pi}{4}\).  
+
+\end{document}

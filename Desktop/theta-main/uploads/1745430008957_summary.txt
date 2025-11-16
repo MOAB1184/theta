@@ -1,0 +1,83 @@
+```latex
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\begin{document}
+
+\section{Key Formulas and Their Use Cases}
+
+\subsection{Sinusoidal Function Model}
+The height \( H(t) \) of a Ferris wheel car can be modeled using:
+\[
+H(t) = A \cos\left(\frac{2\pi}{P}(t - h)\right) + k
+\]
+\begin{itemize}
+  \item \textbf{Amplitude (\( A \))}: Half the difference between max/min heights. Calculated as \( A = \frac{\text{max} - \text{min}}{2} \).
+  \item \textbf{Vertical Shift (\( k \))}: The midline height. Calculated as \( k = \frac{\text{max} + \text{min}}{2} \).
+  \item \textbf{Period (\( P \))}: Time for one full revolution.
+  \item \textbf{Phase Shift (\( h \))}: Horizontal shift corresponding to the time to reach the first maximum.
+\end{itemize}
+
+\textbf{Use Case}: Modeling periodic motion (e.g., Ferris wheels, tides). For a Ferris wheel with max height 43 ft, min height 3 ft, and period 8 sec, \( A = 20 \), \( k = 23 \), and \( h = 3 \).
+
+\section{Example Problems and Solutions}
+
+\subsection{Example 1: Deriving the Sinusoidal Equation}
+\textbf{Problem}: A Ferris wheel has a diameter of 40 ft, ground-to-bottom distance of 3 ft, and completes a revolution in 8 sec. It takes 3 sec to reach the top. Write the height equation \( H(t) \).
+
+\textbf{Solution}:
+\begin{enumerate}
+  \item Calculate amplitude: \( A = \frac{43 - 3}{2} = 20 \) ft.
+  \item Vertical shift: \( k = \frac{43 + 3}{2} = 23 \) ft.
+  \item Period: \( P = 8 \) sec. Thus, \( B = \frac{2\pi}{8} = \frac{\pi}{4} \).
+  \item Phase shift \( h = 3 \) sec (time to first maximum).
+\end{enumerate}
+\[
+H(t) = 20 \cos\left(\frac{\pi}{4}(t - 3)\right) + 23
+\]
+\textbf{Final Answer}: \( H(t) = 20 \cos\left(\frac{\pi}{4}(t - 3)\right) + 23 \).
+
+\subsection{Example 2: Calculating Height at a Specific Time}
+\textbf{Problem}: Using the equation from Example 1, find the height at \( t = 9 \) seconds.
+
+\textbf{Solution}:
+\begin{enumerate}
+  \item Substitute \( t = 9 \): 
+  \[
+  H(9) = 20 \cos\left(\frac{\pi}{4}(9 - 3)\right) + 23
+  \]
+  \item Simplify: \( \frac{\pi}{4} \times 6 = \frac{3\pi}{2} \).
+  \item Compute cosine: \( \cos\left(\frac{3\pi}{2}\right) = 0 \).
+  \item Calculate height: \( H(9) = 20(0) + 23 = 23 \) ft.
+\end{enumerate}
+\textbf{Final Answer}: 23 ft.
+
+\subsection{Example 3: Solving for Time Graphically}
+\textbf{Problem}: When does the height first reach 20 ft? Use graphical methods.
+
+\textbf{Solution}:
+\begin{enumerate}
+  \item Graph \( H(t) = 20 \cos\left(\frac{\pi}{4}(t - 3)\right) + 23 \).
+  \item Draw horizontal line \( y = 20 \).
+  \item Find the second intersection point (first occurs at \( t = 1.19 \), invalid as it precedes the phase shift).
+  \item Use calculator intersection tool: \( t \approx 5.19 \) sec.
+\end{enumerate}
+\textbf{Final Answer}: \( t \approx 5.19 \) seconds.
+
+\subsection{Example 4: Solving for Time Algebraically}
+\textbf{Problem}: Solve \( 20 = 20 \cos\left(\frac{\pi}{4}(t - 3)\right) + 23 \) algebraically.
+
+\textbf{Solution}:
+\begin{enumerate}
+  \item Subtract 23: \( -3 = 20 \cos\left(\frac{\pi}{4}(t - 3)\right) \).
+  \item Divide by 20: \( \cos\left(\frac{\pi}{4}(t - 3)\right) = -\frac{3}{20} \).
+  \item Take arccosine: \( \frac{\pi}{4}(t - 3) = \cos^{-1}\left(-\frac{3}{20}\right) \).
+  \item Solve for \( t \): 
+  \[
+  t = 3 + \frac{4}{\pi} \cos^{-1}\left(-\frac{3}{20}\right) \approx 5.19 \text{ sec}.
+  \]
+\end{enumerate}
+\textbf{Final Answer}: \( t \approx 5.19 \) seconds.
+
+\end{document}
+```

@@ -1,0 +1,961 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - ThetaSummary</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #030203;
+            --card: rgba(13,13,20,0.9);
+            --panel: rgba(18,18,28,0.88);
+            --text: #f7f6ff;
+            --muted: #9aa0ae;
+            --accent: #c084fc;
+            --accent-strong: #a855f7;
+            --border: rgba(255,255,255,0.08);
+            --success: #34d399;
+            --warning: #fbbf24;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        body::before,
+        body::after {
+            content: "";
+            position: fixed;
+            width: 40vw;
+            height: 40vw;
+            filter: blur(120px);
+            border-radius: 50%;
+            z-index: 0;
+            opacity: 0.35;
+        }
+
+        body::before {
+            background: #8b5cf6;
+            top: -10vw;
+            left: -5vw;
+        }
+
+        body::after {
+            background: #0ea5e9;
+            bottom: -15vw;
+            right: -5vw;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .theta-shell {
+            width: min(1200px, 92%);
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .theta-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 18px 0;
+            z-index: 20;
+        }
+
+        .header-inner {
+            width: min(1260px, 95%);
+            margin: 0 auto;
+            padding: 12px 28px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(6,6,9,0.9);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(24px);
+        }
+
+        .logo {
+            font-weight: 700;
+            font-size: 1.35rem;
+        }
+
+        .theta-nav {
+            display: flex;
+            gap: 24px;
+            font-size: 0.95rem;
+        }
+
+        .theta-nav a {
+            color: var(--muted);
+            transition: color 0.2s ease;
+        }
+
+        .theta-nav a.active,
+        .theta-nav a:hover {
+            color: var(--text);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .pill {
+            padding: 6px 14px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+
+        .avatar-button {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: linear-gradient(135deg, rgba(192,132,252,0.25), rgba(59,130,246,0.3));
+            color: var(--text);
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mobile-menu-button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: rgba(255,255,255,0.05);
+            color: var(--text);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .mobile-menu {
+            position: fixed;
+            inset: 0;
+            background: rgba(5,5,9,0.95);
+            z-index: 30;
+            padding: 24px;
+            gap: 18px;
+            flex-direction: column;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            display: flex;
+        }
+
+        .mobile-menu.active {
+            transform: translateX(0);
+        }
+
+        .close-mobile-menu {
+            align-self: flex-end;
+            font-size: 2rem;
+            background: none;
+            border: none;
+            color: var(--text);
+        }
+
+        .mobile-menu a {
+            font-size: 1.1rem;
+            color: var(--muted);
+        }
+
+        .mobile-menu a:hover {
+            color: var(--text);
+        }
+
+        .theta-main {
+            padding: 140px 0 100px;
+        }
+
+        .surface {
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            background: var(--card);
+            box-shadow: 0 25px 60px rgba(0,0,0,0.35);
+        }
+
+        .hero {
+            padding: 34px;
+            display: grid;
+            grid-template-columns: minmax(0, 2fr) minmax(0, 1.1fr);
+            gap: 32px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::after {
+            content: "";
+            position: absolute;
+            inset: 1px;
+            border-radius: 24px;
+            border: 1px solid rgba(255,255,255,0.05);
+            pointer-events: none;
+        }
+
+        .eyebrow {
+            font-size: 0.85rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 12px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(2rem, 4vw, 2.75rem);
+        }
+
+        p {
+            margin: 0;
+            color: var(--muted);
+        }
+
+        .hero-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 18px 0;
+        }
+
+        .chip {
+            padding: 6px 14px;
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.03);
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .chip strong {
+            color: var(--text);
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+        }
+
+        .btn {
+            border-radius: 999px;
+            border: 1px solid transparent;
+            padding: 11px 22px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            font-size: 0.95rem;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+            color: #080808;
+            box-shadow: 0 12px 30px rgba(124,58,237,0.28);
+        }
+
+        .btn-ghost {
+            border: 1px solid var(--border);
+            background: rgba(255,255,255,0.05);
+            color: var(--text);
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 18px;
+            margin: 28px 0;
+        }
+
+        .stat-card {
+            border-radius: 22px;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: var(--panel);
+            padding: 22px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::after {
+            content: "";
+            position: absolute;
+            inset: 1px;
+            border-radius: 22px;
+            border: 1px solid rgba(255,255,255,0.04);
+            pointer-events: none;
+        }
+
+        .stat-label {
+            font-size: 0.95rem;
+            color: var(--muted);
+        }
+
+        .stat-value {
+            margin-top: 12px;
+            font-size: 2.25rem;
+            font-weight: 600;
+        }
+
+        .stat-subtext {
+            margin-top: 6px;
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.65);
+        }
+
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 18px;
+            margin-bottom: 28px;
+        }
+
+        .glow-card {
+            border-radius: 22px;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.02);
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glow-card::before {
+            content: "";
+            position: absolute;
+            top: -20%;
+            right: -20%;
+            width: 180px;
+            height: 180px;
+            background: radial-gradient(circle, rgba(192,132,252,0.35), transparent 65%);
+            opacity: 0.6;
+        }
+
+        .glow-card h3 {
+            margin: 6px 0;
+            font-size: 1.8rem;
+        }
+
+        .admin-panel {
+            padding: 30px;
+        }
+
+        .tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+
+        .tab {
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: rgba(255,255,255,0.03);
+            color: var(--muted);
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+            color: #080808;
+            border-color: transparent;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .panel-block {
+            border-radius: 22px;
+            border: 1px solid var(--border);
+            background: var(--panel);
+            padding: 24px;
+            margin-bottom: 26px;
+        }
+
+        .panel-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+        }
+
+        .panel-head h2 {
+            margin: 0;
+        }
+
+        .search-bar,
+        select,
+        input[type="number"],
+        textarea {
+            width: 100%;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: rgba(255,255,255,0.03);
+            padding: 10px 16px;
+            color: var(--text);
+            font-size: 0.95rem;
+        }
+
+        .table-scroll {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 12px 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+            font-size: 0.9rem;
+        }
+
+        th {
+            font-weight: 600;
+            color: var(--muted);
+            text-transform: uppercase;
+            font-size: 0.78rem;
+            letter-spacing: 0.08em;
+        }
+
+        tr:hover {
+            background: rgba(255,255,255,0.02);
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            padding: 4px 10px;
+            font-size: 0.8rem;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .status-teacher { color: var(--warning); border-color: rgba(251,191,36,0.35); }
+        .status-student { color: #22d3ee; border-color: rgba(34,211,238,0.35); }
+        .status-plus { color: #f472b6; border-color: rgba(244,114,182,0.35); }
+        .status-pro { color: #60a5fa; border-color: rgba(96,165,250,0.35); }
+        .status-enterprise { color: var(--success); border-color: rgba(52,211,153,0.35); }
+        .status-active { color: var(--success); border-color: rgba(52,211,153,0.35); }
+
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .action-buttons form {
+            display: inline;
+        }
+
+        .token-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+
+        .token-form > div {
+            flex: 1;
+            min-width: 220px;
+        }
+
+        .demo-code {
+            margin-top: 16px;
+            font-size: 1.45rem;
+            font-weight: 600;
+            letter-spacing: 0.35em;
+            text-align: center;
+        }
+
+        .prompt-block {
+            max-height: 320px;
+            overflow-y: auto;
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 16px;
+            background: rgba(255,255,255,0.02);
+            color: var(--muted);
+            white-space: pre-wrap;
+        }
+
+        .empty-state {
+            padding: 60px 20px;
+            text-align: center;
+            color: var(--muted);
+        }
+
+        .user-dropdown {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 16px;
+            min-width: 220px;
+            box-shadow: 0 18px 40px rgba(0,0,0,0.45);
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(-6px);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        .user-dropdown.open {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+
+        .user-dropdown a {
+            display: block;
+            padding: 8px 0;
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        .user-dropdown a:hover {
+            color: var(--text);
+        }
+
+        footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+
+        @media (max-width: 1024px) {
+            .hero {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .theta-nav {
+                display: none;
+            }
+
+            .mobile-menu-button {
+                display: inline-flex;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-menu" id="mobile-menu">
+        <button class="close-mobile-menu" id="close-mobile-menu" aria-label="Close navigation">&times;</button>
+        <a href="{{ url_for('admin') }}">Overview</a>
+        <a href="#" data-switch-tab="pending">Pending approvals</a>
+        <a href="#" data-switch-tab="tokens">Token usage</a>
+        <a href="#" data-switch-tab="prompt">Global prompt</a>
+        <a href="{{ url_for('logout') }}">Log out</a>
+    </div>
+
+    <header class="theta-header">
+        <div class="header-inner">
+            <a href="{{ url_for('admin') }}" class="logo">ThetaSummary</a>
+            <nav class="theta-nav">
+                <a href="{{ url_for('admin') }}" class="active">Overview</a>
+                <a href="#" data-switch-tab="pending">Approvals</a>
+                <a href="{{ url_for('logout') }}">Sign out</a>
+            </nav>
+             <div class="header-actions">
+                <span class="pill">Admin</span>
+                <div style="position: relative;">
+                    <button class="avatar-button" id="user-menu-trigger">{{ username[0].upper() }}</button>
+                    <div class="user-dropdown" id="userDropdown">
+                        <div style="font-size:0.85rem;color:var(--muted);">Signed in as</div>
+                        <div style="font-weight:600;">{{ username }}</div>
+                        <a href="{{ url_for('logout') }}">Log out</a>
+                    </div>
+                </div>
+                <button class="mobile-menu-button" id="mobile-menu-button" aria-label="Open navigation">&#9776;</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="theta-shell theta-main">
+        <section class="surface hero">
+            <div>
+                <p class="eyebrow">Admin workspace</p>
+                <h1>Keep every signup, approval, and global prompt aligned with Thetaâ€™s glow.</h1>
+                <p>Monitor classroom subscriptions, approve educators, credit token pools, and steer the default promptâ€”all from a glassy interface that matches the marketing site.</p>
+                <div class="hero-meta">
+                    <div class="chip">Pending approvals <strong>{{ pending_teachers|length }}</strong></div>
+                    <div class="chip">Total users <strong>{{ users|length }}</strong></div>
+                    <div class="chip">Enterprise seats <strong>{{ enterprise_users_count }}</strong></div>
+                </div>
+                <div class="hero-actions">
+                    <button class="btn btn-primary" data-switch-tab="pending">Review approvals</button>
+                    <button class="btn btn-ghost" data-switch-tab="prompt">Open global prompt</button>
+                    <a href="{{ url_for('logout') }}" class="btn btn-ghost">Log out</a>
+                </div>
+            </div>
+            <div>
+                <p class="eyebrow">Signed in</p>
+                <h2 style="margin:0;">{{ username }}</h2>
+                <p>Super admin</p>
+                <div class="hero-meta" style="margin-top:18px;">
+                    <div class="chip">Plus seats <strong>{{ plus_users_count }}</strong></div>
+                    <div class="chip">Pro seats <strong>{{ pro_users_count }}</strong></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Enterprise workspaces</div>
+                <div class="stat-value">{{ enterprise_users_count }}</div>
+                <div class="stat-subtext">District or school deployments</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Pro workspaces</div>
+                <div class="stat-value">{{ pro_users_count }}</div>
+                <div class="stat-subtext">Teams using advanced automations</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Plus classrooms</div>
+                <div class="stat-value">{{ plus_users_count }}</div>
+                <div class="stat-subtext">Individual educators on Plus</div>
+            </div>
+        </section>
+
+        <section class="insights-grid">
+            <div class="glow-card">
+                <p class="stat-label">Teachers pending review</p>
+                <h3>{{ pending_teachers|length }}</h3>
+                <p>Approve teachers to unlock recordings and summaries.</p>
+            </div>
+            <div class="glow-card">
+                <p class="stat-label">Active non-admin users</p>
+                <h3>{{ users|length }}</h3>
+                <p>All educators and students currently on Theta.</p>
+            </div>
+            <div class="glow-card">
+                <p class="stat-label">Global prompt freshness</p>
+                <h3>{{ global_prompt|length }} chars</h3>
+                <p>Keep the system prompt updated for consistent summaries.</p>
+            </div>
+        </section>
+
+        <section class="surface admin-panel">
+            <div class="tabs">
+                <button class="tab active" data-tab="users">Users</button>
+                <button class="tab" data-tab="pending">Pending approvals</button>
+                <button class="tab" data-tab="tokens">Token usage</button>
+                <button class="tab" data-tab="demo">Demo codes</button>
+                <button class="tab" data-tab="prompt">Global prompt</button>
+            </div>
+
+            <div class="tab-content active" id="users-tab">
+                <div class="panel-block">
+                    <div class="panel-head">
+                        <h2>Workspace roster</h2>
+                        <input type="text" id="userSearch" class="search-bar" placeholder="Search users...">
+                    </div>
+                    <div class="table-scroll">
+                        <table class="user-table">
+                            <thead>
+                                <tr>
+                                    <th>Username</th>
+                                    <th>Role</th>
+                                    <th>Subscription</th>
+                                    <th>Status</th>
+                                    <th>Talk to Theta</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                <tr>
+                                    <td>{{ user.username }}</td>
+                                    <td><span class="status-badge status-{{ user.role }}">{{ user.role|title }}</span></td>
+                                    <td>
+                                        {% if user.subscription_type %}
+                                            <span class="status-badge status-{{ user.subscription_type }}">{{ user.subscription_type|title }}</span>
+                                        {% else %}
+                                            <span class="status-badge">None</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if user.subscription_status %}
+                                            <span class="status-badge status-{{ user.subscription_status }}">{{ user.subscription_status|title }}</span>
+                                        {% else %}
+                                            <span class="status-badge">N/A</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if user.role == 'teacher' %}
+                                        <form method="POST" action="{{ url_for('toggle_theta', user_id=user._id) }}">
+                                            <button type="submit" class="btn btn-ghost" style="min-width:110px;">
+                                                {{ 'Enabled' if user.talk_to_theta_enabled else 'Disabled' }}
+                                            </button>
+                                        </form>
+                                        {% else %}
+                                        <span class="status-badge">N/A</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            {% if user.role == 'teacher' %}
+                                            <form action="{{ url_for('promote_teacher', user_id=user._id) }}" method="POST">
+                                                <select name="subscription_type" onchange="this.form.submit()" class="search-bar" style="padding:6px 10px;">
+                                                    <option value="">Promote to...</option>
+                                                    <option value="plus" {% if user.subscription_type == 'plus' %}selected{% endif %}>Plus</option>
+                                                    <option value="pro" {% if user.subscription_type == 'pro' %}selected{% endif %}>Pro</option>
+                                                    <option value="enterprise" {% if user.subscription_type == 'enterprise' %}selected{% endif %}>Enterprise</option>
+                                                </select>
+                                            </form>
+                                            {% endif %}
+                                            <form method="POST" action="{{ url_for('admin_delete_user', user_id=user._id) }}" onsubmit="return confirm('Delete user {{ user.username }}?');">
+                                                <button type="submit" class="btn btn-primary">Delete</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="pending-tab">
+                <div class="panel-block">
+                    <div class="panel-head">
+                        <h2>Pending teacher approvals</h2>
+                        <p style="color:var(--muted); margin:0;">Review teachers before they access recordings.</p>
+                    </div>
+                    {% if pending_teachers %}
+                    <div class="table-scroll">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>School</th>
+                                    <th>Requested</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for teacher in pending_teachers %}
+                                <tr>
+                                    <td>{{ teacher.full_name or teacher.username or 'Pending teacher' }}</td>
+                                    <td>{{ teacher.email or 'â€”' }}</td>
+                                    <td>{{ teacher.school_name or 'â€”' }}</td>
+                                    <td>{{ teacher.created_at or 'â€”' }}</td>
+                                    <td class="action-buttons">
+                                        <form method="POST" action="{{ url_for('approve_teacher', teacher_id=teacher._id) }}">
+                                            <button type="submit" class="btn btn-primary">Approve</button>
+                                        </form>
+                                        <form method="POST" action="{{ url_for('deny_teacher', teacher_id=teacher._id) }}">
+                                            <button type="submit" class="btn btn-ghost">Deny</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="empty-state">You're all caught upâ€”no pending approvals right now.</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="tab-content" id="tokens-tab">
+                <div class="panel-block">
+                    <div class="panel-head">
+                        <h2>Credit tokens</h2>
+                        <p style="color:var(--muted); margin:0;">Top up classrooms that are running heavy AI workflows.</p>
+                    </div>
+                    <form method="POST" action="{{ url_for('credit_tokens') }}" class="token-form">
+                        <div>
+                            <label for="userSelect" style="display:block;margin-bottom:6px;color:var(--muted);">Select teacher</label>
+                            <select id="userSelect" name="user_id">
+                                {% for user in users %}
+                                    {% if user.role == 'teacher' %}
+                                    <option value="{{ user._id }}">{{ user.username }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label for="tokenAmount" style="display:block;margin-bottom:6px;color:var(--muted);">Token amount</label>
+                            <input type="number" id="tokenAmount" name="token_amount" min="1" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Credit tokens</button>
+                    </form>
+                </div>
+                <div class="panel-block">
+                    <div class="panel-head">
+                        <h2>Usage overview</h2>
+                    </div>
+                    <div class="table-scroll">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Teacher</th>
+                                    <th>Input tokens</th>
+                                    <th>Output tokens</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                {% if user.role == 'teacher' %}
+                                <tr>
+                                    <td>{{ user.username }}</td>
+                                    <td>{{ user.chat_input_tokens or 0 }}</td>
+                                    <td>{{ user.chat_output_tokens or 0 }}</td>
+                                </tr>
+                                {% endif %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="demo-tab">
+                <div class="panel-block">
+                    <div class="panel-head">
+                        <h2>Demo code generator</h2>
+                        <form method="POST" action="{{ url_for('generate_demo_code') }}">
+                            <button type="submit" class="btn btn-primary">Generate code</button>
+                        </form>
+                    </div>
+                    <p>Spin up a two-day demo code to share Theta with a district decision maker.</p>
+                    {% if demo_code %}
+                    <div class="demo-code">{{ demo_code }}</div>
+                    <p style="text-align:center;margin-top:6px;">Expires {{ demo_code_expiry }}</p>
+                    {% else %}
+                    <p>No active demo codes at the moment.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="tab-content" id="prompt-tab">
+                <div class="panel-block">
+                    <div class="panel-head">
+                        <h2>Global prompt</h2>
+                        <a href="{{ url_for('edit_global_prompt') }}" class="btn btn-ghost">Edit prompt</a>
+                    </div>
+                    <div class="prompt-block">{{ global_prompt }}</div>
+                </div>
+            </div>
+        </section>
+
+        <footer>&copy; 2025 ThetaSummary. All rights reserved.</footer>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const closeMobileMenu = document.getElementById('close-mobile-menu');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const userTrigger = document.getElementById('user-menu-trigger');
+            const userDropdown = document.getElementById('userDropdown');
+            const searchInput = document.getElementById('userSearch');
+
+            const switchTab = (target) => {
+                if (!target) return;
+                document.querySelectorAll('.tab').forEach(t => {
+                    t.classList.toggle('active', t.dataset.tab === target);
+                });
+                document.querySelectorAll('.tab-content').forEach(c => {
+                    c.classList.toggle('active', c.id === `${target}-tab`);
+                });
+                if (mobileMenu) mobileMenu.classList.remove('active');
+            };
+
+            document.querySelectorAll('[data-switch-tab]').forEach(el => {
+                el.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    switchTab(el.getAttribute('data-switch-tab'));
+                });
+            });
+
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+            });
+
+            if (searchInput) {
+                searchInput.addEventListener('input', (e) => {
+                    const value = e.target.value.toLowerCase();
+                    document.querySelectorAll('.user-table tbody tr').forEach(row => {
+                        row.style.display = row.textContent.toLowerCase().includes(value) ? '' : 'none';
+                    });
+                });
+            }
+
+            if (mobileMenuButton && mobileMenu) {
+                mobileMenuButton.addEventListener('click', () => mobileMenu.classList.add('active'));
+            }
+
+            if (closeMobileMenu && mobileMenu) {
+                closeMobileMenu.addEventListener('click', () => mobileMenu.classList.remove('active'));
+                mobileMenu.querySelectorAll('a').forEach(link => {
+                    link.addEventListener('click', () => mobileMenu.classList.remove('active'));
+                });
+            }
+
+            if (userTrigger && userDropdown) {
+                userTrigger.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    userDropdown.classList.toggle('open');
+                });
+                document.addEventListener('click', (event) => {
+                    if (!userDropdown.contains(event.target) && event.target !== userTrigger) {
+                        userDropdown.classList.remove('open');
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

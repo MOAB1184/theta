@@ -1,0 +1,1334 @@
+ï»¿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theta - Your AI Tutor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- Font Awesome for better icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous">
+    <!-- Markdown CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.2.0/github-markdown.min.css" crossorigin="anonymous">
+    <!-- KaTeX for LaTeX rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" crossorigin="anonymous" onload="renderMathInElement(document.body, { delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}] });"></script>
+    <style>
+        /* General Reset & Base Styles */
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            margin: 0;
+            background-color: #18191c;
+            color: #c1c2c5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-y: auto;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        /* App Container - Switches between initial and active chat states */
+        #app-container {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease-out;
+            min-height: 100vh;
+            height: auto;
+        }
+
+        /* Main Content Area (Greeting, Input, Chips) */
+        #main-content {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        /* Greeting Area - Visible in initial state */
+        .greeting-area {
+            text-align: center;
+            margin-bottom: 30px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .greeting-asterisk {
+            display: none;
+        }
+
+        .greeting-text {
+            font-size: 1.9em;
+            color: #e3e4e6;
+            font-weight: 500;
+            text-align: center;
+            width: 100%;
+        }
+
+        /* Input Container & Textarea */
+        #input-container {
+            width: 100%;
+            background-color: #212225;
+            border: 1px solid #303134;
+            border-radius: 12px;
+            padding: 10px 15px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #user-input {
+            width: 100%;
+            min-height: 50px;
+            max-height: 200px;
+            background-color: transparent;
+            color: #d1d2d5;
+            border: none;
+            outline: none;
+            resize: none;
+            font-size: 1em;
+            line-height: 1.5;
+            overflow-y: auto;
+        }
+
+        #user-input::placeholder {
+            color: #7a7b7d;
+        }
+
+        /* Input pills (for showing attached summaries) */
+        .input-pill-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .input-pill {
+            background-color: #2a2d31;
+            color: #d1d2d5;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.9em;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .remove-pill {
+            background: none;
+            border: none;
+            color: #8e9297;
+            cursor: pointer;
+            font-size: 0.9em;
+            padding: 2px;
+        }
+
+        .remove-pill:hover {
+            color: #ff4f4f;
+        }
+
+        /* Input Controls */
+        #input-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 8px;
+            margin-top: 5px;
+        }
+
+        .left-controls, .right-controls {
+            display: flex;
+            align-items: center;
+        }
+
+        .control-button {
+            background-color: transparent;
+            border: none;
+            color: #8e9297;
+            border-radius: 6px;
+            padding: 6px;
+            margin: 0 4px;
+            cursor: pointer;
+            font-size: 1.1em;
+        }
+
+        .control-button:hover {
+            background-color: #2f3136;
+        }
+
+        .model-name {
+            font-size: 0.85em;
+            color: #8e9297;
+            margin-right: 10px;
+            padding: 4px 8px;
+            background-color: #2a2d31;
+            border: 1px solid #3a3d42;
+            border-radius: 6px;
+        }
+
+        #send-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            font-weight: 500;
+            font-size: 1.1em;
+            padding: 7px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        #send-button:hover {
+            background-color: #0069d9;
+        }
+
+        #theta-voice-button {
+            background-color: transparent;
+            color: #8e9297;
+            border: 1px solid #3a3d42;
+            padding: 7px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-right: 8px;
+        }
+
+        #theta-voice-button:hover {
+            background-color: #2f3136;
+            border-color: #45494e;
+        }
+
+        /* Chat Box - Hidden in initial state */
+        #chat-box {
+            display: none;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: stretch;
+            width: 100%;
+            max-width: 800px;
+            height: 60vh;
+            min-height: 300px;
+            background-color: transparent;
+            padding: 0 20px 32px 20px;
+            overflow-y: auto;
+            margin: 0 auto;
+            position: relative;
+            box-sizing: border-box;
+            word-break: break-word;
+        }
+
+        .message {
+            margin-bottom: 8px;
+            padding: 6px 12px;
+            border-radius: 12px;
+            line-height: 1.4;
+            max-width: 75%;
+            min-width: 0;
+            width: fit-content;
+            font-size: 0.95em;
+            display: block;
+            position: relative;
+            overflow-wrap: anywhere;
+            white-space: pre-wrap;
+            background: #232323;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+            text-align: left;
+        }
+
+        .user-message {
+            background-color: #007bff;
+            color: white;
+            margin-left: auto;
+            margin-right: 0;
+            border: none;
+            margin-bottom: 4px;
+            padding: 6px 12px 0 12px;
+            line-height: 1.3;
+        }
+
+        .bot-message {
+            background-color: #2a2d31;
+            color: #d1d2d5;
+            margin-right: auto;
+            margin-left: 0;
+            border: 1px solid #3a3d42;
+            text-align: left;
+        }
+
+        /* --- Chat Active State --- */
+        #app-container.chat-active {
+            max-width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            padding: 0;
+            align-items: flex-start;
+            justify-content: flex-start;
+        }
+
+        #app-container.chat-active .greeting-area,
+        #app-container.chat-active #suggestion-chips {
+            display: none;
+        }
+
+        #app-container.chat-active #main-content {
+            order: 2;
+            width: 100%;
+            padding: 10px 0;
+            background-color: #18191c;
+            margin-top: auto;
+            margin-bottom: 0;
+            flex-shrink: 0;
+            box-shadow: 0 -1px 5px rgba(0,0,0,0.15);
+        }
+
+        #app-container.chat-active #input-container {
+            max-width: 800px;
+            margin: 0 auto;
+            margin-bottom: 0;
+            box-shadow: none;
+            background-color: #212225;
+            border: 1px solid #303134;
+        }
+
+        #app-container.chat-active #chat-box {
+            order: 1;
+            max-width: 800px;
+            margin: 0 auto;
+            padding-top: 20px;
+            flex-grow: 1;
+            height: 60vh;
+            min-height: 300px;
+            overflow-y: auto;
+            background: transparent;
+        }
+
+        /* Custom Scrollbar for WebKit Browsers */
+        #chat-box::-webkit-scrollbar, #user-input::-webkit-scrollbar, body::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #chat-box::-webkit-scrollbar-track, #user-input::-webkit-scrollbar-track, body::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.1);
+        }
+
+        #chat-box::-webkit-scrollbar-thumb, #user-input::-webkit-scrollbar-thumb, body::-webkit-scrollbar-thumb {
+            background-color: #3a3d42;
+            border-radius: 4px;
+        }
+
+        #chat-box::-webkit-scrollbar-thumb:hover, #user-input::-webkit-scrollbar-thumb:hover, body::-webkit-scrollbar-thumb:hover {
+            background-color: #45494e;
+        }
+
+        /* Voice Mode UI */
+        #voice-mode-ui {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #171717;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            overflow: hidden;
+        }
+
+        #voice-mode-ui.hidden {
+            display: none;
+        }
+
+        .voice-mode-header {
+            position: absolute;
+            top: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            z-index: 10;
+        }
+
+        .voice-mode-title {
+            color: #f0f0f0;
+            font-size: 1.8rem;
+            font-weight: 400;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        #close-voice-mode {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: #8e9297;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 5px;
+            opacity: 0.7;
+        }
+
+        #close-voice-mode:hover {
+            opacity: 1;
+        }
+
+        #particle-animation-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #particle-canvas {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        #voice-controls {
+            position: absolute;
+            bottom: 50px;
+            display: flex;
+            gap: 50px;
+            z-index: 10;
+        }
+
+        .voice-control-button {
+            background-color: rgba(30, 30, 30, 0.8);
+            border: none;
+            color: #fff;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        .voice-control-button:hover {
+            background-color: rgba(40, 40, 40, 0.9);
+            transform: scale(1.05);
+        }
+
+        #call-button {
+            background-color: rgba(40, 40, 40, 0.9);
+        }
+
+        #call-button:hover {
+            background-color: rgba(60, 60, 60, 0.95);
+        }
+
+        #mic-button {
+            background-color: rgba(40, 40, 40, 0.9);
+        }
+
+        #mic-button:hover {
+            background-color: rgba(60, 60, 60, 0.95);
+        }
+
+        .mic-active {
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(70, 199, 255, 0.4);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(70, 199, 255, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(70, 199, 255, 0);
+            }
+        }
+
+        /* Summary Selection Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: relative;
+            background-color: #212225;
+            margin: 10% auto;
+            padding: 20px;
+            width: 80%;
+            max-width: 600px;
+            border-radius: 12px;
+            border: 1px solid #303134;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            color: #e3e4e6;
+            font-size: 1.2em;
+            margin: 0;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            color: #8e9297;
+            font-size: 1.5em;
+            cursor: pointer;
+        }
+
+        .summary-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .summary-item {
+            padding: 10px;
+            margin: 5px 0;
+            background-color: #2a2d31;
+            border: 1px solid #3a3d42;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .summary-item:hover {
+            background-color: #32353a;
+        }
+
+        .summary-title {
+            color: #d1d2d5;
+            margin: 0;
+            font-size: 1em;
+        }
+
+        .summary-date {
+            color: #8e9297;
+            font-size: 0.8em;
+            margin-top: 5px;
+        }
+
+        /* Attach Button */
+        .attach-button {
+            background-color: transparent;
+            border: none;
+            color: #8e9297;
+            padding: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.1em;
+            margin-right: 8px;
+        }
+
+        .attach-button:hover {
+            background-color: #2f3136;
+        }
+
+        /* Chat History */
+        .chat-history {
+            display: none;
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 250px;
+            height: 100vh;
+            background-color: #212225;
+            border-right: 1px solid #303134;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .chat-history.active {
+            display: block;
+        }
+
+        .history-item {
+            padding: 10px;
+            margin: 5px 0;
+            background-color: #2a2d31;
+            border: 1px solid #3a3d42;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .history-item:hover {
+            background-color: #32353a;
+        }
+
+        .history-title {
+            color: #d1d2d5;
+            font-size: 0.9em;
+            margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .history-date {
+            color: #8e9297;
+            font-size: 0.8em;
+            margin-top: 5px;
+        }
+
+        /* Adjust main content for chat history */
+        #app-container {
+            margin-left: 0;
+            transition: margin-left 0.3s ease;
+        }
+
+        #app-container.history-active {
+            margin-left: 250px;
+        }
+
+        /* Typing indicator (iPhone style) */
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            margin: 10px 0 0 0;
+            height: 28px;
+        }
+        .typing-indicator .bubble {
+            background: #2a2d31;
+            border-radius: 18px;
+            padding: 6px 16px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+        }
+        .typing-indicator .dot {
+            width: 7px;
+            height: 7px;
+            margin: 0 2px;
+            background: #bfc1c6;
+            border-radius: 50%;
+            opacity: 0.6;
+            animation: blink 1.4s infinite both;
+        }
+        .typing-indicator .dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .typing-indicator .dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        @keyframes blink {
+            0%, 80%, 100% { opacity: 0.6; }
+            40% { opacity: 1; }
+        }
+
+        /* Markdown Styling */
+        .markdown-body {
+            color: #d1d2d5;
+            background-color: #2a2d31;
+            padding: 8px;
+            border-radius: 6px;
+        }
+
+        .markdown-body p {
+            margin: 0.5em 0;
+        }
+
+        .markdown-body code {
+            background-color: #3a3d42;
+            color: #e3e4e6;
+            padding: 1px 3px;
+            border-radius: 4px;
+        }
+
+        .markdown-body pre {
+            background-color: #3a3d42;
+            padding: 8px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+
+        @media (max-width: 900px) {
+            body {
+                align-items: flex-start;
+            }
+            #app-container {
+                align-items: flex-start;
+                justify-content: flex-start;
+            }
+        }
+
+        /* Add popup styles */
+        .token-popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #1a1a1a;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .token-popup h3 {
+            color: #ffffff;
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+
+        .token-popup p {
+            color: #a0a0a0;
+            margin-bottom: 24px;
+        }
+
+        .token-popup .btn {
+            margin: 0 8px;
+        }
+
+        .token-popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 999;
+        }
+            /* Theta glass theme overrides */
+        :root {
+            --theta-bg: #030203;
+            --theta-surface: #101014;
+            --theta-panel: #161621;
+            --theta-text: #f7f7ff;
+            --theta-muted: #9ba0b5;
+            --theta-accent: #c084fc;
+            --theta-accent-strong: #a855f7;
+            --theta-border: rgba(255,255,255,0.08);
+        }
+
+        body {
+            background: radial-gradient(circle at top, rgba(124,58,237,0.18), transparent), var(--theta-bg);
+            color: var(--theta-text);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            color: var(--theta-text);
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+
+        p, label, span, li {
+            color: var(--theta-muted);
+        }
+
+        a {
+            color: var(--theta-text);
+        }
+
+        .btn, button, input[type='submit'] {
+            border-radius: 999px;
+            border: 1px solid transparent;
+            font-weight: 500;
+            padding: 10px 20px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn-primary, button.btn-primary {
+            background: linear-gradient(135deg, var(--theta-accent), var(--theta-accent-strong));
+            color: #050505;
+            box-shadow: 0 20px 40px rgba(129,97,255,0.25);
+        }
+
+        .btn-secondary, .btn-ghost, button.btn-secondary, .btn-outline {
+            background: rgba(255,255,255,0.05);
+            color: var(--theta-text);
+            border-color: var(--theta-border);
+        }
+
+        .btn:hover, button:hover, input[type='submit']:hover {
+            transform: translateY(-1px);
+        }
+
+        .card, .panel, .info-card, .content-card, .form-card, .summary-card, .section-card {
+            background: var(--theta-surface);
+            border-radius: 24px;
+            border: 1px solid var(--theta-border);
+            box-shadow: 0 25px 60px rgba(4,4,7,0.45);
+        }
+
+        .sidebar {
+            background: rgba(7,7,12,0.9);
+            border-right: 1px solid var(--theta-border);
+        }
+
+        .topbar, .header, .navbar {
+            background: rgba(7,7,12,0.85);
+            border-bottom: 1px solid var(--theta-border);
+            backdrop-filter: blur(18px);
+        }
+
+        input, select, textarea {
+            background: var(--theta-panel);
+            border: 1px solid var(--theta-border);
+            border-radius: 12px;
+            padding: 12px 14px;
+            color: var(--theta-text);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255,255,255,0.02);
+            border-radius: 18px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+        }
+
+        tr:hover {
+            background: rgba(255,255,255,0.02);
+        }
+
+        .pill, .badge, .chip, .tag, .status-tag {
+            border-radius: 999px;
+            padding: 6px 12px;
+            border: 1px solid rgba(255,255,255,0.15);
+            color: var(--theta-muted);
+            background: rgba(255,255,255,0.05);
+            font-size: 0.8rem;
+            letter-spacing: 0.05em;
+        }
+
+        footer {
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+    </style>
+</head>
+<body>
+    <a id="back-to-class" style="position:fixed;top:18px;left:18px;z-index:2000;text-decoration:none;" href="#">
+        <button style="background:#232323;color:#e3e4e6;border:none;padding:8px 18px;border-radius:8px;font-size:1em;box-shadow:0 2px 8px rgba(0,0,0,0.12);cursor:pointer;display:flex;align-items:center;gap:7px;">
+            <i class="fas fa-arrow-left"></i> Back to Class
+                </button>
+    </a>
+    <div id="app-container">
+            <div id="main-content">
+                <div class="greeting-area">
+                    <span class="greeting-asterisk">*</span>
+                    <h1 class="greeting-text">How can Theta help you today?</h1>
+                </div>
+                <div id="input-container">
+                <div id="attached-summaries" class="input-pill-container"></div>
+                <textarea id="user-input" placeholder="How can I help you today?"></textarea>
+                    <div id="input-controls">
+                        <div class="left-controls">
+                        <button class="attach-button" id="attach-summary-button" title="Attach Summary">
+                            <i class="fas fa-paperclip"></i>
+                        </button>
+                        <button class="attach-button" id="history-toggle" title="Chat History">
+                            <i class="fas fa-history"></i>
+                        </button>
+                        </div>
+                        <div class="right-controls">
+                        <button id="send-button" title="Send message"><i class="fas fa-arrow-right"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <div id="chat-box"></div>
+            <div id="voice-mode-ui" class="hidden">
+                <div class="voice-mode-header">
+                    <div class="voice-mode-title">How can Theta help you today?</div>
+                    <button id="close-voice-mode" aria-label="Close voice mode"><i class="fa-solid fa-times"></i></button>
+                </div>
+                <div id="particle-animation-container">
+                    <canvas id="particle-canvas"></canvas>
+                </div>
+                <div id="voice-controls">
+                    <button id="call-button" class="voice-control-button" aria-label="End call">
+                        <i class="fa-solid fa-phone" style="color: #ff3366;"></i>
+                    </button>
+                    <button id="mic-button" class="voice-control-button" aria-label="Toggle microphone">
+                        <i class="fa-solid fa-microphone"></i>
+                    </button>
+                </div>
+            </div>
+        <div id="chat-history" class="chat-history">
+            <h3 style="color: #e3e4e6; margin-top: 0;">Chat History</h3>
+            <div id="history-list"></div>
+                </div>
+        <div id="summary-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">Select Summary to Attach</h3>
+                    <button class="close-modal">Ãƒâ€”</button>
+            </div>
+                <div class="summary-list" id="summary-list"></div>
+    </div>
+        </div>
+    </div>
+    <!-- Add popup HTML -->
+    <div class="token-popup-overlay" id="token-popup-overlay"></div>
+    <div class="token-popup" id="token-popup">
+        <h3>Out of Tokens</h3>
+        <p>You have no tokens remaining. Would you like to purchase more tokens to continue using the chatbot?</p>
+        <button class="btn btn-primary" onclick="window.location.href='/buy'">Buy Tokens</button>
+        <button class="btn btn-secondary" onclick="closeTokenPopup()">Close</button>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const appContainer = document.getElementById('app-container');
+            const mainContent = document.getElementById('main-content');
+            const chatBox = document.getElementById('chat-box');
+            const userInput = document.getElementById('user-input');
+            const sendButton = document.getElementById('send-button');
+            const attachSummaryButton = document.getElementById('attach-summary-button');
+            const historyToggle = document.getElementById('history-toggle');
+            const chatHistory = document.getElementById('chat-history');
+            const summaryModal = document.getElementById('summary-modal');
+            const closeModal = document.querySelector('.close-modal');
+            const summaryList = document.getElementById('summary-list');
+            const historyList = document.getElementById('history-list');
+
+            let currentChatId = null;
+            let attachedSummaries = new Set();
+
+            // Load chat history
+            function loadChatHistory() {
+                const history = JSON.parse(localStorage.getItem('chatHistory') || '[]');
+                historyList.innerHTML = '';
+                history.sort((a, b) => b.date - a.date).forEach(chat => {
+                    const item = document.createElement('div');
+                    item.className = 'history-item';
+                    item.innerHTML = `
+                        <h4 class="history-title">${chat.title || 'Chat ' + new Date(chat.date).toLocaleString()}</h4>
+                        <div class="history-date">${new Date(chat.date).toLocaleString()}</div>
+                    `;
+                    item.onclick = () => loadChat(chat.id);
+                    historyList.appendChild(item);
+                });
+            }
+
+            // Load specific chat
+            function loadChat(chatId) {
+                const history = JSON.parse(localStorage.getItem('chatHistory') || '[]');
+                const chat = history.find(c => c.id === chatId);
+                if (chat) {
+                    currentChatId = chatId;
+                    chatBox.innerHTML = '';
+                    chat.messages.forEach(msg => {
+                        addMessage(msg.text, msg.type, false);
+                    });
+                    attachedSummaries = new Set(chat.attachedSummaries || []);
+                    updateAttachedSummaries();
+                    appContainer.classList.add('chat-active');
+                }
+            }
+
+            // Save chat
+            function saveChat() {
+                const messages = Array.from(chatBox.children).map(msg => ({
+                    text: msg.textContent,
+                    type: msg.classList.contains('user-message') ? 'user' : 'bot'
+                }));
+
+                const history = JSON.parse(localStorage.getItem('chatHistory') || '[]');
+                const chatIndex = history.findIndex(c => c.id === currentChatId);
+
+                const chatData = {
+                    id: currentChatId || Date.now().toString(),
+                    date: Date.now(),
+                    title: messages[0]?.text?.substring(0, 50) || 'New Chat',
+                    messages,
+                    attachedSummaries: Array.from(attachedSummaries)
+                };
+
+                if (chatIndex >= 0) {
+                    history[chatIndex] = chatData;
+                        } else {
+                    history.push(chatData);
+                }
+
+                localStorage.setItem('chatHistory', JSON.stringify(history));
+                currentChatId = chatData.id;
+                loadChatHistory();
+            }
+
+            // Load summaries
+            async function loadSummaries() {
+                try {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const classId = urlParams.get('class_id');
+                    if (!classId) {
+                        summaryList.innerHTML = '<div style="color:#ff4f4f;">No class selected. Please access chat from a class page.</div>';
+                        return;
+                    }
+                    summaryList.innerHTML = '<div style="text-align:center;color:#666;">Loading summaries...</div>';
+                    let endpoint = '/api/summaries?class_id=' + classId;
+                    const response = await fetch(endpoint);
+                    const data = await response.json();
+                    if (data.status === 'success') {
+                        summaryList.innerHTML = '';
+                        data.summaries.forEach(summary => {
+                            // Try to extract the title from the summary content
+                            let title = summary.title || '';
+                            if (!title && summary.preview) {
+                                const titleMatch = summary.preview.match(/Title:\s*(.*)/i);
+                                if (titleMatch) title = titleMatch[1].trim();
+                            }
+                            // Format the date as MM/DD/YY
+                            let dateStr = '';
+                            if (summary.date) {
+                                const d = new Date(summary.date);
+                                dateStr = `${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getDate().toString().padStart(2,'0')}/${d.getFullYear().toString().slice(-2)}`;
+                            }
+                            const item = document.createElement('div');
+                            item.className = 'summary-item';
+                            item.innerHTML = `
+                                <div class="summary-title" style="color:#fff;font-size:1.1em;font-weight:bold;">${title || 'Untitled Summary'}</div>
+                                <div class="summary-date" style="color:#8e9297;font-size:0.9em;margin-top:2px;">${dateStr}</div>
+                            `;
+                            item.onclick = () => attachSummary(summary.filename);
+                            summaryList.appendChild(item);
+                        });
+                                    } else {
+                        summaryList.innerHTML = '<div style="color:#ff4f4f;">Error loading summaries</div>';
+                    }
+                } catch (error) {
+                    console.error('Error loading summaries:', error);
+                    summaryList.innerHTML = '<div style="color:#ff4f4f;">Error loading summaries</div>';
+                }
+            }
+
+            // Attach summary
+            function attachSummary(filename) {
+                if (!attachedSummaries.has(filename)) {
+                    attachedSummaries.add(filename);
+                    updateAttachedSummaries();
+                    saveChat();
+                }
+                summaryModal.style.display = 'none';
+            }
+
+            // Update attached summaries display above the input area
+            function updateAttachedSummaries() {
+                const attachedList = document.getElementById('attached-summaries');
+                attachedList.innerHTML = '';
+                if (attachedSummaries.size > 0) {
+                    attachedSummaries.forEach(filename => {
+                        const pill = document.createElement('div');
+                        pill.className = 'input-pill';
+                        pill.innerHTML = `
+                            ${filename}
+                            <button class="remove-pill" data-filename="${filename}">Ãƒâ€”</button>
+                        `;
+                        pill.querySelector('.remove-pill').onclick = (e) => {
+                            e.stopPropagation();
+                            attachedSummaries.delete(filename);
+                            updateAttachedSummaries();
+                            saveChat();
+                        };
+                        attachedList.appendChild(pill);
+                    });
+                }
+            }
+
+            // Process content with Markdown and LaTeX
+            function processContent(rawContent) {
+                let content = rawContent;
+                
+                // First, protect existing LaTeX delimiters from being modified
+                const protectedBlocks = [];
+                let blockIndex = 0;
+                
+                // Protect existing $$ blocks
+                content = content.replace(/\$\$([^$]+)\$\$/g, (match, inner) => {
+                    const placeholder = `__PROTECTED_BLOCK_${blockIndex}__`;
+                    protectedBlocks[blockIndex] = match;
+                    blockIndex++;
+                    return placeholder;
+                });
+                
+                // Protect existing $ blocks
+                content = content.replace(/\$([^$]+)\$/g, (match, inner) => {
+                    const placeholder = `__PROTECTED_INLINE_${blockIndex}__`;
+                    protectedBlocks[blockIndex] = match;
+                    blockIndex++;
+                    return placeholder;
+                });
+                
+                // Enhanced math detection patterns
+                const mathPatterns = [
+                    // Common math functions and operators
+                    /[\\^_]|frac|sqrt|sin|cos|tan|log|exp|ln|arctan|arcsin|arccos/,
+                    // Greek letters
+                    /\\alpha|\\beta|\\gamma|\\delta|\\theta|\\pi|\\sigma|\\omega/,
+                    // Mathematical symbols
+                    /\\sum|\\int|\\prod|\\lim|\\infty|\\partial/,
+                    // Subscripts and superscripts with numbers
+                    /\w+\^\d+|\w+_\d+/,
+                    // Fractions and roots
+                    /\d+\/\d+|\\sqrt\{.*\}/,
+                    // Mathematical expressions with parentheses containing operators
+                    /\([^)]*[\+\-\*/\^][^)]*\)/
+                ];
+                
+                function isMathExpression(text) {
+                    // Remove spaces for better detection
+                    const cleanText = text.replace(/\s/g, '');
+                    
+                    // Check against all math patterns
+                    return mathPatterns.some(pattern => pattern.test(cleanText)) ||
+                        // Check for complex expressions with multiple operators
+                        (cleanText.match(/[\+\-\*/\^]/g) && cleanText.match(/[\+\-\*/\^]/g).length >= 2) ||
+                        // Check for expressions with parentheses and mathematical content
+                        (/\([^)]*[\d\w][\+\-\*/\^][\d\w][^)]*\)/.test(cleanText)) ||
+                        // Check for coordinate pairs like (-3, 4)
+                        (/\(-?\d+,\s*-?\d+\)/.test(cleanText) && /coordinate|point|vertex/.test(rawContent.toLowerCase()));
+                }
+                
+                // Convert double parentheses ((...)) to $$ for display math
+                content = content.replace(/\(\(([^)]+)\)\)/g, (match, inner) => {
+                    if (isMathExpression(inner)) {
+                        return '$$' + inner + '$$';
+                    }
+                    return match;
+                });
+                
+                // Convert single parentheses (...) to $ for inline math, but be more careful
+                content = content.replace(/\(([^)]+)\)/g, (match, inner) => {
+                    // Skip if it's clearly not math (like coordinate points in regular text)
+                    if (inner.match(/^-?\d+,\s*-?\d+$/) && !isMathExpression(rawContent)) {
+                        return match;
+                    }
+                    
+                    // Skip if it's a simple phrase or word
+                    if (inner.split(/\s+/).length > 3 && !isMathExpression(inner)) {
+                        return match;
+                    }
+                    
+                    if (isMathExpression(inner)) {
+                        return '$' + inner + '$';
+                    }
+                    return match;
+                });
+                
+                // Handle specific mathematical expressions that might be missed
+                // Convert expressions like "x = 1" to math mode when in mathematical context
+                content = content.replace(/\b([a-zA-Z])\s*=\s*([-+]?\d+(?:\.\d+)?)\b/g, (match, variable, value) => {
+                    // Only convert if it's clearly in a mathematical context
+                    if (/formula|equation|calculate|solve|find|vertex|coordinate/.test(rawContent.toLowerCase())) {
+                        return '$' + match + '$';
+                    }
+                    return match;
+                });
+                
+                // Convert expressions like "y = 3x^2 - 6x + 1" to math mode
+                content = content.replace(/\b([a-zA-Z])\s*=\s*([^.!?]+?)(?=\.|$|\s+[A-Z])/g, (match, variable, expression) => {
+                    if (isMathExpression(expression) && expression.length < 50) {
+                        return '$' + match.trim() + '$';
+                    }
+                    return match;
+                });
+                
+                // Handle square root expressions
+                content = content.replace(/\\sqrt\{([^}]+)\}/g, '\\sqrt{$1}');
+                content = content.replace(/sqrt\(([^)]+)\)/g, '\\sqrt{$1}');
+                
+                // Handle fractions
+                content = content.replace(/(\d+)\/(\d+)/g, '\\frac{$1}{$2}');
+                
+                // Restore protected blocks
+                for (let i = 0; i < protectedBlocks.length; i++) {
+                    content = content.replace(`__PROTECTED_BLOCK_${i}__`, protectedBlocks[i]);
+                    content = content.replace(`__PROTECTED_INLINE_${i}__`, protectedBlocks[i]);
+                }
+                
+                // Process with marked for markdown
+                return marked.parse(content);
+            }
+
+            // Also add this enhanced KaTeX rendering function
+            function renderMathEnhanced(element) {
+                // Use KaTeX auto-render with more comprehensive delimiters
+                if (typeof renderMathInElement !== 'undefined') {
+                    renderMathInElement(element, {
+                                                delimiters: [
+                            {left: '$$', right: '$$', display: true},
+                            {left: '$', right: '$', display: false},
+                            {left: '\\(', right: '\\)', display: false},
+                            {left: '\\[', right: '\\]', display: true}
+                        ],
+                        throwOnError: false,
+                        errorColor: '#cc0000',
+                        strict: 'warn'
+                    });
+                }
+            }
+
+            function addMessage(text, type, scroll = true, attached = []) {
+                const messageDiv = document.createElement('div');
+                if (type === 'bot') {
+                    messageDiv.className = 'message bot-message markdown-body';
+                    messageDiv.innerHTML = processContent(text);
+                } else if (type === 'user') {
+                    messageDiv.className = 'message user-message';
+                    if (attached.length > 0) {
+                        messageDiv.innerHTML = `${processContent(text)} [${attached.join(', ')}]`;
+                    } else {
+                        messageDiv.innerHTML = processContent(text);
+                    }
+                } else {
+                    messageDiv.className = 'message';
+                    messageDiv.textContent = text;
+                }
+                chatBox.appendChild(messageDiv);
+                if (scroll) chatBox.scrollTop = chatBox.scrollHeight;
+                if (!appContainer.classList.contains('chat-active')) {
+                    appContainer.classList.add('chat-active');
+                    chatBox.style.display = 'block';
+                }
+                
+                // Use the enhanced math rendering
+                renderMathEnhanced(messageDiv);
+            }
+
+            // Typing indicator logic
+            function showTypingIndicator() {
+                let indicator = document.getElementById('typing-indicator');
+                if (!indicator) {
+                    indicator = document.createElement('div');
+                    indicator.className = 'typing-indicator';
+                    indicator.id = 'typing-indicator';
+                    indicator.innerHTML = '<div class="bubble"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>';
+                    chatBox.appendChild(indicator);
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                }
+            }
+
+            function hideTypingIndicator() {
+                const indicator = document.getElementById('typing-indicator');
+                if (indicator) indicator.remove();
+            }
+
+            // Add popup functions
+            function showTokenPopup() {
+                document.getElementById('token-popup').style.display = 'block';
+                document.getElementById('token-popup-overlay').style.display = 'block';
+            }
+
+            function closeTokenPopup() {
+                document.getElementById('token-popup').style.display = 'none';
+                document.getElementById('token-popup-overlay').style.display = 'none';
+            }
+
+            // Modify the sendMessage function to handle token errors
+            async function sendMessage() {
+                const message = userInput.value.trim();
+                if (!message) return;
+
+                addMessage(message, 'user', true, Array.from(attachedSummaries));
+                userInput.value = '';
+                userInput.style.height = 'auto';
+
+                appContainer.classList.add('chat-active');
+                chatBox.style.display = 'block';
+
+                showTypingIndicator();
+                try {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const classId = urlParams.get('class_id');
+                    const response = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message, attachedSummaries: Array.from(attachedSummaries), class_id: classId })
+                    });
+
+                    const data = await response.json();
+                    hideTypingIndicator();
+                    if (data.status === 'success') {
+                        addMessage(data.response, 'bot');
+                        saveChat();
+                                    } else {
+                        if (data.show_popup) {
+                            showTokenPopup();
+                        }
+                        addMessage('Sorry, I encountered an error. Please try again.', 'bot');
+                    }
+                } catch (error) {
+                    hideTypingIndicator();
+                    console.error('Error:', error);
+                    addMessage('Sorry, I encountered an error. Please try again.', 'bot');
+                }
+            }
+
+            // Event Listeners for Buttons
+            sendButton.addEventListener('click', sendMessage);
+            userInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                    sendMessage();
+                }
+            });
+            attachSummaryButton.addEventListener('click', () => {
+                loadSummaries();
+                summaryModal.style.display = 'block';
+            });
+            historyToggle.addEventListener('click', () => {
+                chatHistory.classList.toggle('active');
+                appContainer.classList.toggle('history-active');
+            });
+            closeModal.addEventListener('click', () => {
+                summaryModal.style.display = 'none';
+            });
+
+            // Load initial chat history
+            loadChatHistory();
+
+            // Set back button href dynamically for static and Flask
+            var urlParams = new URLSearchParams(window.location.search);
+            var classId = urlParams.get('class_id');
+            var backBtn = document.getElementById('back-to-class');
+            if (classId) {
+                backBtn.href = '/classes/' + classId;
+            } else {
+                backBtn.href = '/classes';
+            }
+        });
+    </script>
+</body>
+</html> 
+

@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Record Class Audio - ThetaSummary</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #030203;
+            --bg-alt: #0b0b12;
+            --card: rgba(14, 14, 22, 0.85);
+            --panel: rgba(18, 18, 28, 0.9);
+            --text: #f6f4ff;
+            --muted: #9aa0ae;
+            --accent: #c084fc;
+            --accent-strong: #a855f7;
+            --border: rgba(255,255,255,0.08);
+            --error: #f87171;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: radial-gradient(circle at 20% 20%, rgba(124,58,237,0.25), transparent 45%), radial-gradient(circle at 80% 0%, rgba(59,130,246,0.18), transparent 50%), var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .theta-shell {
+            width: min(1200px, 92%);
+            margin: 0 auto;
+        }
+
+        .theta-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 20;
+            padding: 18px 0;
+        }
+
+        .header-inner {
+            width: min(1260px, 95%);
+            margin: 0 auto;
+            padding: 12px 28px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(8,8,12,0.9);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(24px);
+        }
+
+        .logo {
+            font-weight: 700;
+            font-size: 1.35rem;
+            letter-spacing: 0.04em;
+        }
+
+        .theta-nav {
+            display: flex;
+            gap: 24px;
+            font-size: 0.95rem;
+        }
+
+        .theta-nav a {
+            color: var(--muted);
+            transition: color 0.2s ease;
+        }
+
+        .theta-nav a.active,
+        .theta-nav a:hover {
+            color: var(--text);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .pill {
+            padding: 6px 14px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+
+        .avatar-button {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: linear-gradient(135deg, rgba(192,132,252,0.2), rgba(59,130,246,0.25));
+            color: var(--text);
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mobile-menu-button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: rgba(255,255,255,0.03);
+            color: var(--text);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .mobile-menu {
+            position: fixed;
+            inset: 0;
+            background: rgba(5,5,9,0.95);
+            z-index: 30;
+            padding: 24px;
+            gap: 16px;
+            flex-direction: column;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            display: flex;
+        }
+
+        .mobile-menu.active {
+            transform: translateX(0);
+        }
+
+        .close-mobile-menu {
+            align-self: flex-end;
+            font-size: 2rem;
+            background: none;
+            border: none;
+            color: var(--text);
+        }
+
+        .mobile-menu a {
+            font-size: 1.1rem;
+            color: var(--muted);
+        }
+
+        .mobile-menu a:hover {
+            color: var(--text);
+        }
+
+        .theta-main {
+            padding: 140px 0 100px;
+        }
+
+        .surface {
+            border-radius: 22px;
+            border: 1px solid var(--border);
+            background: var(--card);
+            box-shadow: 0 25px 60px rgba(0,0,0,0.35);
+        }
+
+        .page-hero {
+            display: grid;
+            grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+            gap: 28px;
+            padding: 32px;
+            margin-bottom: 32px;
+        }
+
+        .eyebrow {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: var(--muted);
+            margin-bottom: 12px;
+        }
+
+        .page-hero h1 {
+            font-size: clamp(2rem, 4vw, 2.8rem);
+            margin: 0 0 10px 0;
+        }
+
+        .hero-actions {
+            margin-top: 22px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            border-radius: 999px;
+            padding: 10px 20px;
+            border: 1px solid transparent;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+            color: #080808;
+            box-shadow: 0 12px 30px rgba(124,58,237,0.25);
+        }
+
+        .btn-ghost {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: #fff;
+        }
+
+        .recording-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            gap: 24px;
+        }
+
+        .recording-panel {
+            padding: 28px;
+        }
+        .audio-visualizer {
+            width: 100%;
+            height: 180px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 18px;
+            border: 1px solid rgba(255,255,255,0.08);
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .canvas-container {
+            width: 100%;
+            height: 100%;
+        }
+
+        #visualizer {
+            width: 100%;
+            height: 100%;
+        }
+
+        .recording-timer {
+            position: absolute;
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .recording-status {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            background: rgba(0,0,0,0.45);
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.95rem;
+            margin-bottom: 16px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .status-dot.idle { background: #94a3b8; }
+        .status-dot.recording { background: #f87171; animation: pulse 1.5s infinite; }
+        .status-dot.processing { background: #facc15; animation: pulse 1.5s infinite; }
+        .status-dot.success { background: #34d399; }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .recording-controls {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .error-message {
+            margin-top: 18px;
+            padding: 14px 18px;
+            border-radius: 12px;
+            border: 1px solid rgba(248,113,113,0.4);
+            color: #fecaca;
+            background: rgba(248,113,113,0.08);
+        }
+
+        .loading {
+            margin: 32px auto;
+            display: flex;
+            justify-content: center;
+        }
+
+        .spinner {
+            border: 8px solid rgba(255,255,255,0.08);
+            border-top: 8px solid rgba(255,255,255,0.4);
+            border-radius: 50%;
+            width: 56px;
+            height: 56px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results-section {
+            margin-top: 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .result-card {
+            border-radius: 22px;
+            border: 1px solid var(--border);
+            background: var(--panel);
+            padding: 28px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .card-title {
+            margin: 0;
+            font-size: 1.4rem;
+        }
+
+        .header-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .download-btn,
+        .back-btn {
+            border-radius: 999px;
+            padding: 8px 16px;
+            border: 1px solid var(--border);
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .card-content {
+            max-height: 420px;
+            overflow-y: auto;
+            margin-top: 16px;
+            white-space: pre-wrap;
+        }
+
+        #summary-content .katex-display {
+            margin: 1rem 0;
+            text-align: left;
+        }
+
+        #summary-content .katex {
+            font-size: 1.05rem;
+        }
+
+        footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+
+        .user-dropdown {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 16px;
+            min-width: 220px;
+            box-shadow: 0 18px 40px rgba(0,0,0,0.45);
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(-6px);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        .user-dropdown.open {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+
+        .user-dropdown a {
+            display: block;
+            padding: 8px 0;
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        .user-dropdown a:hover {
+            color: var(--text);
+        }
+
+        @media (max-width: 1024px) {
+            .page-hero,
+            .recording-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .theta-nav {
+                display: none;
+            }
+
+            .mobile-menu-button {
+                display: inline-flex;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .surface {
+                padding: 22px;
+            }
+
+            .recording-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css" crossorigin="anonymous">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div class="mobile-menu" id="mobile-menu">
+        <button class="close-mobile-menu" id="close-mobile-menu" aria-label="Close navigation">&times;</button>
+        <a href="{{ url_for('dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('recordings') }}">Recordings</a>
+        <a href="{{ url_for('summaries') }}">Summaries</a>
+        <a href="{{ url_for('chat') }}">Chat</a>
+        <a href="{{ url_for('logout') }}">Logout</a>
+    </div>
+
+    <header class="theta-header">
+        <div class="header-inner">
+            <a href="{{ url_for('index') }}" class="logo">ThetaSummary</a>
+            <nav class="theta-nav">
+                <a href="{{ url_for('dashboard') }}">Dashboard</a>
+                <a href="{{ url_for('recordings') }}" class="active">Recordings</a>
+                <a href="{{ url_for('summaries') }}">Summaries</a>
+                <a href="{{ url_for('chat') }}">Chat</a>
+            </nav>
+            <div class="header-actions">
+                <span class="pill">{{ user_role|title }}</span>
+                <div style="position: relative;">
+                    <button class="avatar-button" id="user-menu-trigger">{{ username[0].upper() }}</button>
+                    <div class="user-dropdown" id="userDropdown">
+                        <div style="font-size:0.85rem;color:var(--muted);">Signed in as</div>
+                        <div style="font-weight:600;">{{ username }}</div>
+                        <a href="{{ url_for('settings') }}">Workspace settings</a>
+                        <a href="{{ url_for('logout') }}">Log out</a>
+                    </div>
+                </div>
+                <button class="mobile-menu-button" id="mobile-menu-button" aria-label="Open navigation">&#9776;</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="theta-shell theta-main">
+        <section class="surface page-hero">
+            <div>
+                <p class="eyebrow">Live capture</p>
+                <h1>Record a class and let Theta craft the recap.</h1>
+                <p>Stream the waveform in real time, transcribe instantly, and publish structured summaries without ever leaving this workspace.</p>
+                <div class="hero-actions">
+                    <a href="{{ url_for('summaries') }}" class="btn btn-ghost">View library</a>
+                    <a href="{{ url_for('recordings') }}" class="btn btn-primary">Reset capture</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="recording-grid">
+            <article class="surface recording-panel">
+                <div class="audio-visualizer">
+                    <div class="canvas-container">
+                        <canvas id="visualizer"></canvas>
+                    </div>
+                    <div class="recording-timer" id="timer">00:00</div>
+                    <div class="recording-status" id="recording-status"></div>
+                </div>
+                <div class="status-indicator">
+                    <div class="status-dot idle" id="status-dot"></div>
+                    <span id="status-text">Ready to record</span>
+                </div>
+                <div class="recording-controls">
+                    <button id="record-btn" class="btn btn-primary">Start recording</button>
+                    <button id="stop-btn" class="btn btn-danger" disabled>Stop recording</button>
+                </div>
+                <div id="error-message" class="error-message hidden"></div>
+            </article>
+
+        </section>
+
+        <div id="loading" class="loading hidden">
+            <div class="spinner"></div>
+        </div>
+
+        <section id="results-section" class="results-section hidden">
+            <div id="summary-section" class="result-card hidden">
+                <div class="card-header">
+                    <h2 class="card-title">Summary</h2>
+                    <div class="header-actions">
+                        <a id="download-summary" class="download-btn" href="#" download>Download</a>
+                        <a href="/classes/{{ class_id }}" class="back-btn">Back to class</a>
+                    </div>
+                </div>
+                <div id="summary-content" class="card-content"></div>
+            </div>
+        </section>
+
+        <div id="transcript-content" class="card-content" style="display:none;"></div>
+        <div id="subject-content" class="card-content" style="display:none;"></div>
+        <a id="download-transcript" style="display:none;"></a>
+
+        <footer>&copy; 2025 ThetaSummary. All rights reserved.</footer>
+    </main>
+
+<script>
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                const mobileMenuButton = document.getElementById('mobile-menu-button');
+                const closeMobileMenu = document.getElementById('close-mobile-menu');
+                const mobileMenu = document.getElementById('mobile-menu');
+                const userTrigger = document.getElementById('user-menu-trigger');
+                const userDropdown = document.getElementById('userDropdown');
+
+                if (mobileMenuButton && mobileMenu) {
+                    mobileMenuButton.addEventListener('click', () => mobileMenu.classList.add('active'));
+                }
+
+                if (closeMobileMenu && mobileMenu) {
+                    closeMobileMenu.addEventListener('click', () => mobileMenu.classList.remove('active'));
+                    mobileMenu.querySelectorAll('a').forEach(link => {
+                        link.addEventListener('click', () => mobileMenu.classList.remove('active'));
+                    });
+                }
+
+                if (userTrigger && userDropdown) {
+                    userTrigger.addEventListener('click', (event) => {
+                        event.stopPropagation();
+                        userDropdown.classList.toggle('open');
+                    });
+                    document.addEventListener('click', (event) => {
+                        if (!userDropdown.contains(event.target) && event.target !== userTrigger) {
+                            userDropdown.classList.remove('open');
+                        }
+                    });
+                }
+
+                // Recording elements
+                const recordBtn = document.getElementById('record-btn');
+                const stopBtn = document.getElementById('stop-btn');
+                const timerEl = document.getElementById('timer');
+                const statusDot = document.getElementById('status-dot');
+                const statusText = document.getElementById('status-text');
+                const recordingStatus = document.getElementById('recording-status');
+                const resultsSection = document.getElementById('results-section');
+                const loadingSection = document.getElementById('loading');
+                const transcriptContent = document.getElementById('transcript-content');
+                const summaryContent = document.getElementById('summary-content');
+                const subjectContent = document.getElementById('subject-content');
+                const downloadTranscript = document.getElementById('download-transcript');
+                const downloadSummary = document.getElementById('download-summary');
+                const errorMessage = document.getElementById('error-message');
+                const visualizer = document.getElementById('visualizer');
+
+                let mediaRecorder;
+                let audioChunks = [];
+                let recordingTimer;
+                let seconds = 0;
+                let isRecording = false;
+                let audioContext;
+                let analyser;
+                let canvasContext = visualizer.getContext('2d');
+                let dataArray;
+                let animationId;
+
+                // Set canvas size
+                visualizer.width = visualizer.offsetWidth;
+                visualizer.height = visualizer.offsetHeight;
+
+                // Check secure context
+                if (!window.isSecureContext) {
+                    showError('Audio recording requires a secure connection (HTTPS). Please ensure you are using HTTPS or contact your administrator.');
+                    recordBtn.disabled = true;
+                    stopBtn.disabled = true;
+                    console.error('Not in secure context. Current protocol:', window.location.protocol);
+                }
+
+                // Update timer function
+                function updateTimer() {
+                    seconds++;
+                    const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+                    const secs = (seconds % 60).toString().padStart(2, '0');
+                    timerEl.textContent = `${mins}:${secs}`;
+                }
+
+                // On page load, get class_id from query string
+                let urlParams = new URLSearchParams(window.location.search);
+                let classId = urlParams.get('class_id');
+                if (!classId) {
+                    showError('No class selected. Please access recording from a class details page.');
+                    recordBtn.disabled = true;
+                    stopBtn.disabled = true;
+                } else {
+                    recordBtn.disabled = false;
+                    stopBtn.disabled = true;
+                }
+
+                // Start recording
+                recordBtn.addEventListener('click', async function() {
+                    console.log('Record button clicked');
+                    try {
+                        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                            showError('Your browser does not support audio recording.');
+                            return;
+                        }
+
+                        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                        if (!audioContext) {
+                            throw new Error('AudioContext not supported');
+                        }
+
+                        analyser = audioContext.createAnalyser();
+                        const source = audioContext.createMediaStreamSource(stream);
+                        source.connect(analyser);
+                        analyser.fftSize = 256;
+                        const bufferLength = analyser.frequencyBinCount;
+                        dataArray = new Uint8Array(bufferLength);
+
+                        mediaRecorder = new MediaRecorder(stream);
+                        audioChunks = [];
+
+                        mediaRecorder.addEventListener('dataavailable', e => {
+                            audioChunks.push(e.data);
+                        });
+
+                        mediaRecorder.addEventListener('stop', function() {
+                            cancelAnimationFrame(animationId);
+                            statusDot.className = 'status-dot processing';
+                            statusText.textContent = 'Processing audio...';
+                            recordingStatus.textContent = '';
+                            recordingStatus.className = 'recording-status';
+                            isRecording = false;
+                            clearInterval(recordingTimer);
+                            loadingSection.classList.remove('hidden');
+                            processRecording();
+                        });
+
+                        mediaRecorder.start();
+                        isRecording = true;
+                        recordBtn.disabled = true;
+                        stopBtn.disabled = false;
+                        statusDot.className = 'status-dot recording';
+                        statusText.textContent = 'Recording...';
+                        recordingStatus.textContent = 'REC';
+                        recordingStatus.className = 'recording-status status-recording';
+                        seconds = 0;
+                        updateTimer();
+                        recordingTimer = setInterval(updateTimer, 1000);
+                        drawVisualizer();
+                    } catch (err) {
+                        console.error('Error accessing microphone or AudioContext:', err);
+                        showError('Could not initialize audio recording. Ensure microphone access and browser compatibility.');
+                    }
+                });
+
+                // Visualizer function
+                function drawVisualizer() {
+                    analyser.getByteFrequencyData(dataArray);
+                    canvasContext.fillStyle = '#242424';
+                    canvasContext.fillRect(0, 0, visualizer.width, visualizer.height);
+                    const barWidth = (visualizer.width / dataArray.length) * 2.5;
+                    let barHeight;
+                    let x = 0;
+
+                    for (let i = 0; i < dataArray.length; i++) {
+                        barHeight = dataArray[i] / 2;
+                        const gradient = canvasContext.createLinearGradient(0, 0, 0, visualizer.height);
+                        gradient.addColorStop(0, '#ffffff');
+                        gradient.addColorStop(1, '#555555');
+                        canvasContext.fillStyle = gradient;
+                        canvasContext.fillRect(x, visualizer.height - barHeight, barWidth, barHeight);
+                        x += barWidth + 1;
+                    }
+
+                    animationId = requestAnimationFrame(drawVisualizer);
+                }
+
+                // Stop recording
+                stopBtn.addEventListener('click', function() {
+                    if (mediaRecorder && isRecording) {
+                        mediaRecorder.stop();
+                        recordBtn.disabled = false;
+                        stopBtn.disabled = true;
+                    }
+                });
+
+                // --- Persistent Background Summarization ---
+                // Helper to save and load ongoing tasks
+                function saveOngoingTask(taskId, meta) {
+                    let tasks = JSON.parse(localStorage.getItem('ongoingSummarizeTasks') || '{}');
+                    tasks[taskId] = meta;
+                    localStorage.setItem('ongoingSummarizeTasks', JSON.stringify(tasks));
+                }
+                function removeOngoingTask(taskId) {
+                    let tasks = JSON.parse(localStorage.getItem('ongoingSummarizeTasks') || '{}');
+                    delete tasks[taskId];
+                    localStorage.setItem('ongoingSummarizeTasks', JSON.stringify(tasks));
+                }
+                function getOngoingTasks() {
+                    return JSON.parse(localStorage.getItem('ongoingSummarizeTasks') || '{}');
+                }
+
+                // On page load, poll for any ongoing tasks
+                document.addEventListener('DOMContentLoaded', function() {
+                    const tasks = getOngoingTasks();
+                    Object.entries(tasks).forEach(([taskId, meta]) => {
+                        pollSummarizeTask(taskId, meta);
+                    });
+                });
+
+                // Polling function for a summarize task
+                function pollSummarizeTask(taskId, meta) {
+                    let loadingCard = document.getElementById('loading-card-' + taskId);
+                    if (!loadingCard) {
+                        loadingCard = document.createElement('div');
+                        loadingCard.className = 'result-card';
+                        loadingCard.id = 'loading-card-' + taskId;
+                        loadingCard.innerHTML = `
+                            <div id="loading-spinner" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 0;">
+                                <div class="loading-spinner" style="margin-bottom:18px;"></div>
+                                <p style="color:#a0a0a0;font-size:1.1rem;text-align:center;">Summary is being processed. This may take a few minutes. You can leave this page and come back later.</p>
+                            </div>
+                        `;
+                        resultsSection.insertBefore(loadingCard, resultsSection.firstChild);
+                        resultsSection.classList.remove('hidden');
+                    }
+                    const pollInterval = setInterval(async () => {
+                        try {
+                            const statusResponse = await fetch(`/api/summarize/status/${taskId}`);
+                            const statusData = await statusResponse.json();
+                            if (statusData.status === 'success') {
+                                clearInterval(pollInterval);
+                                removeOngoingTask(taskId);
+                                loadingCard.remove();
+                                // Show the summary card as usual
+                                const newSummarySection = document.createElement('div');
+                                newSummarySection.className = 'result-card';
+                                newSummarySection.innerHTML = document.getElementById('summary-section').innerHTML;
+                                resultsSection.insertBefore(newSummarySection, resultsSection.firstChild);
+                                const newSummaryContent = newSummarySection.querySelector('#summary-content');
+                                newSummaryContent.innerHTML = formatSummary(statusData.result.summary);
+                                const newDownloadSummary = newSummarySection.querySelector('#download-summary');
+                                newDownloadSummary.href = `/download/${statusData.result.summary_filename}`;
+                                newDownloadSummary.download = statusData.result.summary_filename;
+                                // Render LaTeX in the new summary
+                                if (window.renderMathInElement) {
+                                    renderMathInElement(newSummaryContent, {
+                                        delimiters: [
+                                            {left: "$$", right: "$$", display: true},
+                                            {left: "$", right: "$", display: false},
+                                            {left: "\\(", right: "\\)", display: false},
+                                            {left: "\\[", right: "\\]", display: true}
+                                        ]
+                                    });
+                                }
+                            } else if (statusData.status === 'failed') {
+                                clearInterval(pollInterval);
+                                removeOngoingTask(taskId);
+                                loadingCard.querySelector('.card-content').textContent = 'Summary failed: ' + (statusData.message || 'Unknown error');
+                            }
+                        } catch (err) {
+                            clearInterval(pollInterval);
+                            removeOngoingTask(taskId);
+                            loadingCard.querySelector('.card-content').textContent = 'Error checking summary status: ' + err.message;
+                        }
+                    }, 2000);
+                }
+
+                // --- Modify processRecording to save task_id ---
+                async function processRecording() {
+                    try {
+                        if (!audioChunks || audioChunks.length === 0) {
+                            throw new Error('No audio data recorded');
+                        }
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                        const reader = new FileReader();
+                        reader.onload = async function() {
+                            try {
+                            const base64AudioDataUrl = reader.result;
+                                if (!base64AudioDataUrl || typeof base64AudioDataUrl !== 'string') {
+                                    throw new Error('Failed to read audio data');
+                                }
+                            const base64Audio = base64AudioDataUrl.split(',')[1];
+                                if (!base64Audio) {
+                                    throw new Error('Invalid audio data format');
+                                }
+                                const newSummarySection = document.createElement('div');
+                                newSummarySection.className = 'result-card hidden';
+                                newSummarySection.innerHTML = document.getElementById('summary-section').innerHTML;
+                                resultsSection.insertBefore(newSummarySection, resultsSection.firstChild);
+                                resultsSection.classList.remove('hidden');
+                            statusText.textContent = 'Uploading and transcribing audio...';
+                            try {
+                                const transcribeResponse = await fetch('/api/transcribe', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify({
+                                        audio_base64: base64Audio,
+                                            mime_type: audioBlob.type,
+                                            class_id: classId
+                                    }),
+                                });
+                                    if (!transcribeResponse.ok) {
+                                        const errorText = await transcribeResponse.text();
+                                        throw new Error(`Server responded with ${transcribeResponse.status}: ${errorText}`);
+                                    }
+                                const transcribeData = await transcribeResponse.json();
+                                if (transcribeData.status === 'success') {
+                                    loadingSection.classList.add('hidden');
+                                    statusDot.className = 'status-dot success';
+                                    statusText.textContent = 'Transcription complete';
+                                        // Create and show transcript card immediately
+                                        const transcriptCard = document.createElement('div');
+                                    transcriptCard.className = `result-card transcript-card`;
+                                        transcriptCard.innerHTML = `
+                                            <div class="card-header">
+                                                <h2 class="card-title">Transcript</h2>
+                                                <div class="header-actions">
+                                                    <a href="/classes/{{ class_id }}" class="back-btn">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                                            <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+                                                        </svg>
+                                                        Back to Class
+                                                    </a>
+                                                </div>
+                                            </div>
+                                            <div class="card-content">${transcribeData.transcript}</div>
+                                        `;
+                                        newSummarySection.insertAdjacentElement('afterend', transcriptCard);
+                                    try {
+                                        const summarizeResponse = await fetch('/api/summarize', {
+                                            method: 'POST',
+                                            headers: {
+                                                'Content-Type': 'application/json',
+                                            },
+                                            body: JSON.stringify({
+                                                transcript: transcribeData.transcript,
+                                                timestamp: transcribeData.timestamp,
+                                                class_id: classId
+                                            }),
+                                        });
+                                            let summarizeData;
+                                            const contentType = summarizeResponse.headers.get('content-type');
+                                            if (contentType && contentType.includes('application/json')) {
+                                                summarizeData = await summarizeResponse.json();
+                                            } else {
+                                                const text = await summarizeResponse.text();
+                                                throw new Error('Server did not return JSON: ' + text);
+                                            }
+                                        if (summarizeData.status === 'success') {
+                                                const taskId = summarizeData.task_id;
+                                                // Save to localStorage for persistence
+                                                saveOngoingTask(taskId, { started: Date.now() });
+                                                // Redirect to class view page with task_id
+                                                if (taskId) {
+                                                    saveOngoingTask(taskId, { started: Date.now() });
+                                                    pollSummarizeTask(taskId, { started: Date.now() });
+                                                }
+                                        } else {
+                                            loadingSection.classList.add('hidden');
+                                            showError(summarizeData.message || 'Unknown error occurred during summarization');
+                                            statusDot.className = 'status-dot idle';
+                                            statusText.textContent = 'Error generating summary';
+                                        }
+                                    } catch (err) {
+                                        loadingSection.classList.add('hidden');
+                                        showError("Server error: " + (err.message || "Failed to generate summary"));
+                                        statusDot.className = 'status-dot idle';
+                                        statusText.textContent = 'Error generating summary';
+                                    }
+                                } else {
+                                    loadingSection.classList.add('hidden');
+                                    showError(transcribeData.message || 'Unknown error occurred during transcription');
+                                    statusDot.className = 'status-dot idle';
+                                    statusText.textContent = 'Error transcribing audio';
+                                }
+                            } catch (err) {
+                                loadingSection.classList.add('hidden');
+                                showError("Server error: " + (err.message || "Failed to process audio"));
+                                statusDot.className = 'status-dot idle';
+                                statusText.textContent = 'Error processing audio';
+                                console.error("Error communicating with server:", err);
+                            }
+                            } catch (err) {
+                                console.error("Error processing recording:", err);
+                                loadingSection.classList.add('hidden');
+                                showError("Failed to process recording. Please try again.");
+                                statusDot.className = 'status-dot idle';
+                                statusText.textContent = 'Error processing audio';
+                            }
+                        };
+                        reader.readAsDataURL(audioBlob);
+                    } catch (err) {
+                        console.error("Error processing recording:", err);
+                        loadingSection.classList.add('hidden');
+                        showError("Failed to process recording. Please try again.");
+                        statusDot.className = 'status-dot idle';
+                        statusText.textContent = 'Error processing audio';
+                    }
+                }
+
+                // Format summary for LaTeX content and markdown-like syntax
+                function formatSummary(summary) {
+                    // Split summary into LaTeX and non-LaTeX segments
+                    const latexRegex = /(\$\$[\s\S]*?\$\$|\$[^$]+\$|\\\([\s\S]*?\\\)|\\\[[\s\S]*?\\\])/g;
+                    let parts = [];
+                    let lastIndex = 0;
+                    let match;
+                    while ((match = latexRegex.exec(summary)) !== null) {
+                        if (match.index > lastIndex) {
+                            parts.push({text: summary.slice(lastIndex, match.index), isLatex: false});
+                        }
+                        parts.push({text: match[0], isLatex: true});
+                        lastIndex = latexRegex.lastIndex;
+                    }
+                    if (lastIndex < summary.length) {
+                        parts.push({text: summary.slice(lastIndex), isLatex: false});
+                    }
+                    // Markdown-like formatting for non-LaTeX parts
+                    function mdFormat(text) {
+                        // Replace lines with only --- or -- with a few spaces
+                        text = text.replace(/^\s*---+\s*$/gm, '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;');
+                        text = text.replace(/^\s*--\s*$/gm, '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;');
+                        text = text.replace(/^### (.*)$/gm, '<h3>$1</h3>');
+                        text = text.replace(/^## (.*)$/gm, '<h2>$1</h2>');
+                        text = text.replace(/^# (.*)$/gm, '<h1>$1</h1>');
+                        text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+                        text = text.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+                        // LaTeX section/subsection
+                        text = text.replace(/\\section\{([^}]+)\}/g, '<h2>$1</h2>');
+                        text = text.replace(/\\subsection\{([^}]+)\}/g, '<h3>$1</h3>');
+                        // LaTeX environments
+                        text = text.replace(/\\begin\{document\}/g, '');
+                        text = text.replace(/\\end\{document\}/g, '');
+                        text = text.replace(/\\begin\{itemize\}/g, '<div class="itemize">');
+                        text = text.replace(/\\end\{itemize\}/g, '</div>');
+                        text = text.replace(/\\item/g, '<div class="item">');
+                        text = text.replace(/\\textbf\{([^}]+)\}/g, '<strong>$1</strong>');
+                        text = text.replace(/\\emph\{([^}]+)\}/g, '<em>$1</em>');
+                        text = text.replace(/\n\n/g, '<br><br>');
+                        return text;
+                    }
+                    return parts.map(part => part.isLatex ? part.text : mdFormat(part.text)).join('');
+                }
+
+                // Show error message
+                function showError(message) {
+                    errorMessage.textContent = message;
+                    errorMessage.classList.remove('hidden');
+                    setTimeout(() => {
+                        errorMessage.classList.add('hidden');
+                    }, 10000);
+                }
+
+                // Adjust canvas size on window resize
+                window.addEventListener('resize', function() {
+                    visualizer.width = visualizer.offsetWidth;
+                    visualizer.height = visualizer.offsetHeight;
+                });
+
+            } catch (err) {
+                console.error('Error in DOMContentLoaded:', err);
+                showError('An error occurred while initializing the page. Check the console for details.');
+            }
+        });
+    </script>
+</body>
+</html> 
+

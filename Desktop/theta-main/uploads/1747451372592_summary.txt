@@ -1,0 +1,99 @@
+```latex
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\begin{document}
+
+\section{Key Formulas and Their Use Cases}
+\subsection{Sinusoidal Function for Periodic Motion}
+\[ H(t) = A\cos\left(\frac{2\pi}{P}(t - h)\right) + K \]
+\begin{itemize}
+    \item \textbf{Components}: 
+    \begin{itemize}
+        \item $A$: Amplitude (half the difference between max/min values)
+        \item $P$: Period (time for one full cycle)
+        \item $h$: Horizontal phase shift
+        \item $K$: Vertical shift (average of max/min values)
+    \end{itemize}
+    \item \textbf{Use Case}: Modeling height in Ferris wheel problems. Example: Ferris wheel with 40-ft diameter and 8-second period.
+\end{itemize}
+
+\subsection{Double Angle Identities}
+\[
+\begin{aligned}
+    \sin(2\theta) &= 2\sin\theta\cos\theta \\
+    \cos(2\theta) &= \cos^2\theta - \sin^2\theta \\
+                  &= 1 - 2\sin^2\theta \\
+                  &= 2\cos^2\theta - 1
+\end{aligned}
+\]
+\begin{itemize}
+    \item \textbf{Use Case}: Simplifying trigonometric expressions. Example: Deriving half-angle identities.
+\end{itemize}
+
+\subsection{Half-Angle Identity}
+\[
+\sin\left(\frac{\theta}{2}\right) = \pm\sqrt{\frac{1 - \cos\theta}{2}}
+\]
+\begin{itemize}
+    \item \textbf{Use Case}: Calculating exact values for non-unit circle angles. Example: Finding $\cos(195^\circ)$.
+\end{itemize}
+
+\section{Example Problems and Solutions}
+\subsection{Problem 1: Ferris Wheel Height Equation}
+\textbf{Problem}: A Ferris wheel with 40-ft diameter has its bottom 3 ft above ground. It completes one revolution in 8 seconds and reaches maximum height at $t=3$ sec. Derive its height equation.
+
+\textbf{Solution}:
+\begin{enumerate}
+    \item Amplitude: $A = \frac{43 - 3}{2} = 20$ ft
+    \item Vertical shift: $K = \frac{43 + 3}{2} = 23$ ft
+    \item Period: $P = 8$ sec $\Rightarrow B = \frac{2\pi}{8} = \frac{\pi}{4}$
+    \item Phase shift: $h = 3$ sec
+    \item Final equation: 
+    \[
+    H(t) = 20\cos\left(\frac{\pi}{4}(t - 3)\right) + 23
+    \]
+\end{enumerate}
+
+\subsection{Problem 2: Height Calculation at Specific Time}
+\textbf{Problem}: Using the Ferris wheel equation, find height at $t=9$ sec.
+
+\textbf{Solution}:
+\[
+\begin{aligned}
+    H(9) &= 20\cos\left(\frac{\pi}{4}(9-3)\right) + 23 \\
+         &= 20\cos\left(\frac{3\pi}{2}\right) + 23 \\
+         &= 20(0) + 23 = 23 \text{ ft}
+\end{aligned}
+\]
+\textbf{Explanation}: At $t=9$ sec (1.5 periods), the rider returns to the middle position.
+
+\subsection{Problem 3: Time to Reach Specific Height}
+\textbf{Problem}: Find the second time the Ferris wheel reaches 20 ft height.
+
+\textbf{Solution}:
+\[
+\begin{aligned}
+    20 &= 20\cos\left(\frac{\pi}{4}(t-3)\right) + 23 \\
+    -3 &= 20\cos\left(\frac{\pi}{4}(t-3)\right) \\
+    \cos^{-1}(-0.15) &= \frac{\pi}{4}(t-3) \\
+    t &= \frac{4}{\pi}(1.722) + 3 = 5.19 \text{ sec}
+\end{aligned}
+\]
+\textbf{Explanation}: Second intersection occurs half-period (4 sec) after first solution at 1.19 sec.
+
+\subsection{Problem 4: Exact Value Using Half-Angle Identity}
+\textbf{Problem}: Calculate $\cos(195^\circ)$ exactly.
+
+\textbf{Solution}:
+\[
+\begin{aligned}
+    \cos(195^\circ) &= \cos(390^\circ/2) = -\sqrt{\frac{1+\cos(30^\circ)}{2}} \\
+    &= -\sqrt{\frac{1+\sqrt{3}/2}{2}} \\
+    &= -\sqrt{\frac{2+\sqrt{3}}{4}} = -\frac{\sqrt{2+\sqrt{3}}}{2}
+\end{aligned}
+\]
+\textbf{Explanation}: Negative sign chosen because 195° is in Quadrant III where cosine is negative.
+
+\end{document}
+```

@@ -1,0 +1,425 @@
+ï»¿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create School - ThetaSummary</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Reset and Basic Styles */
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        header {
+            background-color: #1a1a1a;
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #ffffff;
+            text-decoration: none;
+        }
+        
+        .logo span {
+            color: #c084fc;
+        }
+        
+        .user-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .username {
+            font-weight: 500;
+            color: #b0b0b0;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            border: none;
+        }
+        
+        .btn-primary {
+            background: #c084fc;
+            color: #ffffff;
+        }
+        
+        .btn-primary:hover {
+            background: #a855f7;
+        }
+        
+        .btn-outline {
+            background: transparent;
+            color: #e0e0e0;
+            border: 1px solid #404040;
+        }
+        
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        main {
+            padding: 40px 0;
+        }
+        
+        .page-title {
+            font-size: 2rem;
+            margin-bottom: 30px;
+            color: #ffffff;
+        }
+        
+        .form-container {
+            background-color: #1a1a1a;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #ffffff;
+            font-weight: 500;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #404040;
+            background-color: #242424;
+            color: #ffffff;
+            font-size: 1rem;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #c084fc;
+        }
+        
+        .form-group input::placeholder {
+            color: #666;
+        }
+        
+        .error-message {
+            color: #ff4f4f;
+            margin-top: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .success-message {
+            color: #4faf50;
+            margin-top: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .school-list {
+            margin-top: 40px;
+        }
+        
+        .school-list h2 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+        
+        .school-table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #242424;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        
+        .school-table th, .school-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #333;
+        }
+        
+        .school-table th {
+            background-color: #1a1a1a;
+            color: #ffffff;
+            font-weight: 600;
+        }
+        
+        .school-table td {
+            color: #e0e0e0;
+        }
+        
+        .school-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .school-table tbody tr:hover {
+            background-color: #2c2c2c;
+        }
+            /* Theta glass theme overrides */
+        :root {
+            --theta-bg: #030203;
+            --theta-surface: #101014;
+            --theta-panel: #161621;
+            --theta-text: #f7f7ff;
+            --theta-muted: #9ba0b5;
+            --theta-accent: #c084fc;
+            --theta-accent-strong: #a855f7;
+            --theta-border: rgba(255,255,255,0.08);
+        }
+
+        body {
+            background: radial-gradient(circle at top, rgba(124,58,237,0.18), transparent), var(--theta-bg);
+            color: var(--theta-text);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            color: var(--theta-text);
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+
+        p, label, span, li {
+            color: var(--theta-muted);
+        }
+
+        a {
+            color: var(--theta-text);
+        }
+
+        .btn, button, input[type='submit'] {
+            border-radius: 999px;
+            border: 1px solid transparent;
+            font-weight: 500;
+            padding: 10px 20px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn-primary, button.btn-primary {
+            background: linear-gradient(135deg, var(--theta-accent), var(--theta-accent-strong));
+            color: #050505;
+            box-shadow: 0 20px 40px rgba(129,97,255,0.25);
+        }
+
+        .btn-secondary, .btn-ghost, button.btn-secondary, .btn-outline {
+            background: rgba(255,255,255,0.05);
+            color: var(--theta-text);
+            border-color: var(--theta-border);
+        }
+
+        .btn:hover, button:hover, input[type='submit']:hover {
+            transform: translateY(-1px);
+        }
+
+        .card, .panel, .info-card, .content-card, .form-card, .summary-card, .section-card {
+            background: var(--theta-surface);
+            border-radius: 24px;
+            border: 1px solid var(--theta-border);
+            box-shadow: 0 25px 60px rgba(4,4,7,0.45);
+        }
+
+        .sidebar {
+            background: rgba(7,7,12,0.9);
+            border-right: 1px solid var(--theta-border);
+        }
+
+        .topbar, .header, .navbar {
+            background: rgba(7,7,12,0.85);
+            border-bottom: 1px solid var(--theta-border);
+            backdrop-filter: blur(18px);
+        }
+
+        input, select, textarea {
+            background: var(--theta-panel);
+            border: 1px solid var(--theta-border);
+            border-radius: 12px;
+            padding: 12px 14px;
+            color: var(--theta-text);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255,255,255,0.02);
+            border-radius: 18px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+        }
+
+        tr:hover {
+            background: rgba(255,255,255,0.02);
+        }
+
+        .pill, .badge, .chip, .tag, .status-tag {
+            border-radius: 999px;
+            padding: 6px 12px;
+            border: 1px solid rgba(255,255,255,0.15);
+            color: var(--theta-muted);
+            background: rgba(255,255,255,0.05);
+            font-size: 0.8rem;
+            letter-spacing: 0.05em;
+        }
+
+        footer {
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <a href="{{ url_for('dashboard') }}" class="logo">Theta<span>Summary</span></a>
+                <div class="user-actions">
+                    <span class="username">{{ username }}</span>
+                    <a href="{{ url_for('logout') }}" class="btn btn-outline">Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <main>
+        <div class="container">
+            <h1 class="page-title">Create School</h1>
+            
+            <div class="form-container">
+                <form method="POST" action="{{ url_for('create_school_route') }}">
+                    <div class="form-group">
+                        <label for="school_name">School Name</label>
+                        <input type="text" id="school_name" name="school_name" placeholder="Enter school name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="school_district">School District</label>
+                        <input type="text" id="school_district" name="school_district" placeholder="Enter school district" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="school_state">State</label>
+                        <select id="school_state" name="school_state" required>
+                            <option value="">Select a state</option>
+                            <option value="AL">Alabama</option>
+                            <option value="AK">Alaska</option>
+                            <option value="AZ">Arizona</option>
+                            <option value="AR">Arkansas</option>
+                            <option value="CA">California</option>
+                            <option value="CO">Colorado</option>
+                            <option value="CT">Connecticut</option>
+                            <option value="DE">Delaware</option>
+                            <option value="FL">Florida</option>
+                            <option value="GA">Georgia</option>
+                            <option value="HI">Hawaii</option>
+                            <option value="ID">Idaho</option>
+                            <option value="IL">Illinois</option>
+                            <option value="IN">Indiana</option>
+                            <option value="IA">Iowa</option>
+                            <option value="KS">Kansas</option>
+                            <option value="KY">Kentucky</option>
+                            <option value="LA">Louisiana</option>
+                            <option value="ME">Maine</option>
+                            <option value="MD">Maryland</option>
+                            <option value="MA">Massachusetts</option>
+                            <option value="MI">Michigan</option>
+                            <option value="MN">Minnesota</option>
+                            <option value="MS">Mississippi</option>
+                            <option value="MO">Missouri</option>
+                            <option value="MT">Montana</option>
+                            <option value="NE">Nebraska</option>
+                            <option value="NV">Nevada</option>
+                            <option value="NH">New Hampshire</option>
+                            <option value="NJ">New Jersey</option>
+                            <option value="NM">New Mexico</option>
+                            <option value="NY">New York</option>
+                            <option value="NC">North Carolina</option>
+                            <option value="ND">North Dakota</option>
+                            <option value="OH">Ohio</option>
+                            <option value="OK">Oklahoma</option>
+                            <option value="OR">Oregon</option>
+                            <option value="PA">Pennsylvania</option>
+                            <option value="RI">Rhode Island</option>
+                            <option value="SC">South Carolina</option>
+                            <option value="SD">South Dakota</option>
+                            <option value="TN">Tennessee</option>
+                            <option value="TX">Texas</option>
+                            <option value="UT">Utah</option>
+                            <option value="VT">Vermont</option>
+                            <option value="VA">Virginia</option>
+                            <option value="WA">Washington</option>
+                            <option value="WV">West Virginia</option>
+                            <option value="WI">Wisconsin</option>
+                            <option value="WY">Wyoming</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width:100%;">Create School</button>
+                </form>
+            </div>
+            
+            <div class="school-list">
+                <h2>Existing Schools</h2>
+                <table class="school-table">
+                    <thead>
+                        <tr>
+                            <th>School Name</th>
+                            <th>School District</th>
+                            <th>State</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for school in schools %}
+                        <tr>
+                            <td>{{ school.name }}</td>
+                            <td>{{ school.district }}</td>
+                            <td>{{ school.state }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <a href="{{ url_for('dashboard') }}" class="btn btn-outline" style="margin-top: 20px;">Back to Dashboard</a>
+        </div>
+    </main>
+</body>
+</html> 
+

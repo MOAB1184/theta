@@ -1,0 +1,631 @@
+ï»¿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - ThetaSummary</title>
+    <style>
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0;
+        }
+        body { 
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            width: 250px;
+            background-color: #1a1a1a;
+            transition: all 0.3s ease;
+            overflow-y: auto;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            z-index: 100;
+            transform: translateX(-250px);
+        }
+        .sidebar.active {
+            transform: translateX(0);
+        }
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .sidebar-logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #ffffff;
+            text-decoration: none;
+        }
+        .close-menu {
+            background: none;
+            border: none;
+            color: #a0a0a0;
+            cursor: pointer;
+            font-size: 1.5rem;
+        }
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+        .sidebar-menu-title {
+            padding: 0 20px;
+            margin-bottom: 10px;
+            color: #a0a0a0;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .menu-item {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: #e0e0e0;
+            transition: all 0.2s ease;
+        }
+        .menu-item:hover, .menu-item.active {
+            background-color: #242424;
+        }
+        .menu-item-icon {
+            margin-right: 10px;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            margin-left: 0;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        .main-content.sidebar-active {
+            margin-left: 250px;
+            width: calc(100% - 250px);
+        }
+        
+        /* Header Styles */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .menu-toggle {
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+        }
+        .page-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+        .user-menu {
+            position: relative;
+        }
+        .user-button {
+            background: none;
+            border: none;
+            color: #ffffff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: background-color 0.2s;
+        }
+        .user-button:hover {
+            background-color: #242424;
+        }
+        .user-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background-color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        .user-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: #1a1a1a;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            min-width: 200px;
+            margin-top: 8px;
+            display: none;
+            z-index: 1000;
+        }
+        .user-dropdown.active {
+            display: block;
+        }
+        .user-dropdown-item {
+            padding: 12px 16px;
+            color: #e0e0e0;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.2s;
+        }
+        .user-dropdown-item:hover {
+            background-color: #242424;
+        }
+        .user-dropdown-item svg {
+            margin-right: 10px;
+            width: 16px;
+            height: 16px;
+        }
+        .user-dropdown-divider {
+            height: 1px;
+            background-color: #333;
+            margin: 4px 0;
+        }
+        .current-plan {
+            padding: 12px 16px;
+            color: #a0a0a0;
+            font-size: 0.9rem;
+            border-bottom: 1px solid #333;
+        }
+        .plan-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-left: 8px;
+            text-transform: uppercase;
+        }
+        .plan-badge.plus {
+            background-color: #4f8cff;
+            color: white;
+        }
+        .plan-badge.pro {
+            background-color: #ffffff;
+            color: #000000;
+        }
+        .plan-badge.enterprise {
+            background-color: #10b981;
+            color: white;
+        }
+        
+        /* Settings Styles */
+        .settings-section {
+            background-color: #1a1a1a;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        .settings-section h2 {
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .settings-card {
+            background-color: #242424;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .settings-card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            color: #ffffff;
+        }
+        .settings-card p {
+            color: #a0a0a0;
+            margin-bottom: 15px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4f8cff;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: background-color 0.2s;
+        }
+        .btn:hover {
+            background-color: #3d7bff;
+        }
+        .btn-outline {
+            background: none;
+            border: 1px solid #4f8cff;
+            color: #4f8cff;
+        }
+        .btn-outline:hover {
+            background-color: #4f8cff;
+            color: white;
+        }
+            /* Theta glass theme overrides */
+        :root {
+            --theta-bg: #030203;
+            --theta-surface: #101014;
+            --theta-panel: #161621;
+            --theta-text: #f7f7ff;
+            --theta-muted: #9ba0b5;
+            --theta-accent: #c084fc;
+            --theta-accent-strong: #a855f7;
+            --theta-border: rgba(255,255,255,0.08);
+        }
+
+        body {
+            background: radial-gradient(circle at top, rgba(124,58,237,0.18), transparent), var(--theta-bg);
+            color: var(--theta-text);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            color: var(--theta-text);
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+
+        p, label, span, li {
+            color: var(--theta-muted);
+        }
+
+        a {
+            color: var(--theta-text);
+        }
+
+        .btn, button, input[type='submit'] {
+            border-radius: 999px;
+            border: 1px solid transparent;
+            font-weight: 500;
+            padding: 10px 20px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn-primary, button.btn-primary {
+            background: linear-gradient(135deg, var(--theta-accent), var(--theta-accent-strong));
+            color: #050505;
+            box-shadow: 0 20px 40px rgba(129,97,255,0.25);
+        }
+
+        .btn-secondary, .btn-ghost, button.btn-secondary, .btn-outline {
+            background: rgba(255,255,255,0.05);
+            color: var(--theta-text);
+            border-color: var(--theta-border);
+        }
+
+        .btn:hover, button:hover, input[type='submit']:hover {
+            transform: translateY(-1px);
+        }
+
+        .card, .panel, .info-card, .content-card, .form-card, .summary-card, .section-card {
+            background: var(--theta-surface);
+            border-radius: 24px;
+            border: 1px solid var(--theta-border);
+            box-shadow: 0 25px 60px rgba(4,4,7,0.45);
+        }
+
+        .sidebar {
+            background: rgba(7,7,12,0.9);
+            border-right: 1px solid var(--theta-border);
+        }
+
+        .topbar, .header, .navbar {
+            background: rgba(7,7,12,0.85);
+            border-bottom: 1px solid var(--theta-border);
+            backdrop-filter: blur(18px);
+        }
+
+        input, select, textarea {
+            background: var(--theta-panel);
+            border: 1px solid var(--theta-border);
+            border-radius: 12px;
+            padding: 12px 14px;
+            color: var(--theta-text);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255,255,255,0.02);
+            border-radius: 18px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+        }
+
+        tr:hover {
+            background: rgba(255,255,255,0.02);
+        }
+
+        .pill, .badge, .chip, .tag, .status-tag {
+            border-radius: 999px;
+            padding: 6px 12px;
+            border: 1px solid rgba(255,255,255,0.15);
+            color: var(--theta-muted);
+            background: rgba(255,255,255,0.05);
+            font-size: 0.8rem;
+            letter-spacing: 0.05em;
+        }
+
+        footer {
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar-overlay"></div>
+    
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="/dashboard" class="sidebar-logo">ThetaSummary</a>
+            </div>
+            
+            <div class="sidebar-menu">
+                <div class="sidebar-menu-title">Menu</div>
+                <a href="{{ url_for('dashboard') }}" class="menu-item{% if request.endpoint == 'dashboard' %} active{% endif %}">
+                    <span class="menu-item-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 13A6 6 0 1 1 8 2a6 6 0 0 1 0 12z"/>
+                            <path d="M8 4a.5.5 0 0 1 .5.5v2.5H11a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V8H5a.5.5 0 0 1 0-1h2.5V4.5A.5.5 0 0 1 8 4z"/>
+                        </svg>
+                    </span>
+                    Dashboard
+                </a>
+                {% if user_role == 'teacher' %}
+                <!-- List all classes for teacher -->
+                {% for class in classes %}
+                <a href="{{ url_for('view_class', class_id=class._id) }}" class="menu-item">
+                    <span class="menu-item-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#4f8cff" viewBox="0 0 16 16">
+                            <circle cx="8" cy="8" r="7" stroke="#4f8cff" stroke-width="2" fill="none"/>
+                        </svg>
+                    </span>
+                    {{ class.name }}
+                </a>
+                {% endfor %}
+                {% endif %}
+                <a href="{{ url_for('create_class') }}" class="menu-item">
+                    <span class="menu-item-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 13A6 6 0 1 1 8 2a6 6 0 0 1 0 12z"/>
+                            <path d="M8 4a.5.5 0 0 1 .5.5v2.5H11a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V8H5a.5.5 0 0 1 0-1h2.5V4.5A.5.5 0 0 1 8 4z"/>
+                        </svg>
+                    </span>
+                    Create New Class
+                </a>
+                {% if user_role == 'student' %}
+                <a href="{{ url_for('join_class') }}" class="menu-item">
+                    <span class="menu-item-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 13A6 6 0 1 1 8 2a6 6 0 0 1 0 12z"/>
+                            <path d="M8 4a.5.5 0 0 1 .5.5v2.5H11a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V8H5a.5.5 0 0 1 0-1h2.5V4.5A.5.5 0 0 1 8 4z"/>
+                        </svg>
+                    </span>
+                    Join Class
+                </a>
+                {% endif %}
+                {% if is_admin %}
+                <a href="{{ url_for('admin') }}" class="menu-item">
+                    <span class="menu-item-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 13A6 6 0 1 1 8 2a6 6 0 0 1 0 12z"/>
+                            <path d="M8 4a.5.5 0 0 1 .5.5v2.5H11a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V8H5a.5.5 0 0 1 0-1h2.5V4.5A.5.5 0 0 1 8 4z"/>
+                        </svg>
+                    </span>
+                    Admin Settings
+                </a>
+                {% endif %}
+                {% if user_role == 'teacher' %}
+                <a href="{{ url_for('buy') }}" class="menu-item" style="color:#ffffff;font-weight:600;">
+                    <span class="menu-item-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#ffffff" viewBox="0 0 16 16">
+                            <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 13A6 6 0 1 1 8 2a6 6 0 0 1 0 12z"/>
+                            <path d="M8 4a.5.5 0 0 1 .5.5v2.5H11a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V8H5a.5.5 0 0 1 0-1h2.5V4.5A.5.5 0 0 1 8 4z"/>
+                        </svg>
+                    </span>
+                    Purchase Tokens
+                </a>
+                {% endif %}
+            </div>
+            <div class="sidebar-footer">
+                <div class="sidebar-footer-text">Logged in as {{ username }}</div>
+                <a href="/logout" class="logout-btn">
+                    <span class="logout-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z"/>
+                            <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/>
+                        </svg>
+                    </span>
+                    Logout
+                </a>
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="header">
+                <button class="menu-toggle">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/>
+                    </svg>
+                </button>
+                <h1 class="page-title">Settings</h1>
+                <div class="user-menu">
+                    <button class="user-button" onclick="toggleUserDropdown()">
+                        <span>{{ username }}</span>
+                        <div class="user-avatar" style="margin-left:15px;">{{ username[0].upper() }}</div>
+                    </button>
+                    <div class="user-dropdown" id="userDropdown" style="display:none;position:absolute;top:100%;right:0;z-index:1000;background:#1a1a1a;border-radius:8px;box-shadow:0 4px 15px rgba(0,0,0,0.3);min-width:200px;margin-top:8px;">
+                        <a href="/settings" class="user-dropdown-item" style="display:block;padding:12px 16px;color:#e0e0e0;text-decoration:none;">Settings</a>
+                        <a href="/logout" class="user-dropdown-item" style="display:block;padding:12px 16px;color:#e0e0e0;text-decoration:none;">Logout</a>
+                    </div>
+                </div>
+            </header>
+            
+            <div class="settings-section">
+                <h2>Account Settings</h2>
+                <div class="settings-grid">
+                    <div class="settings-card">
+                        <h3>Email Verification</h3>
+                        {% if email %}
+                            {% if email_verified %}
+                                <p>Status: <span class="plan-badge enterprise">Verified</span></p>
+                            {% else %}
+                                <p>Status: <span class="plan-badge plus">Unverified</span></p>
+                                <form action="{{ url_for('resend_verification') }}" method="POST">
+                                    <button type="submit" class="btn">Resend Verification Email</button>
+                                </form>
+                            {% endif %}
+                        {% else %}
+                            <p>No email address associated with your account.</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="settings-card">
+                        <h3>Subscription Plan</h3>
+                        <p>Current Plan: <span class="plan-badge {{ subscription_type }}">{{ subscription_type }}</span></p>
+                        <a href="{{ url_for('buy') }}" class="btn">Upgrade Plan</a>
+                    </div>
+                    
+                    <div class="settings-card">
+                        <h3>Usage Limits</h3>
+                        <p>Daily Summaries: {{ plan_limits.get('summaries_per_day', 0) }}</p>
+                        <p>Monthly Summaries: {{ plan_limits.get('summaries_per_month', 0) }}</p>
+                        <a href="{{ url_for('buy') }}" class="btn btn-outline">Purchase Tokens</a>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3>Email Notifications</h3>
+                        <label style="display:flex;align-items:center;gap:12px;cursor:pointer;">
+                            <input type="checkbox" id="emailNotificationsToggle" style="width:20px;height:20px;" />
+                            <span style="color:#a0a0a0;">Enable email notifications for summary completions</span>
+                        </label>
+                        <span id="emailNotifStatus" style="color:#a0a0a0;font-size:0.95em;"></span>
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function() {
+                                // Fetch current setting from backend
+                                fetch('/api/user/email_notifications')
+                                    .then(res => res.json())
+                                    .then(data => {
+                                        if (data.status === 'success') {
+                                            document.getElementById('emailNotificationsToggle').checked = data.enabled;
+                                            document.getElementById('emailNotifStatus').textContent = data.enabled ? 'Notifications enabled' : 'Notifications disabled';
+                                        }
+                                    });
+                                // Update backend on toggle
+                                document.getElementById('emailNotificationsToggle').addEventListener('change', function() {
+                                    const enabled = this.checked;
+                                    fetch('/api/user/email_notifications', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ enabled })
+                                    })
+                                    .then(res => res.json())
+                                    .then(data => {
+                                        document.getElementById('emailNotifStatus').textContent = data.enabled ? 'Notifications enabled' : 'Notifications disabled';
+                                    });
+                                });
+                            });
+                        </script>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        // Toggle sidebar
+        const menuToggle = document.querySelector('.menu-toggle');
+        const sidebar = document.querySelector('.sidebar');
+        const mainContent = document.querySelector('.main-content');
+        const closeMenu = document.querySelector('.close-menu');
+        const sidebarOverlay = document.querySelector('.sidebar-overlay');
+        
+        menuToggle.addEventListener('click', () => {
+            sidebar.classList.add('active');
+            mainContent.classList.add('sidebar-active');
+            sidebarOverlay.style.display = 'block';
+        });
+        
+        closeMenu.addEventListener('click', () => {
+            sidebar.classList.remove('active');
+            mainContent.classList.remove('sidebar-active');
+            sidebarOverlay.style.display = 'none';
+        });
+        
+        sidebarOverlay.addEventListener('click', () => {
+            sidebar.classList.remove('active');
+            mainContent.classList.remove('sidebar-active');
+            sidebarOverlay.style.display = 'none';
+        });
+        
+        // Handle window resize
+        function handleResize() {
+            if (window.innerWidth > 768) {
+                sidebar.classList.add('active');
+                mainContent.classList.add('sidebar-active');
+                sidebarOverlay.style.display = 'none';
+            } else {
+                sidebar.classList.remove('active');
+                mainContent.classList.remove('sidebar-active');
+                sidebarOverlay.style.display = 'none';
+            }
+        }
+        
+        window.addEventListener('resize', handleResize);
+        handleResize();
+        
+        // Toggle user dropdown
+        function toggleUserDropdown() {
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        }
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('userDropdown');
+            const userButton = document.querySelector('.user-button');
+            if (!userButton.contains(event.target) && !dropdown.contains(event.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html> 
+

@@ -1,0 +1,420 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - ThetaSummary</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #030203;
+            --panel: rgba(14,14,22,0.9);
+            --text: #f6f5ff;
+            --muted: #9aa0ae;
+            --accent: #c084fc;
+            --accent-strong: #a855f7;
+            --border: rgba(255,255,255,0.08);
+            --success: #34d399;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: radial-gradient(circle at 20% 20%, rgba(124,58,237,0.25), transparent 45%), radial-gradient(circle at 80% 0%, rgba(45,212,191,0.18), transparent 55%), var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        a { color: inherit; text-decoration: none; }
+
+        .theta-shell { width: min(1200px, 92%); margin: 0 auto; }
+
+        header {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%;
+            z-index: 20;
+            padding: 18px 0;
+        }
+
+        .header-inner {
+            width: min(1260px, 95%);
+            margin: 0 auto;
+            padding: 12px 28px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(8,8,12,0.9);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(24px);
+        }
+
+        .logo { font-weight: 700; font-size: 1.35rem; }
+
+        nav { display: flex; gap: 22px; font-size: 0.95rem; }
+
+        nav a { color: var(--muted); transition: color 0.2s ease; }
+        nav a.active, nav a:hover { color: var(--text); }
+
+        .header-actions { display: flex; align-items: center; gap: 12px; }
+
+        .plan-pill {
+            padding: 6px 14px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+
+        .avatar-button {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: linear-gradient(135deg, rgba(192,132,252,0.2), rgba(59,130,246,0.25));
+            color: var(--text);
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mobile-menu-button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: rgba(255,255,255,0.05);
+            color: var(--text);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .mobile-menu {
+            position: fixed;
+            inset: 0;
+            background: rgba(5,5,9,0.95);
+            z-index: 30;
+            padding: 24px;
+            gap: 18px;
+            flex-direction: column;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            display: flex;
+        }
+
+        .mobile-menu.active { transform: translateX(0); }
+
+        .close-mobile-menu {
+            align-self: flex-end;
+            font-size: 2rem;
+            background: none;
+            border: none;
+            color: var(--text);
+        }
+
+        main { padding: 140px 0 100px; }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 18px;
+            margin-bottom: 28px;
+        }
+
+        .stat-card {
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            background: rgba(255,255,255,0.03);
+            padding: 22px;
+        }
+
+        .stat-label { font-size: 0.9rem; color: var(--muted); }
+        .stat-value { font-size: 2.2rem; font-weight: 600; margin-top: 12px; }
+
+        .class-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .class-card {
+            border-radius: 22px;
+            border: 1px solid var(--border);
+            background: var(--panel);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .card-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .pill {
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,0.15);
+            color: var(--muted);
+            font-size: 0.8rem;
+        }
+
+        .class-description { color: var(--muted); margin: 0; }
+
+        .class-metrics {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .metric-tile {
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.02);
+            padding: 12px;
+        }
+
+        .metric-tile span { display: block; font-size: 0.8rem; color: var(--muted); }
+        .metric-tile strong { font-size: 1.4rem; }
+
+        .invite-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            border: 1px dashed rgba(255,255,255,0.15);
+            border-radius: 14px;
+            padding: 10px 14px;
+        }
+
+        .invite-code { font-family: 'Inter', monospace; letter-spacing: 0.2em; }
+
+        .copy-btn {
+            border: none;
+            background: rgba(255,255,255,0.08);
+            color: var(--text);
+            padding: 6px 12px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        .class-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+
+        .class-actions a {
+            flex: 1;
+            text-align: center;
+            border-radius: 14px;
+            padding: 10px 14px;
+            font-weight: 500;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.04);
+        }
+
+        .class-actions a.primary {
+            background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+            border-color: transparent;
+            color: #080808;
+            box-shadow: 0 12px 24px rgba(124,58,237,0.2);
+        }
+
+        .empty-card {
+            text-align: center;
+            padding: 60px 20px;
+            border-radius: 22px;
+            border: 1px dashed var(--border);
+            background: rgba(255,255,255,0.02);
+        }
+
+        .user-dropdown {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            background: rgba(10,10,18,0.95);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px;
+            min-width: 220px;
+            box-shadow: 0 18px 40px rgba(0,0,0,0.45);
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(-6px);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        .user-dropdown.open { opacity: 1; pointer-events: auto; transform: translateY(0); }
+
+        .user-dropdown a { display: block; padding: 8px 0; color: var(--muted); font-size: 0.9rem; }
+        .user-dropdown a:hover { color: var(--text); }
+
+        @media (max-width: 900px) {
+            nav { display: none; }
+            .mobile-menu-button { display: inline-flex; }
+        }
+    </style>
+</head>
+<body>
+    {% set class_count = classes|length if classes else 0 %}
+    {% set total_summaries = classes|sum(attribute='summary_count') if classes else 0 %}
+    {% set total_recordings = classes|sum(attribute='recording_count') if classes else 0 %}
+    {% set total_transcripts = classes|sum(attribute='transcript_count') if classes else 0 %}
+
+    <div class="mobile-menu" id="mobile-menu">
+        <button class="close-mobile-menu" id="close-mobile-menu" aria-label="Close navigation">&times;</button>
+        <a href="{{ url_for('dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('recordings') }}">Recordings</a>
+        <a href="{{ url_for('summaries') }}">Summaries</a>
+        <a href="{{ url_for('chat') }}">Chat</a>
+        <a href="{{ url_for('logout') }}">Logout</a>
+    </div>
+
+    <header>
+        <div class="header-inner">
+            <a href="{{ url_for('dashboard') }}" class="logo">ThetaSummary</a>
+            <nav>
+                <a href="{{ url_for('dashboard') }}" class="active">Dashboard</a>
+                <a href="{{ url_for('recordings') }}">Recordings</a>
+                <a href="{{ url_for('summaries') }}">Summaries</a>
+                <a href="{{ url_for('chat') }}">Chat</a>
+            </nav>
+            <div class="header-actions">
+                <span class="plan-pill">{{ subscription_type|title }} plan</span>
+                <div style="position: relative;">
+                    <button class="avatar-button" id="user-menu-trigger">{{ username[0].upper() }}</button>
+                    <div class="user-dropdown" id="userDropdown">
+                        <div style="font-size:0.85rem;color:var(--muted);">Signed in as</div>
+                        <div style="font-weight:600;">{{ username }}</div>
+                        <a href="{{ url_for('logout') }}">Log out</a>
+                    </div>
+                </div>
+                <button class="mobile-menu-button" id="mobile-menu-button" aria-label="Open menu">&#9776;</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="theta-shell">
+        <section class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Active classes</div>
+                <div class="stat-value">{{ class_count }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total summaries</div>
+                <div class="stat-value">{{ total_summaries }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Recordings</div>
+                <div class="stat-value">{{ total_recordings }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Transcripts</div>
+                <div class="stat-value">{{ total_transcripts }}</div>
+            </div>
+        </section>
+
+        <section>
+            <h2 style="margin:0 0 16px 0;">Your classes</h2>
+            <div class="class-grid">
+                {% if classes %}
+                    {% for class in classes %}
+                    <article class="class-card">
+                        <div class="card-head">
+                            <div>
+                                <p class="stat-label" style="margin:0;">Class</p>
+                                <h3 style="margin:4px 0 0 0;">{{ class.name }}</h3>
+                            </div>
+                            <span class="pill">Code {{ class.class_code }}</span>
+                        </div>
+                        <p class="class-description">{{ class.description or 'Share recap-ready recordings and summaries with this class.' }}</p>
+                        <div class="class-metrics">
+                            <div class="metric-tile"><span>Summaries</span><strong>{{ class.summary_count }}</strong></div>
+                            <div class="metric-tile"><span>Recordings</span><strong>{{ class.recording_count }}</strong></div>
+                            <div class="metric-tile"><span>Transcripts</span><strong>{{ class.transcript_count }}</strong></div>
+                            <div class="metric-tile"><span>Invite link</span><strong>{{ class.class_code }}</strong></div>
+                        </div>
+                        <div class="invite-row">
+                            <div>
+                                <small style="color:var(--muted); display:block;">Invite code</small>
+                                <strong>{{ class.class_code }}</strong>
+                            </div>
+                            <button class="copy-btn" data-class-code="{{ class.class_code }}">Copy</button>
+                        </div>
+                        <div class="class-actions">
+                            <a href="{{ url_for('view_class', class_id=class._id) }}" class="primary">Open class</a>
+                            <a href="{{ url_for('recordings') }}?class_id={{ class._id }}">Record</a>
+                            <a href="{{ url_for('summaries') }}">Summaries</a>
+                        </div>
+                    </article>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-card">
+                        <h3>No classes yet</h3>
+                        <p>Create your first class to unlock guided recordings and AI summaries.</p>
+                        {% if user_role == 'teacher' %}
+                        <a href="{{ url_for('create_class') }}" class="btn btn-primary" style="margin-top:16px;">Create a class</a>
+                        {% else %}
+                        <a href="{{ url_for('join_class') }}" class="btn btn-primary" style="margin-top:16px;">Join a class</a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </section>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const closeMobileMenu = document.getElementById('close-mobile-menu');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const userTrigger = document.getElementById('user-menu-trigger');
+            const userDropdown = document.getElementById('userDropdown');
+
+            if (mobileMenuButton) {
+                mobileMenuButton.addEventListener('click', () => mobileMenu.classList.add('active'));
+            }
+            if (closeMobileMenu) {
+                closeMobileMenu.addEventListener('click', () => mobileMenu.classList.remove('active'));
+                mobileMenu.querySelectorAll('a').forEach(link => link.addEventListener('click', () => mobileMenu.classList.remove('active')));
+            }
+
+            if (userTrigger && userDropdown) {
+                userTrigger.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    userDropdown.classList.toggle('open');
+                });
+                document.addEventListener('click', (event) => {
+                    if (!userDropdown.contains(event.target) && event.target !== userTrigger) {
+                        userDropdown.classList.remove('open');
+                    }
+                });
+            }
+
+            document.querySelectorAll('.copy-btn').forEach(button => {
+                button.addEventListener('click', async () => {
+                    const code = button.getAttribute('data-class-code');
+                    try {
+                        await navigator.clipboard.writeText(code);
+                        button.textContent = 'Copied';
+                        setTimeout(() => button.textContent = 'Copy', 2000);
+                    } catch (err) {
+                        console.error('Copy failed', err);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

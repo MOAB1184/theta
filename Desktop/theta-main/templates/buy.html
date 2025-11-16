@@ -1,0 +1,475 @@
+ï»¿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upgrade Your Plan - ThetaSummary</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://js.stripe.com/v3/"></script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        header {
+            background-color: #1a1a1a;
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #ffffff;
+            text-decoration: none;
+        }
+        
+        .logo span {
+            color: #ffffff;
+        }
+        
+        .user-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .username {
+            font-weight: 500;
+            color: #b0b0b0;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            border: none;
+        }
+        
+        .btn-primary {
+            background: #ffffff;
+            color: #000000;
+        }
+        
+        .btn-primary:hover {
+            background: #e6e6e6;
+        }
+        
+        .btn-outline {
+            background: transparent;
+            color: #e0e0e0;
+            border: 1px solid #404040;
+        }
+        
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        main {
+            padding: 40px 0;
+        }
+        
+        .page-title {
+            font-size: 2rem;
+            margin-bottom: 30px;
+            color: #ffffff;
+            text-align: center;
+        }
+        
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+        
+        .pricing-card {
+            background: linear-gradient(145deg, #1a1a1a, #242424);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease;
+            text-align: center;
+        }
+        
+        .pricing-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .pricing-card.current {
+            border: 2px solid #ffffff;
+        }
+        
+        .plan-name {
+            font-size: 1.5rem;
+            color: #ffffff;
+            margin-bottom: 12px;
+        }
+        
+        .plan-price {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .original-price {
+            text-decoration: line-through;
+            color: #808080;
+            font-size: 1.5rem;
+            font-weight: 400;
+        }
+        
+        .new-price {
+            color: #ffffff;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+        
+        .limited-time {
+            background: #ff4444;
+            color: #ffffff;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .plan-features {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 24px 0;
+        }
+        
+        .plan-features li {
+            padding: 8px 0;
+            color: #a0a0a0;
+        }
+        
+        .plan-features li:before {
+            content: "Ã¢Å“â€œ";
+            color: #ffffff;
+            margin-right: 8px;
+        }
+        
+        .error-message {
+            background: #ef4444;
+            color: white;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .flash-message {
+            background: #10b981;
+            color: white;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .token-purchase-section {
+            background: linear-gradient(145deg, #1a1a1a, #242424);
+            border-radius: 12px;
+            padding: 24px;
+            margin-top: 40px;
+            text-align: center;
+        }
+        
+        .token-purchase-section h2 {
+            color: #ffffff;
+            margin-bottom: 20px;
+        }
+        
+        .token-purchase-section p {
+            color: #a0a0a0;
+            margin-bottom: 24px;
+        }
+        
+        .token-amount-input {
+            background: #242424;
+            border: 1px solid #404040;
+            border-radius: 4px;
+            padding: 8px 12px;
+            color: #ffffff;
+            width: 100px;
+            margin-right: 12px;
+        }
+        
+        .token-amount-input:focus {
+            outline: none;
+            border-color: #ffffff;
+        }
+        
+        .form-input {
+            background: #242424;
+            border: 1px solid #404040;
+            border-radius: 4px;
+            padding: 8px 12px;
+            color: #ffffff;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #ffffff;
+        }
+            /* Theta glass theme overrides */
+        :root {
+            --theta-bg: #030203;
+            --theta-surface: #101014;
+            --theta-panel: #161621;
+            --theta-text: #f7f7ff;
+            --theta-muted: #9ba0b5;
+            --theta-accent: #c084fc;
+            --theta-accent-strong: #a855f7;
+            --theta-border: rgba(255,255,255,0.08);
+        }
+
+        body {
+            background: radial-gradient(circle at top, rgba(124,58,237,0.18), transparent), var(--theta-bg);
+            color: var(--theta-text);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            color: var(--theta-text);
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+
+        p, label, span, li {
+            color: var(--theta-muted);
+        }
+
+        a {
+            color: var(--theta-text);
+        }
+
+        .btn, button, input[type='submit'] {
+            border-radius: 999px;
+            border: 1px solid transparent;
+            font-weight: 500;
+            padding: 10px 20px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn-primary, button.btn-primary {
+            background: linear-gradient(135deg, var(--theta-accent), var(--theta-accent-strong));
+            color: #050505;
+            box-shadow: 0 20px 40px rgba(129,97,255,0.25);
+        }
+
+        .btn-secondary, .btn-ghost, button.btn-secondary, .btn-outline {
+            background: rgba(255,255,255,0.05);
+            color: var(--theta-text);
+            border-color: var(--theta-border);
+        }
+
+        .btn:hover, button:hover, input[type='submit']:hover {
+            transform: translateY(-1px);
+        }
+
+        .card, .panel, .info-card, .content-card, .form-card, .summary-card, .section-card {
+            background: var(--theta-surface);
+            border-radius: 24px;
+            border: 1px solid var(--theta-border);
+            box-shadow: 0 25px 60px rgba(4,4,7,0.45);
+        }
+
+        .sidebar {
+            background: rgba(7,7,12,0.9);
+            border-right: 1px solid var(--theta-border);
+        }
+
+        .topbar, .header, .navbar {
+            background: rgba(7,7,12,0.85);
+            border-bottom: 1px solid var(--theta-border);
+            backdrop-filter: blur(18px);
+        }
+
+        input, select, textarea {
+            background: var(--theta-panel);
+            border: 1px solid var(--theta-border);
+            border-radius: 12px;
+            padding: 12px 14px;
+            color: var(--theta-text);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255,255,255,0.02);
+            border-radius: 18px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+        }
+
+        tr:hover {
+            background: rgba(255,255,255,0.02);
+        }
+
+        .pill, .badge, .chip, .tag, .status-tag {
+            border-radius: 999px;
+            padding: 6px 12px;
+            border: 1px solid rgba(255,255,255,0.15);
+            color: var(--theta-muted);
+            background: rgba(255,255,255,0.05);
+            font-size: 0.8rem;
+            letter-spacing: 0.05em;
+        }
+
+        footer {
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container header-content" style="justify-content: center; gap: 32px;">
+            <a href="/dashboard" class="logo">Theta<span>Summary</span></a>
+            <div class="user-actions">
+                {% if username %}
+                    <span class="username">{{ username }}</span>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+    
+    <main>
+        <div class="container">
+            <h1 class="page-title">Choose Your Plan</h1>
+            
+            {% if error %}
+            <div class="error-message">{{ error }}</div>
+            {% endif %}
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash-message">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <div class="pricing-grid">
+                <div class="pricing-card {% if current_subscription == 'plus' %}current{% endif %}">
+                    <h2 class="plan-name">Plus</h2>
+                    <div class="plan-price">
+                        <span class="original-price">$9.99<span>/month</span></span>
+                        <span class="new-price">$5<span>/month</span></span>
+                        <div class="limited-time">Limited Time</div>
+                    </div>
+                    <ul class="plan-features">
+                        <li>2 hours worth of summaries per day</li>
+                        <li>Basic AI summarization</li>
+                        <li>Standard support</li>
+                    </ul>
+                    <form action="{{ url_for('buy') }}" method="POST">
+                        <input type="hidden" name="subscription_type" value="plus">
+                        <button type="submit" class="btn btn-primary" {% if current_subscription == 'plus' %}disabled{% endif %}>
+                            {% if current_subscription == 'plus' %}Current Plan{% else %}Buy Now{% endif %}
+                        </button>
+                    </form>
+                </div>
+                
+                <div class="pricing-card {% if current_subscription == 'pro' %}current{% endif %}">
+                    <h2 class="plan-name">Pro</h2>
+                    <div class="plan-price">
+                        <span class="original-price">$20<span>/month</span></span>
+                        <span class="new-price">$15<span>/month</span></span>
+                        <div class="limited-time">Limited Time</div>
+                    </div>
+                    <ul class="plan-features">
+                        <li>150 hours worth of summaries per month</li>
+                        <li>Advanced AI summarization</li>
+                        <li>Priority support</li>
+                    </ul>
+                    <form action="{{ url_for('buy') }}" method="POST">
+                        <input type="hidden" name="subscription_type" value="pro">
+                        <button type="submit" class="btn btn-primary" {% if current_subscription == 'pro' %}disabled{% endif %}>
+                            {% if current_subscription == 'pro' %}Current Plan{% else %}Buy Now{% endif %}
+                        </button>
+                    </form>
+                </div>
+                
+                <div class="pricing-card {% if current_subscription == 'enterprise' %}current{% endif %}">
+                    <h2 class="plan-name">Enterprise</h2>
+                    <div class="plan-price">Contact Us</div>
+                    <ul class="plan-features">
+                        <li>Unlimited everything</li>
+                        <li>Premium AI summarization</li>
+                        <li>24/7 dedicated support</li>
+                        <li>Custom integration</li>
+                    </ul>
+                    <a href="mailto:support@thetasummary.com" class="btn btn-primary">Contact Us</a>
+                </div>
+            </div>
+
+            <div class="token-purchase-section">
+                <h2>Purchase Additional Tokens</h2>
+                <p>Need more tokens for AI interactions? Purchase them here.</p>
+                <p style="color: #ffffff; margin-bottom: 20px;">$1.00 per 1 million tokens</p>
+                <form action="{{ url_for('purchase_tokens') }}" method="POST">
+                    <input type="number" name="token_amount" class="token-amount-input" min="1" value="1" required>
+                    <span style="color: #a0a0a0;">million tokens</span>
+                    <button type="submit" class="btn btn-primary">Purchase Tokens</button>
+                </form>
+            </div>
+
+            <div class="token-purchase-section" style="margin-top: 20px;">
+                <h2>Purchase Recording Time</h2>
+                <p>Need more recording time? Purchase additional hours here.</p>
+                <p style="color: #ffffff; margin-bottom: 20px;">$0.20 per hour of recording</p>
+                <form action="{{ url_for('purchase_recording_time') }}" method="POST">
+                    <input type="number" name="recording_hours" class="token-amount-input" min="1" value="1" required>
+                    <span style="color: #a0a0a0;">hours of recording</span>
+                    <button type="submit" class="btn btn-primary">Purchase Hours</button>
+                </form>
+            </div>
+        </div>
+    </main>
+</body>
+</html> 
+
